@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MI_VERSION="0.1.0"
+MI_VERSION="0.4.0"
 
 mi_info() {
   if [ "${MI_QUIET:-false}" != "true" ]; then
@@ -252,8 +252,8 @@ mi_is_enabled() {
 }
 
 mi_show_help() {
-  cat <<'EOF'
-mac-inventory 0.1.0
+  cat <<EOF
+mac-inventory $MI_VERSION
 
 Usage:
   mac-inventory <command> [options]
