@@ -26,7 +26,10 @@ mi_section_selected() {
 mi_inventory_backup() {
   if [ "$MI_DRY_RUN" = "true" ]; then
     mi_info "dry-run: would write inventory to $MI_INVENTORY"
-    mi_inventory_emit_backup "/dev/stdout"
+    tmp_dry="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-dry.XXXXXX")" || return 1
+    mi_inventory_emit_backup "$tmp_dry" || { rm -f "$tmp_dry"; return 1; }
+    cat "$tmp_dry"
+    rm -f "$tmp_dry"
     return 0
   fi
 
