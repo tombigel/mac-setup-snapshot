@@ -8,10 +8,9 @@ brew_backup() {
       [ -n "$tap" ] && printf '    - %s\n' "$(mi_yaml_scalar "$tap")"
     done
     printf '  formulae:\n'
-    brew leaves --versions 2>/dev/null | while IFS= read -r line; do
-      [ -n "$line" ] || continue
-      name="$(printf '%s\n' "$line" | awk '{print $1}')"
-      version="$(printf '%s\n' "$line" | cut -d' ' -f2-)"
+    brew leaves 2>/dev/null | while IFS= read -r name; do
+      [ -n "$name" ] || continue
+      version="$(brew list --versions "$name" 2>/dev/null | cut -d' ' -f2-)"
       printf '    - name: %s\n' "$(mi_yaml_scalar "$name")"
       printf '      version: %s\n' "$(mi_yaml_scalar "$version")"
     done
