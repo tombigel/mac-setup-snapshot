@@ -38,6 +38,21 @@ mac-inventory restore -i mac-inventory.yml
 
 No arguments, `help`, `--help`, and `-h` show help.
 
+## Inventory Sources
+
+By default, backup includes:
+
+- Mac App Store apps through `mas`.
+- Homebrew taps, formulae, and casks.
+- Global npm packages.
+- pip and pipx packages.
+- Oh My Zsh install state, theme, plugins, and `.zshrc` reference.
+- Xcode Command Line Tools and Xcode.app state.
+- Explicitly allowlisted dotfiles.
+- Manual apps from `/Applications` and `~/Applications`.
+
+Disable sources with flags such as `--apps=false`, `--brew=false`, or `--dotfiles=false`.
+
 ## Examples
 
 ```bash
@@ -88,5 +103,15 @@ mac-inventory backup -B=false
 - Gist uploads run secret checks and default to secret Gists.
 - CLI token arguments are supported for automation, but `--github-token-env` or `gh auth login` is safer.
 
-See [docs/PLAN.md](docs/PLAN.md) for the full implementation plan and [docs/PROMPT.md](docs/PROMPT.md) for the prompt history.
+## Development
 
+Expected checks:
+
+```bash
+shellcheck bin/mac-inventory lib/**/*.sh
+bats test
+```
+
+The tests use mocked package-manager commands so they can run without installing or changing real applications.
+
+See [docs/PLAN.md](docs/PLAN.md) for the full implementation plan and [docs/PROMPT.md](docs/PROMPT.md) for the prompt history.
