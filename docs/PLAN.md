@@ -19,7 +19,10 @@ Defaults:
 Commands:
 
 - `backup`: create or update inventory.
+- `prepare`: check/install clean-Mac prerequisites before restore.
 - `restore`: restore from inventory.
+- `continue`: resume interrupted prepare/restore workflows.
+- `status`: show the current resume checklist.
 - `list`: list inventory or installed/missing items.
 - `doctor`: check tools, login/auth state, Xcode state, GitHub auth state, and readiness.
 - `config generate`: generate starter config.
@@ -49,6 +52,8 @@ Main options:
 - `--quiet`, `-q`
 - `--help`, `-h`
 - `--command-timeout`, `-t`
+- `--skip-prepare`, `--prepare-only`, `--pause-after-prepare`
+- `--caffeinate`, `--resume-file`, `--reset-resume`, `--check-only`
 
 Short-option behavior:
 
@@ -114,6 +119,8 @@ Manual app matching:
 Safety rules:
 
 - Restore is additive-only in v1.
+- Restore runs prepare preflight by default unless `--skip-prepare=true`.
+- Prepare/restore create durable resume state under `~/.mac-inventory/resume.yml`.
 - `--dry-run` prevents inventory writes, Gist writes, dotfile copies, downloads, installs, upgrades, license acceptance, overwrites, and shell changes.
 - Never execute YAML/config/inventory content with `eval` or command substitution.
 - Do not implement arbitrary user-defined restore hooks in v1.
@@ -138,6 +145,7 @@ lib/config.sh
 lib/inventory.sh
 lib/gist.sh
 lib/safety.sh
+lib/workflow.sh
 lib/sources/*.sh
 test/
 docs/PLAN.md
@@ -151,10 +159,11 @@ Behavior:
 - Parse CLI flags first, merge config defaults second, then command defaults.
 - `config generate -o <path>` writes starter YAML config.
 - `doctor` checks local package managers, Gist auth, App Store login, Oh My Zsh, and Xcode state.
+- `prepare` checks Xcode CLT, Homebrew, yq, mas, pipx, GitHub auth, and App Store login in order.
 - Gist auth order: explicit token, token env var, `gh auth status`, then interactive `gh auth login` if allowed.
 - Gist operations prefer `gh gist`; token fallback uses the GitHub REST API.
 - `backup` gathers enabled sources, records versions, writes YAML atomically, and supports `--update`.
-- `restore` loads inventory, checks existing installs, then skips/prompts/overwrites according to flags.
+- `restore` runs prepare preflight, loads inventory, checks existing installs, then skips/prompts/overwrites according to flags.
 - Oh My Zsh restore installs only when missing and uses `RUNZSH=no CHSH=no KEEP_ZSHRC=yes`.
 - `.zshrc` restore is handled only through dotfiles.
 - Xcode CLT restore uses `xcode-select --install` when missing.
@@ -173,6 +182,7 @@ Required coverage:
 - Backup inventory generation for every source.
 - Manual app cask matching.
 - Restore dry-run and existing detection.
+- Prepare dry-run, resume/continue/status, caffeinate, and restore preflight behavior.
 - Oh My Zsh and Xcode detection.
 - Prompt policy.
 - Dotfile copy/restore policy.

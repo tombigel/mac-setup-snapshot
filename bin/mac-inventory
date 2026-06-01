@@ -17,6 +17,8 @@ PROJECT_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 . "$PROJECT_DIR/lib/inventory.sh"
 # shellcheck source=../lib/gist.sh
 . "$PROJECT_DIR/lib/gist.sh"
+# shellcheck source=../lib/workflow.sh
+. "$PROJECT_DIR/lib/workflow.sh"
 
 for source_file in "$PROJECT_DIR"/lib/sources/*.sh; do
   # shellcheck source=/dev/null
@@ -53,6 +55,19 @@ main() {
       ;;
     restore)
       mi_inventory_restore
+      rc=$?
+      ;;
+    prepare)
+      mi_workflow_run "prepare"
+      rc=$?
+      ;;
+    continue)
+      mi_workflow_continue
+      rc=$?
+      ;;
+    status)
+      mi_resume_reset_if_requested || return 1
+      mi_resume_status
       rc=$?
       ;;
     list)

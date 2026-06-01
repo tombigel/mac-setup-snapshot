@@ -116,6 +116,18 @@ EOF
 }
 
 mi_inventory_restore() {
+  if [ "$MI_SKIP_PREPARE" != "true" ]; then
+    if [ "$MI_PREPARE_ONLY" = "true" ]; then
+      mi_workflow_run "prepare"
+      return $?
+    fi
+    mi_workflow_run "restore"
+    return $?
+  fi
+  mi_inventory_restore_body
+}
+
+mi_inventory_restore_body() {
   [ -f "$MI_INVENTORY" ] || { mi_error "inventory not found: $MI_INVENTORY"; return 1; }
   mi_require_yq || return 1
 

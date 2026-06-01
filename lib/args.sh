@@ -6,6 +6,13 @@ mi_args_init() {
   MI_HELP="false"
   MI_CONFIG="mac-inventory.config.yml"
   MI_INVENTORY="mac-inventory.yml"
+  MI_SKIP_PREPARE="false"
+  MI_PREPARE_ONLY="false"
+  MI_PAUSE_AFTER_PREPARE="false"
+  MI_CAFFEINATE="auto"
+  MI_RESUME_FILE="~/.mac-inventory/resume.yml"
+  MI_RESET_RESUME="false"
+  MI_CHECK_ONLY="false"
   MI_OUTPUT=""
   MI_APPS="true"
   MI_BREW="true"
@@ -107,7 +114,7 @@ mi_set_command_token() {
 
 mi_long_option_needs_value() {
   case "$1" in
-    --config|--inventory|--apps|--brew|--npm|--pip|--pipx|--oh-my-zsh|--xcode|--dotfiles|--manual-apps|--interactive|--check-manual-brew|--manual-brew-match|--versions|--dotfiles-path|--output|--skip-existing|--overwrite|--use-versions|--install-missing-tools|--login-check|--section|--format|--gist-id|--gist-create|--gist-visibility|--gist-file|--gist-config-file|--github-login|--github-token|--github-token-env|--command-timeout)
+    --config|--inventory|--skip-prepare|--pause-after-prepare|--caffeinate|--resume-file|--check-only|--apps|--brew|--npm|--pip|--pipx|--oh-my-zsh|--xcode|--dotfiles|--manual-apps|--interactive|--check-manual-brew|--manual-brew-match|--versions|--dotfiles-path|--output|--skip-existing|--overwrite|--use-versions|--install-missing-tools|--login-check|--section|--format|--gist-id|--gist-create|--gist-visibility|--gist-file|--gist-config-file|--github-login|--github-token|--github-token-env|--command-timeout)
       return 0
       ;;
     *)
@@ -129,6 +136,19 @@ mi_set_long_option() {
   case "$name" in
     --config) MI_CONFIG="$value" ;;
     --inventory) MI_INVENTORY="$value" ;;
+    --skip-prepare) mi_set_bool_var MI_SKIP_PREPARE "$value" || return 2 ;;
+    --prepare-only) MI_PREPARE_ONLY="true" ;;
+    --pause-after-prepare) mi_set_bool_var MI_PAUSE_AFTER_PREPARE "$value" || return 2 ;;
+    --caffeinate)
+      if [ "$value" = "auto" ]; then
+        MI_CAFFEINATE="auto"
+      else
+        mi_set_bool_var MI_CAFFEINATE "$value" || return 2
+      fi
+      ;;
+    --resume-file) MI_RESUME_FILE="$value" ;;
+    --reset-resume) MI_RESET_RESUME="true" ;;
+    --check-only) mi_set_bool_var MI_CHECK_ONLY "$value" || return 2 ;;
     --apps) mi_set_bool_var MI_APPS "$value" || return 2 ;;
     --brew) mi_set_bool_var MI_BREW "$value" || return 2 ;;
     --npm) mi_set_bool_var MI_NPM "$value" || return 2 ;;

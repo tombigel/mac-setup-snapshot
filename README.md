@@ -20,6 +20,8 @@ For convenience, add `bin/` to your `PATH`.
 
 ```bash
 mac-inventory doctor
+mac-inventory prepare --dry-run
+mac-inventory prepare
 mac-inventory config generate -o mac-inventory.config.yml
 mac-inventory backup -i mac-inventory.yml
 mac-inventory restore -i mac-inventory.yml --dry-run
@@ -29,7 +31,10 @@ mac-inventory restore -i mac-inventory.yml
 ## Commands
 
 - `backup`: create or update an inventory.
+- `prepare`: check/install clean-Mac prerequisites before restore.
 - `restore`: restore from an inventory.
+- `continue`: resume an interrupted prepare/restore workflow.
+- `status`: show the current resume checklist.
 - `list`: list inventory sections.
 - `doctor`: check tools, login state, Xcode state, GitHub auth, and readiness.
 - `config generate`: generate starter config.
@@ -37,6 +42,25 @@ mac-inventory restore -i mac-inventory.yml
 - `gist push`: upload inventory/config to a GitHub Gist.
 
 No arguments, `help`, `--help`, and `-h` show help.
+
+## Clean Mac Restore Flow
+
+On a fresh Mac, run:
+
+```bash
+mac-inventory prepare
+mac-inventory restore --dry-run
+mac-inventory restore
+```
+
+`restore` runs `prepare` automatically unless `--skip-prepare=true` is passed. Long interactive prepare/restore workflows use `caffeinate` when available to reduce sleep interruptions.
+
+If the process is interrupted, inspect or resume it:
+
+```bash
+mac-inventory status
+mac-inventory continue
+```
 
 ## Inventory Sources
 

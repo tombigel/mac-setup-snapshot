@@ -37,4 +37,4 @@ It should support:
 - Manual app to Homebrew cask matching defaults to interactive `ask`, with `never` and `all` modes.
 - Add GitHub Gist input/output for config and inventory, with interactive `gh` login or token/env credentials.
 - Use parallel subagents when implementation can be safely split, while keeping integration in the main thread.
-
+- Add a clean-Mac bootstrap flow with prerequisite installation, resume/continue support, optional caffeinate, clean verbose UX, and AI-agent repo guidance.

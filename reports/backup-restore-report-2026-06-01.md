@@ -87,3 +87,6 @@ Both issues were fixed locally before the final backup and dry-run restore.
 - Improve Xcode.app version detection because `mdls` did not return a usable version even though the app directory was detected.
 - Add a report command or structured run summary output so future backup/restore validation does not require manual command-output review.
 
+## Follow-Up Status
+
+Subsequent implementation added bounded external command handling, reduced unrelated Homebrew work, and planned/implemented a clean-Mac bootstrap flow with resume state for interrupted prepare/restore runs.

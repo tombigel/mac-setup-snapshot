@@ -9,7 +9,10 @@
 ```bash
 mac-inventory <command> [options]
 mac-inventory backup [options]
+mac-inventory prepare [options]
 mac-inventory restore [options]
+mac-inventory continue [options]
+mac-inventory status [options]
 mac-inventory list [options]
 mac-inventory doctor [options]
 mac-inventory config generate [options]
@@ -62,7 +65,49 @@ mac-inventory restore -g abc123 --gist-pull --dry-run
 
 Restore checks existing installations first. By default, existing items are skipped. Dotfiles are skipped unless `--overwrite=true` is used; when overwriting, the current file is backed up first.
 
+Restore runs `prepare` first unless `--skip-prepare=true` is passed.
+
 `--dry-run` prevents installs, downloads, Gist writes, dotfile copies, overwrites, shell changes, and license acceptance.
+
+### `prepare`
+
+Check and install clean-Mac prerequisites before restore.
+
+```bash
+mac-inventory prepare
+mac-inventory prepare --dry-run
+mac-inventory prepare --check-only=true
+mac-inventory prepare --caffeinate=false
+```
+
+Prerequisite order:
+
+1. Xcode Command Line Tools.
+2. Homebrew.
+3. `yq`.
+4. `mas`, when App Store or Xcode restore is enabled.
+5. `pipx`, when pipx restore is enabled.
+6. GitHub auth, when Gist sync is enabled.
+7. App Store login, when `mas` is needed.
+
+### `continue`
+
+Resume an interrupted `prepare` or `restore` workflow from the resume checklist.
+
+```bash
+mac-inventory continue
+mac-inventory continue --dry-run
+mac-inventory continue --resume-file ~/.mac-inventory/resume.yml
+```
+
+### `status`
+
+Print the current resume checklist.
+
+```bash
+mac-inventory status
+mac-inventory status --resume-file ~/.mac-inventory/resume.yml
+```
 
 ### `list`
 
@@ -235,6 +280,34 @@ HOMEBREW_NO_ANALYTICS=1
 HOMEBREW_NO_INSTALL_CLEANUP=1
 HOMEBREW_NO_ENV_HINTS=1
 ```
+
+`--skip-prepare true|false`
+
+Skip restore preflight. Default: `false` for `restore`.
+
+`--prepare-only`
+
+Reserved for workflows that should stop after prepare.
+
+`--pause-after-prepare true|false`
+
+Pause after prepare completes. Default: `false`.
+
+`--caffeinate true|false`
+
+Use `caffeinate` to reduce sleep interruptions during `prepare`, `restore`, and `continue`. Defaults to enabled for interactive long workflows.
+
+`--resume-file <path>`
+
+Resume checklist path. Default: `~/.mac-inventory/resume.yml`.
+
+`--reset-resume`
+
+Remove stale resume state after confirmation.
+
+`--check-only true|false`
+
+Check prerequisites without installing. Used by prepare-style checks.
 
 ## Backup Options
 
@@ -439,6 +512,8 @@ defaults:
   skip_existing: true
   overwrite: false
   command_timeout: 30
+  caffeinate: true
+  resume_file: ~/.mac-inventory/resume.yml
 
 sources:
   apps: true
@@ -450,6 +525,14 @@ sources:
   xcode: true
   dotfiles: true
   manual_apps: true
+
+prepare:
+  install_xcode_cli: prompt
+  install_homebrew: prompt
+  install_yq: prompt
+  install_mas: prompt
+  install_pipx: prompt
+  pause_after_manual_steps: true
 ```
 
 CLI flags override config defaults for the current run.
@@ -548,6 +631,7 @@ Apple ID login and Xcode account state cannot be fully automated; the CLI report
 - `mac-inventory.config.yml`: default config.
 - `files/`: copied dotfiles next to the inventory.
 - `~/.mac-inventory/restore-backups/<timestamp>/`: dotfile restore backups.
+- `~/.mac-inventory/resume.yml`: default prepare/restore resume checklist.
 - `docs/PLAN.md`: implementation plan.
 - `docs/PROMPT.md`: prompt history.
 - `docs/MANUAL.md`: this manual.
@@ -574,6 +658,7 @@ Used for temporary command output, downloaded installers, and timeout wrappers.
 - Run `restore --dry-run` first on a newly formatted Mac.
 - Use `--versions=false` when you want a faster inventory without remote version lookups.
 - Use `--command-timeout` to keep package-manager hangs bounded.
+- Use `mac-inventory continue` after interrupting a prepare or restore workflow.
 
 ## Examples
 
@@ -607,4 +692,3 @@ Create and upload a secret Gist:
 ```bash
 mac-inventory backup --gist-create=true --gist-push --github-login=interactive
 ```
-

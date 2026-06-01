@@ -14,6 +14,9 @@ mi_config_apply() {
     mi_config_bool defaults.interactive MI_INTERACTIVE
     mi_config_bool defaults.skip_existing MI_SKIP_EXISTING
     mi_config_bool defaults.overwrite MI_OVERWRITE
+    mi_config_bool defaults.caffeinate MI_CAFFEINATE
+    mi_config_string defaults.resume_file MI_RESUME_FILE
+    mi_config_bool prepare.pause_after_manual_steps MI_PAUSE_AFTER_PREPARE
     mi_config_number defaults.command_timeout MI_COMMAND_TIMEOUT
   elif [ -f "$MI_CONFIG" ]; then
     mi_warn "config exists but yq is not installed; using CLI/default values"
@@ -27,6 +30,16 @@ mi_config_number() {
   case "$value" in
     ''|null) return 0 ;;
     *[!0-9]*) mi_warn "config $key must be a number; ignoring" ;;
+    *) printf -v "$var" '%s' "$value" ;;
+  esac
+}
+
+mi_config_string() {
+  key="$1"
+  var="$2"
+  value="$(yq e ".$key // \"\"" "$MI_CONFIG" 2>/dev/null)"
+  case "$value" in
+    ''|null) return 0 ;;
     *) printf -v "$var" '%s' "$value" ;;
   esac
 }
@@ -67,6 +80,8 @@ defaults:
   skip_existing: true
   overwrite: false
   command_timeout: 30
+  caffeinate: true
+  resume_file: ~/.mac-inventory/resume.yml
 
 sources:
   apps: true
@@ -95,6 +110,14 @@ restore:
     install_command_line_tools: true
     install_xcode_app: prompt
     accept_license: prompt
+
+prepare:
+  install_xcode_cli: prompt
+  install_homebrew: prompt
+  install_yq: prompt
+  install_mas: prompt
+  install_pipx: prompt
+  pause_after_manual_steps: true
 
 gist:
   visibility: secret

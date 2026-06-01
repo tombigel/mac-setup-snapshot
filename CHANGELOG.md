@@ -4,6 +4,12 @@
 
 ### Added
 
+- Added clean-Mac bootstrap commands: `prepare`, `continue`, and `status`.
+- Added restore preflight through `prepare` unless `--skip-prepare=true`.
+- Added resumable workflow state with a YAML checklist under `~/.mac-inventory/resume.yml`.
+- Added clean step output before prepare/restore actions, including why the step is needed and how to resume after interruption.
+- Added optional `caffeinate` support for long interactive workflows.
+- Added AI-agent repo guidance: `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `docs/AI.md`, and `ai/codex-skill/SKILL.md`.
 - Added a man-page-style Markdown manual at `docs/MANUAL.md` covering commands, options, config, files, safety, exit codes, and examples.
 - Added configurable external command timeout via `--command-timeout <seconds>` and `-t <seconds>`.
 - Created the initial Bash CLI with `backup`, `restore`, `list`, `doctor`, `config generate`, `gist pull`, and `gist push`.

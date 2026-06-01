@@ -263,6 +263,9 @@ Commands:
   restore            Restore from an inventory
   list               List inventory sections
   doctor             Check local readiness
+  prepare            Install/check prerequisites before restore
+  continue           Resume an interrupted workflow
+  status             Show current resume checklist
   config generate    Generate starter config
   gist pull          Pull inventory/config from GitHub Gist
   gist push          Push inventory/config to GitHub Gist
@@ -288,6 +291,13 @@ Global options:
   -q, --quiet                         Quiet output
   -h, --help                          Show help
   -t, --command-timeout <seconds>      Timeout for external commands
+      --skip-prepare true|false        Skip restore prepare preflight
+      --prepare-only                   Stop after prepare
+      --pause-after-prepare true|false Pause after prepare completes
+      --caffeinate true|false          Prevent sleep for long workflows
+      --resume-file <path>             Resume checklist path
+      --reset-resume                   Remove stale resume state
+      --check-only true|false          Check without installing
 
 Backup options:
   -u, --update
