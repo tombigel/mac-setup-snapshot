@@ -95,6 +95,7 @@ appstore_backup() {
 }
 
 appstore_restore() {
+  local installed_apps id
   mi_has mas || mi_install_brew_tool_if_allowed mas mas || { mi_warn "mas missing; skipping App Store restore"; return 0; }
   if ! appstore_login_ready; then
     appstore_handle_missing_login "restore"

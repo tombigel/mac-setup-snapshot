@@ -55,7 +55,7 @@ mi_prompt_yes_no() {
     suffix="[Y/n]"
   fi
   printf '%s %s ' "$prompt" "$suffix" >&2
-  read answer
+  read -r answer
   case "$answer" in
     y|Y|yes|YES) return 0 ;;
     n|N|no|NO) return 1 ;;

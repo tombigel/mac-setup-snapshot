@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 manual_apps_backup() {
+  local dir app name query cask_matches cask selected bundle_id version
   printf 'manual_apps:\n'
   printf '  apps:\n'
   for dir in /Applications "$HOME/Applications"; do
@@ -47,6 +48,7 @@ manual_apps_backup() {
 }
 
 manual_apps_restore() {
+  local count
   count="$(yq e '.manual_apps.apps | length' "$MI_INVENTORY" 2>/dev/null || printf '0')"
   if [ "$count" != "0" ] && [ "$count" != "null" ]; then
     mi_warn "manual apps require manual restore; run list -S manual_apps"

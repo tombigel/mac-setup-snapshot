@@ -21,6 +21,8 @@
 ### Fixed
 
 - Preserved explicit snapshot paths when iCloud endpoint defaults are active.
+- Fixed validation failures from shellcheck and host-dependent Bats fixtures.
+- Enforced the documented `yq v4` requirement instead of accepting any `yq` binary on `PATH`.
 
 ## 0.5.0 - 2026-06-01
 

@@ -50,7 +50,7 @@ make_icloud() {
 version: 1
 apps: []
 YAML
-  mock_command yq 'exit 0'
+  mock_command yq 'if [ "$1" = "--version" ]; then echo "yq (https://github.com/mikefarah/yq/) version v4.0.0"; exit 0; fi; exit 0'
 
   run "$BIN" restore --dry-run --skip-prepare=true --interactive=false --install-missing-tools=false --icloud-root "$ICLOUD_ROOT"
   [ "$status" -eq 0 ]
@@ -75,7 +75,7 @@ YAML
 version: 1
 apps: []
 YAML
-  mock_command yq 'exit 0'
+  mock_command yq 'if [ "$1" = "--version" ]; then echo "yq (https://github.com/mikefarah/yq/) version v4.0.0"; exit 0; fi; exit 0'
   run "$BIN" restore --source local --inventory inventory.yml --skip-prepare=true --dry-run
   [ "$status" -eq 0 ]
 }

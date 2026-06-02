@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 xcode_backup() {
+  local developer_dir version
   printf 'xcode:\n'
   if xcode-select -p >/dev/null 2>&1; then
     developer_dir="$(xcode-select -p 2>/dev/null)"
@@ -69,7 +70,15 @@ xcode_doctor() {
     mi_warn "xcode: Xcode.app missing"
   fi
   if mi_has xcodebuild; then
-    xcodebuild -license check >/dev/null 2>&1 && mi_info "xcode: license accepted" || mi_warn "xcode: license not accepted or unavailable"
-    xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1 && mi_info "xcode: first launch complete" || mi_warn "xcode: first launch incomplete or unavailable"
+    if xcodebuild -license check >/dev/null 2>&1; then
+      mi_info "xcode: license accepted"
+    else
+      mi_warn "xcode: license not accepted or unavailable"
+    fi
+    if xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1; then
+      mi_info "xcode: first launch complete"
+    else
+      mi_warn "xcode: first launch incomplete or unavailable"
+    fi
   fi
 }

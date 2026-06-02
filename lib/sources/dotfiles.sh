@@ -4,11 +4,13 @@ dotfiles_default_paths() {
   if [ -n "$MI_DOTFILES_PATHS" ]; then
     printf '%s\n' "$MI_DOTFILES_PATHS"
   else
+    # shellcheck disable=SC2088
     printf '%s\n' "~/.zshrc" "~/.gitconfig" "~/.gitignore_global" "~/.ssh/config"
   fi
 }
 
 dotfiles_backup() {
+  local base_dir raw safe_path rel backup_path exists sha
   printf 'dotfiles:\n'
   printf '  files:\n'
   base_dir="$(dirname "$MI_INVENTORY")/files"
@@ -18,7 +20,7 @@ dotfiles_backup() {
       mi_warn "dotfiles: unsafe path skipped: $raw"
       continue
     fi
-    rel="${safe_path#$HOME/}"
+    rel="${safe_path#"$HOME"/}"
     backup_path="files/$rel"
     if [ -f "$safe_path" ]; then
       mi_file_has_secret "$safe_path" && mi_warn "dotfiles: possible secret in $raw"
@@ -40,10 +42,11 @@ dotfiles_backup() {
 }
 
 dotfiles_restore() {
+  local raw safe_path rel source_path
   yq e '.dotfiles.files[]?.path' "$MI_INVENTORY" 2>/dev/null | while IFS= read -r raw; do
     [ -n "$raw" ] && [ "$raw" != "null" ] || continue
     safe_path="$(mi_safe_home_path "$raw")" || { mi_warn "dotfiles: unsafe restore path skipped: $raw"; continue; }
-    rel="${safe_path#$HOME/}"
+    rel="${safe_path#"$HOME"/}"
     source_path="$(dirname "$MI_INVENTORY")/files/$rel"
     [ -f "$source_path" ] || { mi_warn "dotfiles: backup missing for $raw"; continue; }
     if [ -e "$safe_path" ] && [ "$MI_OVERWRITE" != "true" ]; then
@@ -62,4 +65,3 @@ dotfiles_restore() {
     mi_info "dotfiles: restored $raw"
   done
 }
-

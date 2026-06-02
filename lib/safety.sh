@@ -73,12 +73,22 @@ mi_backup_existing_file() {
 }
 
 mi_require_yq() {
-  if mi_has yq; then
+  if mi_yq_is_v4; then
     return 0
   fi
-  mi_install_brew_tool_if_allowed yq yq && return 0
+  mi_install_brew_tool_if_allowed yq yq && mi_yq_is_v4 && return 0
   mi_error "yq v4 is required for this command"
   return 1
+}
+
+mi_yq_is_v4() {
+  local version
+  mi_has yq || return 1
+  version="$(yq --version 2>/dev/null || true)"
+  case "$version" in
+    *"version v4."*|*"version 4."*) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 mi_download_installer() {

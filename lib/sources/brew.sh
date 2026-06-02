@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 brew_backup() {
+  local brew_taps brew_formulae brew_casks name version formula_version line cask
   printf 'brew:\n'
   printf '  taps:\n'
   if mi_has brew; then
@@ -42,6 +43,7 @@ brew_backup() {
 }
 
 brew_restore() {
+  local installed_taps tap name
   mi_has brew || { mi_warn "brew missing; skipping Homebrew restore"; return 0; }
   mi_brew_capture installed_taps tap || installed_taps=""
   yq e '.brew.taps[]?' "$MI_INVENTORY" 2>/dev/null | while IFS= read -r tap; do

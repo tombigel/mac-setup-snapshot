@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 npm_backup() {
+  local npm_globals path name version npm_version
   printf 'npm:\n'
   printf '  globals:\n'
   if ! mi_has npm; then
@@ -20,6 +21,7 @@ npm_backup() {
 }
 
 npm_restore() {
+  local name
   mi_has npm || { mi_warn "npm missing; skipping npm restore"; return 0; }
   yq e '.npm.globals[]?.name' "$MI_INVENTORY" 2>/dev/null | while IFS= read -r name; do
     [ -n "$name" ] && [ "$name" != "null" ] || continue

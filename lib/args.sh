@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034
 
 mi_args_init() {
   MI_PROGRAM_NAME="${MI_PROGRAM_NAME:-$(basename "$0")}"
@@ -19,7 +20,7 @@ mi_args_init() {
   MI_PREPARE_ONLY="false"
   MI_PAUSE_AFTER_PREPARE="false"
   MI_CAFFEINATE="auto"
-  MI_RESUME_FILE="~/.mac-setup/resume.yml"
+  MI_RESUME_FILE="$HOME/.mac-setup/resume.yml"
   MI_RESET_RESUME="false"
   MI_CHECK_ONLY="false"
   MI_OUTPUT=""

@@ -101,22 +101,22 @@ mi_report_render_md() {
   local status="ok"
   local severity section code message
   [ "$rc" -eq 0 ] || status="failed"
-  printf '# Mac Setup Snapshot Process Report\n\n'
-  printf '%s `%s`\n' "- Command:" "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}"
-  printf '%s `%s`\n' "- Status:" "$status"
-  printf '%s `%s`\n' "- Dry run:" "$MI_DRY_RUN"
-  printf '%s `%s`\n' "- Setup snapshot:" "$MI_INVENTORY"
-  printf '%s `%s`\n' "- Started:" "$MI_REPORT_STARTED_AT"
-  printf '%s `%s`\n' "- Finished:" "$(mi_timestamp)"
-  printf '%s `%s`\n' "- Duration seconds:" "$(mi_report_duration_seconds)"
-  printf '%s `%s`\n\n' "- Counts:" "$(mi_report_counts_line)"
-  printf '## Warnings And Actions\n\n'
+  printf "# Mac Setup Snapshot Process Report\n\n"
+  printf "%s \`%s\`\n" "- Command:" "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}"
+  printf "%s \`%s\`\n" "- Status:" "$status"
+  printf "%s \`%s\`\n" "- Dry run:" "$MI_DRY_RUN"
+  printf "%s \`%s\`\n" "- Setup snapshot:" "$MI_INVENTORY"
+  printf "%s \`%s\`\n" "- Started:" "$MI_REPORT_STARTED_AT"
+  printf "%s \`%s\`\n" "- Finished:" "$(mi_timestamp)"
+  printf "%s \`%s\`\n" "- Duration seconds:" "$(mi_report_duration_seconds)"
+  printf "%s \`%s\`\n\n" "- Counts:" "$(mi_report_counts_line)"
+  printf "## Warnings And Actions\n\n"
   if [ -n "${MI_REPORT_EVENTS_FILE:-}" ] && [ -s "$MI_REPORT_EVENTS_FILE" ]; then
     while IFS="$(printf '\t')" read -r severity section code message; do
-      printf '%s `%s` `%s/%s`: %s\n' "-" "$severity" "$section" "$code" "$message"
+      printf "%s \`%s\` \`%s/%s\`: %s\n" "-" "$severity" "$section" "$code" "$message"
     done <"$MI_REPORT_EVENTS_FILE"
   else
-    printf 'None.\n'
+    printf "None.\n"
   fi
 }
 

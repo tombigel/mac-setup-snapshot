@@ -9,6 +9,7 @@ oh_my_zsh_path() {
 }
 
 oh_my_zsh_backup() {
+  local zsh_dir zshrc theme plugins
   zsh_dir="$(oh_my_zsh_path)"
   zshrc="$HOME/.zshrc"
   printf 'oh_my_zsh:\n'
@@ -23,6 +24,7 @@ oh_my_zsh_backup() {
     plugins="$(sed -n 's/^plugins=(\(.*\)).*/\1/p' "$zshrc" | head -n 1)"
     printf '  theme: %s\n' "$(mi_yaml_scalar "$theme")"
     printf '  plugins: %s\n' "$(mi_yaml_scalar "$plugins")"
+    # shellcheck disable=SC2088
     printf '  zshrc: %s\n' "$(mi_yaml_scalar "~/.zshrc")"
   else
     printf '  theme: ""\n'
@@ -32,6 +34,7 @@ oh_my_zsh_backup() {
 }
 
 oh_my_zsh_restore() {
+  local zsh_dir tmp url rc
   zsh_dir="$(oh_my_zsh_path)"
   if [ -d "$zsh_dir" ] && [ "$MI_SKIP_EXISTING" = "true" ]; then
     mi_info "oh-my-zsh: already installed"
@@ -61,4 +64,3 @@ oh_my_zsh_doctor() {
     mi_warn "oh-my-zsh: missing"
   fi
 }
-

@@ -41,7 +41,7 @@ setup() {
 
 @test "backup emits mocked brew and npm inventory" {
   mock_command brew 'while [ "$1" = "env" ] || [ "${1#HOMEBREW_}" != "$1" ]; do shift; done; case "$1 $2" in "tap ") echo homebrew/core ;; "leaves ") echo git ;; "list --versions") echo "git 2.0" ;; "list --cask") echo "visual-studio-code 1.0" ;; *) exit 0 ;; esac'
-  mock_command npm 'if [ "$1" = "list" ]; then echo /prefix/lib/node_modules/typescript; elif [ "$1" = "view" ]; then echo 5.0.0; fi'
+  mock_command npm 'if [ "$1" = "list" ]; then printf "%s\n" /prefix /prefix/lib/node_modules/typescript; elif [ "$1" = "view" ]; then echo 5.0.0; fi'
 
   run "$BIN" backup --target local --apps=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
@@ -50,7 +50,7 @@ setup() {
 }
 
 @test "command timeout fails slow mas inventory with warning" {
-  mock_command mas 'sleep 5'
+  mock_command mas 'if [ "$1" = "account" ]; then echo "user@example.com"; elif [ "$1" = "list" ]; then sleep 5; fi'
   run "$BIN" backup --target local --apps=true --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false --command-timeout 1
   [ "$status" -eq 0 ]
   [[ "$output" == *"timed out after 1s"* ]]

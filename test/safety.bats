@@ -12,7 +12,8 @@ setup() {
 version: 1
 apps: []
 EOF
-  run "$BIN" restore -i inventory.yml --interactive=false --install-missing-tools=false
+  mock_command yq 'if [ "$1" = "--version" ]; then echo "yq 3.4.1"; exit 0; fi; exit 1'
+  run "$BIN" restore -i inventory.yml --skip-prepare=true --interactive=false --install-missing-tools=false
   [ "$status" -eq 1 ]
   [[ "$output" == *"yq v4 is required"* ]]
 }
@@ -30,8 +31,9 @@ version: 1
 oh_my_zsh:
   installed: false
 EOF
-  mock_command yq 'exit 0'
-  run "$BIN" restore -i inventory.yml -S oh_my_zsh --dry-run
+  mock_command yq 'if [ "$1" = "--version" ]; then echo "yq (https://github.com/mikefarah/yq/) version v4.0.0"; exit 0; fi; exit 0'
+  export ZSH="$BATS_TEST_TMPDIR/missing-oh-my-zsh"
+  run "$BIN" restore -i inventory.yml -S oh_my_zsh --skip-prepare=true --dry-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"RUNZSH=no CHSH=no KEEP_ZSHRC=yes"* ]]
 }
@@ -42,4 +44,3 @@ EOF
   [ "$status" -eq 1 ]
   [[ "$output" == *"config not written"* ]]
 }
-
