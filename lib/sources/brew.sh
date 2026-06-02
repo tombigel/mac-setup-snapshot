@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 brew_backup() {
-  local brew_taps brew_formulae brew_casks name version formula_version line cask
+  local brew_taps brew_formulae brew_casks name version formula_version line cask display_name path app_version
   printf 'brew:\n'
   printf '  taps:\n'
   if mi_has brew; then
@@ -22,24 +22,53 @@ brew_backup() {
     done
     printf '  casks:\n'
     mi_brew_capture brew_casks list --cask --versions || brew_casks=""
+    if [ -n "$brew_casks" ] || { [ -n "${MI_MATCHED_CASKS_FILE:-}" ] && [ -s "$MI_MATCHED_CASKS_FILE" ]; }; then
+      mi_app_index_ensure || true
+    fi
     printf '%s\n' "$brew_casks" | while IFS= read -r line; do
       [ -n "$line" ] || continue
       name="$(printf '%s\n' "$line" | awk '{print $1}')"
       version="$(printf '%s\n' "$line" | cut -d' ' -f2-)"
-      printf '    - name: %s\n' "$(mi_yaml_scalar "$name")"
-      printf '      version: %s\n' "$(mi_yaml_scalar "$version")"
+      brew_emit_cask_item "$name" "$version" "" "" ""
     done
     if [ -n "${MI_MATCHED_CASKS_FILE:-}" ] && [ -s "$MI_MATCHED_CASKS_FILE" ]; then
-      sort -u "$MI_MATCHED_CASKS_FILE" | while IFS= read -r cask; do
+      sort -u "$MI_MATCHED_CASKS_FILE" | while IFS="|" read -r cask display_name path app_version; do
         [ -n "$cask" ] || continue
-        printf '    - name: %s\n' "$(mi_yaml_scalar "$cask")"
-        printf '      version: "matched-manual-app"\n'
+        brew_emit_cask_item "$cask" "matched-manual-app" "$display_name" "$path" "$app_version"
       done
     fi
   else
     printf '  formulae: []\n'
     printf '  casks: []\n'
   fi
+}
+
+brew_emit_cask_item() {
+  local name="$1"
+  local version="$2"
+  local display_name="${3:-}"
+  local path="${4:-}"
+  local app_version="${5:-}"
+  local match app_path app_name app_bundle_id matched_version
+  match="$(mi_app_index_match_cask_row "$name" || true)"
+  if [ -n "$match" ]; then
+    IFS="|" read -r app_path app_name app_bundle_id matched_version _ _ <<EOF
+$match
+EOF
+    [ -n "$display_name" ] || display_name="$app_name"
+    [ -n "$path" ] || path="$app_path"
+    [ -n "$app_version" ] || app_version="$matched_version"
+    mi_verbose "brew: matched cask $name to app ${display_name:-unknown} path=${path:-unknown} bundle_id=${app_bundle_id:-unknown}"
+  elif [ -n "$display_name" ] || [ -n "$path" ]; then
+    mi_verbose "brew: using manual app metadata for cask $name path=${path:-unknown}"
+  else
+    mi_verbose "brew: no installed app match for cask $name"
+  fi
+  printf '    - name: %s\n' "$(mi_yaml_scalar "$name")"
+  printf '      version: %s\n' "$(mi_yaml_scalar "$version")"
+  printf '      display_name: %s\n' "$(mi_yaml_scalar "$display_name")"
+  printf '      path: %s\n' "$(mi_yaml_scalar "$path")"
+  printf '      app_version: %s\n' "$(mi_yaml_scalar "$app_version")"
 }
 
 brew_restore() {

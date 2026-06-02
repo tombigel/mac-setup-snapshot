@@ -12,6 +12,8 @@ mi_config_apply() {
     mi_config_bool sources.dotfiles MI_DOTFILES
     mi_config_bool sources.manual_apps MI_MANUAL_APPS
     mi_config_bool defaults.interactive MI_INTERACTIVE
+    mi_config_bool defaults.install_missing_tools MI_INSTALL_MISSING_TOOLS
+    mi_config_bool defaults.record_versions MI_RECORD_VERSIONS
     mi_config_bool defaults.skip_existing MI_SKIP_EXISTING
     mi_config_bool defaults.overwrite MI_OVERWRITE
     mi_config_bool defaults.caffeinate MI_CAFFEINATE
@@ -24,6 +26,9 @@ mi_config_apply() {
     fi
     mi_config_string storage.icloud_folder MI_ICLOUD_FOLDER_NAME
     mi_config_bool prepare.pause_after_manual_steps MI_PAUSE_AFTER_PREPARE
+    mi_config_bool backup.check_manual_brew MI_CHECK_MANUAL_BREW
+    mi_config_enum backup.manual_brew_match MI_MANUAL_BREW_MATCH ask never all
+    [ -n "$MI_DOTFILES_PATHS" ] || mi_config_string_list backup.dotfiles MI_DOTFILES_PATHS
     mi_config_number defaults.command_timeout MI_COMMAND_TIMEOUT
     mi_config_enum restore.appstore_login MI_APPSTORE_LOGIN skip prompt pause require
     mi_config_string reports.path MI_REPORT
@@ -32,6 +37,14 @@ mi_config_apply() {
   elif [ -f "$MI_CONFIG" ]; then
     mi_warn "config exists but yq is not installed; using CLI/default values"
   fi
+}
+
+mi_config_string_list() {
+  key="$1"
+  var="$2"
+  value="$(yq e -r ".${key}[]? // \"\"" "$MI_CONFIG" 2>/dev/null | sed '/^$/d')"
+  [ -n "$value" ] || return 0
+  printf -v "$var" '%s' "$value"
 }
 
 mi_config_enum() {
@@ -129,12 +142,43 @@ sources:
   manual_apps: true
 
 backup:
-  check_manual_brew: false
+  check_manual_brew: true
   manual_brew_match: ask
   dotfiles:
     - ~/.zshrc
+    - ~/.zprofile
+    - ~/.zshenv
+    - ~/.bashrc
+    - ~/.bash_profile
+    - ~/.profile
     - ~/.gitconfig
     - ~/.gitignore_global
+    - ~/.editorconfig
+    - ~/.hushlogin
+    - ~/.inputrc
+    - ~/.vimrc
+    - ~/.ideavimrc
+    - ~/.tmux.conf
+    - ~/.screenrc
+    - ~/.asdfrc
+    - ~/.tool-versions
+    - ~/.default-npm-packages
+    - ~/.ripgreprc
+    - ~/.config/git/config
+    - ~/.config/starship.toml
+    - ~/.config/bat/config
+    - ~/.config/direnv/direnvrc
+    - ~/.config/atuin/config.toml
+    - ~/.config/zellij/config.kdl
+    - ~/.config/ghostty/config
+    - ~/.config/wezterm/wezterm.lua
+    - ~/.config/alacritty/alacritty.toml
+    - ~/.config/kitty/kitty.conf
+    - ~/.config/fish/config.fish
+    - ~/.config/nvim/init.lua
+    - ~/.config/nvim/init.vim
+    - ~/.config/helix/config.toml
+    - ~/.config/lazygit/config.yml
     - ~/.ssh/config
 
 restore:

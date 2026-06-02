@@ -40,7 +40,7 @@ mi_args_init() {
   MI_VERBOSE="false"
   MI_QUIET="false"
   MI_UPDATE="false"
-  MI_CHECK_MANUAL_BREW="false"
+  MI_CHECK_MANUAL_BREW="true"
   MI_MANUAL_BREW_MATCH="ask"
   MI_RECORD_VERSIONS="true"
   MI_SKIP_EXISTING="true"

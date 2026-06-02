@@ -90,8 +90,112 @@ appstore_handle_missing_login() {
   esac
 }
 
+appstore_parse_json_rows() {
+  local json="$1"
+  local json_array
+  [ -n "$json" ] || return 0
+  mi_has yq || return 1
+  mi_verbose "apps: parsing mas JSON output"
+  json_array="$(printf '%s\n' "$json" | awk '
+    BEGIN {print "["}
+    NF {
+      if (n > 0) {
+        print ","
+      }
+      print
+      n++
+    }
+    END {print "]"}
+  ')"
+  printf '%s\n' "$json_array" | yq e -p=json -r '
+    .[] |
+    ((.adamId // .adamID // .appId // .trackId // .id // "") | tostring) + "\t" +
+    ((.trackName // .appName // .name // "") | tostring) + "\t" +
+    ((.version // .bundleShortVersion // .bundleShortVersionString // "") | tostring) + "\t" +
+    ((.bundleId // .bundleID // .bundleIdentifier // "") | tostring)
+  ' - 2>/dev/null
+}
+
+appstore_parse_text_rows() {
+  local text="$1"
+  local line id version name
+  mi_verbose "apps: parsing mas text output"
+  printf '%s\n' "$text" | while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    id="$(printf '%s\n' "$line" | awk '{print $1}')"
+    version="$(printf '%s\n' "$line" | sed -n 's/.*(\([^)]*\))[[:space:]]*$/\1/p')"
+    name="$(printf '%s\n' "$line" | sed -E 's/^[0-9]+[[:space:]]+//; s/[[:space:]]+\([^)]*\)[[:space:]]*$//')"
+    [ -n "$id" ] || continue
+    printf '%s\t%s\t%s\t%s\n' "$id" "$name" "$version" ""
+  done
+}
+
+appstore_list_installed() {
+  local mas_json mas_lines parsed
+  mi_verbose "apps: trying mas list --json"
+  if mi_mas_capture mas_json list --json && [ -n "$mas_json" ]; then
+    parsed="$(appstore_parse_json_rows "$mas_json" 2>/dev/null || true)"
+    if [ -n "$parsed" ]; then
+      mi_verbose "apps: using mas JSON output"
+      printf '%s\n' "$parsed"
+      return 0
+    fi
+    mi_verbose "apps: mas JSON output was empty after parsing; falling back to text"
+  else
+    mi_verbose "apps: mas list --json unavailable or empty; falling back to text"
+  fi
+
+  mi_mas_capture mas_lines list || return 1
+  appstore_parse_text_rows "$mas_lines"
+}
+
+appstore_emit_normalized_items() {
+  local rows="$1"
+  local raw_rows deduped id name version bundle_id skipped entry_word match
+  local app_path app_name app_version output_name output_version output_path
+  raw_rows="$(mktemp "${TMPDIR:-/tmp}/mac-setup-mas-rows.XXXXXX")" || return 1
+  deduped="$(mktemp "${TMPDIR:-/tmp}/mac-setup-mas-deduped.XXXXXX")" || { rm -f "$raw_rows"; return 1; }
+  printf '%s\n' "$rows" >"$raw_rows"
+  awk -F '\t' 'NF >= 3 && $1 != "" && !seen[$1]++ {print}' "$raw_rows" >"$deduped"
+  skipped="$(awk -F '\t' 'NF >= 3 && $1 != "" {seen[$1]++} END {dups=0; for (id in seen) if (seen[id] > 1) dups += seen[id] - 1; print dups}' "$raw_rows")"
+  if [ "$skipped" != "0" ]; then
+    entry_word="entries"
+    [ "$skipped" = "1" ] && entry_word="entry"
+    mi_warn "apps: skipped $skipped duplicate mas list $entry_word"
+  fi
+
+  mi_app_index_ensure || true
+  while IFS="$(printf '\t')" read -r id name version bundle_id; do
+    [ -n "$id" ] || continue
+    mi_verbose "apps: considering mas app id=$id name=${name:-unknown} version=${version:-unknown} bundle_id=${bundle_id:-unknown}"
+    match="$(mi_app_index_match_appstore_row "$id" "$name" "$bundle_id" || true)"
+    if mi_app_index_has_appstore_markers && [ -z "$match" ]; then
+      mi_warn "apps: skipped stale mas entry $id ${name:-<unknown>} because no installed app bundle matched it"
+      continue
+    fi
+    output_name="$name"
+    output_version="$version"
+    output_path=""
+    if [ -n "$match" ]; then
+      IFS="|" read -r app_path app_name _ app_version _ _ <<EOF
+$match
+EOF
+      [ -n "$app_name" ] && output_name="$app_name"
+      [ -n "$app_version" ] && output_version="$app_version"
+      output_path="$app_path"
+      mi_verbose "apps: matched mas app id=$id to $app_path name=${output_name:-unknown} version=${output_version:-unknown}"
+    fi
+    mi_verbose "apps: recording mas app id=$id name=${output_name:-unknown}"
+    printf '    - id: %s\n' "$(mi_yaml_scalar "$id")"
+    printf '      name: %s\n' "$(mi_yaml_scalar "$output_name")"
+    printf '      path: %s\n' "$(mi_yaml_scalar "$output_path")"
+    printf '      version: %s\n' "$(mi_yaml_scalar "$output_version")"
+  done <"$deduped"
+  rm -f "$raw_rows" "$deduped"
+}
+
 appstore_backup() {
-  local mas_lines line id version name
+  local app_rows
   printf 'apps:\n'
   if ! appstore_ensure_mas "backup"; then
     printf '  status: "skipped_mas_missing"\n'
@@ -99,7 +203,7 @@ appstore_backup() {
     [ "$MI_APPSTORE_LOGIN" = "skip" ] && return 0
     return 1
   fi
-  if ! mi_mas_capture mas_lines list; then
+  if ! app_rows="$(appstore_list_installed)"; then
     appstore_handle_missing_login "backup"
     mi_report_event warn apps mas_list_failed "mas list failed; App Store inventory could not continue"
     printf '  status: "skipped_mas_list_failed"\n'
@@ -109,15 +213,7 @@ appstore_backup() {
   fi
   printf '  status: "ok"\n'
   printf '  items:\n'
-  printf '%s\n' "$mas_lines" | while IFS= read -r line; do
-    [ -n "$line" ] || continue
-    id="$(printf '%s\n' "$line" | awk '{print $1}')"
-    version="$(printf '%s\n' "$line" | sed -n 's/.*(\([^)]*\)).*/\1/p')"
-    name="$(printf '%s\n' "$line" | sed -E 's/^[0-9]+[[:space:]]+//; s/[[:space:]]+\([^)]*\)$//')"
-    printf '    - id: %s\n' "$(mi_yaml_scalar "$id")"
-    printf '      name: %s\n' "$(mi_yaml_scalar "$name")"
-    printf '      version: %s\n' "$(mi_yaml_scalar "$version")"
-  done
+  appstore_emit_normalized_items "$app_rows"
 }
 
 appstore_restore() {
