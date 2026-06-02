@@ -103,7 +103,11 @@ mac-setup backup --gist-create=true --gist-push
 
 By default, backup includes App Store apps, Homebrew, npm globals, pip, pipx, Oh My Zsh, Xcode, dotfiles, and manual apps.
 
-Use `--dry-run` to print the snapshot that would be generated without writing it.
+Backup and restore print a welcome message, the next step, a simple text progress bar for enabled sections, and a friendly terminal summary by default. Manual app scanning also prints the app currently being checked when Homebrew cask matching is enabled. Use `--quiet` to suppress the welcome, progress, and default summary. Use `--verbose` for command start/status lines, captured output counts, app indexing details, App Store parsing decisions, manual app matching decisions, and raw summary counts.
+
+For local and iCloud backups, backup also writes `backup-list.md` and `README.md` next to `mac-setup.yml`. The list is generated from the completed snapshot using the same renderer as `mac-setup list --format md`; it does not include copied dotfile contents or raw command output. The README contains restore instructions and a file map for the backup folder.
+
+Use `--dry-run` to print the snapshot that would be generated without writing it. Dry-run reports where `backup-list.md` and `README.md` would be written but does not create them.
 
 ### `restore`
 
@@ -126,7 +130,7 @@ Restore checks existing installations first. By default, existing items are skip
 
 Restore runs `prepare` first unless `--skip-prepare=true` is passed.
 
-`--dry-run` prevents installs, downloads, Gist writes, snapshot writes, dotfile copies, overwrites, shell changes, and license acceptance. If `--report <path>` is explicitly passed, only that report artifact is written.
+`--dry-run` prevents installs, downloads, Gist writes, snapshot writes, backup-list/README writes, dotfile copies, overwrites, shell changes, and license acceptance. If `--report <path>` is explicitly passed, only that report artifact is written.
 
 Mac App Store backup and restore require `mas` plus a signed-in App Store app when the App Store source is enabled. The CLI never asks for Apple ID credentials and cannot automate Apple sign-in. By default, it tries to make `mas` usable and then fails until App Store sign-in is available. Use `--apps=false` or `--appstore-login=skip` only when you explicitly want to omit App Store apps.
 
@@ -239,7 +243,7 @@ If the target file already exists, interactive mode prompts before overwriting. 
 Backup endpoint. Default: `icloud`.
 
 - `icloud`: write the setup snapshot bundle to iCloud Drive.
-- `local`: write `mac-setup.yml`, optional config, and copied `files/` in the current directory or explicit paths.
+- `local`: write `mac-setup.yml`, `backup-list.md`, `README.md`, optional config, and copied `files/` in the current directory or explicit paths.
 - `github`: write locally and push snapshot/config to GitHub Gist.
 
 `--source icloud|local|github`
@@ -258,7 +262,7 @@ iCloud Drive folder name. Default: `Mac Setup Snapshot`.
 
 iCloud Drive root path. Default: `~/Library/Mobile Documents/com~apple~CloudDocs`.
 
-The iCloud endpoint stores `mac-setup.yml`, optional `mac-setup.config.yml`, copied `files/`, and `metadata.yml` in one bundle folder. Before overwriting an existing bundle, backup moves current bundle files into `history/YYYYMMDDTHHMMSSZ/`.
+The iCloud endpoint stores `mac-setup.yml`, `backup-list.md`, `README.md`, optional `mac-setup.config.yml`, copied `files/`, and `metadata.yml` in one bundle folder. Before overwriting an existing bundle, backup moves current bundle files into `history/YYYYMMDDTHHMMSSZ/`.
 
 If iCloud Drive is missing or inaccessible, interactive commands offer local/GitHub fallback where possible. Non-interactive commands fail clearly unless a non-iCloud endpoint is explicit.
 
@@ -344,7 +348,7 @@ Reject optional prompts.
 
 Print planned work without side effects.
 
-An explicit `--report <path>` may still write the requested report artifact during dry-run.
+An explicit `--report <path>` may still write the requested report artifact during dry-run. The default `backup-list.md` and `README.md` files are not written during dry-run.
 
 `--verbose`, `-v`
 
@@ -420,7 +424,7 @@ Report file format. Default: `text`.
 
 `--skip-report`, `-R`
 
-Suppress the final process report. Errors and warnings still print through normal command output.
+Suppress the final terminal summary. Errors and warnings still print through normal command output.
 
 Reports include command, status, dry-run state, setup snapshot path, duration, snapshot counts where available, and warnings or manual actions such as missing App Store authentication. Reports must not include secrets, tokens, copied dotfile contents, or raw command output.
 
@@ -432,7 +436,7 @@ Merge into an existing setup snapshot by preserving unselected sections where su
 
 `--check-manual-brew true|false`, `-C true|false`
 
-Try to match manually installed `.app` bundles to Homebrew casks during backup.
+Try to match manually installed `.app` bundles to Homebrew casks during backup. Default: `true`.
 
 `--manual-brew-match ask|never|all`
 
@@ -443,6 +447,12 @@ Manual app matching policy.
 - `all`: accept all detected candidates, add casks, and remove matched apps from `manual_apps`.
 
 In non-interactive mode, `ask` behaves like `never` unless `--yes` is set; with `--yes`, it behaves like `all`.
+
+Manual app backup automatically omits apps already represented by App Store receipts and apps already represented by installed Homebrew casks. Installed cask matching runs before candidate lookup and normalizes punctuation differences, so app names such as `VLC.app` and cask tokens such as `firefox@nightly` can be matched. Standalone apps that are not already installed as casks are still checked for Homebrew cask replacement candidates. Candidate tokens are recorded only after `brew info --cask <candidate>` confirms they are installable casks. Valid candidates are recorded in `brew_cask_candidate` when `manual_brew_match: never`, prompted under `ask`, and moved into the Homebrew cask snapshot when accepted. Cask candidates are matched from one Homebrew cask catalog lookup where possible, with per-app `brew search --casks <name>` fallback when the catalog lookup is unavailable or does not contain a match.
+
+Homebrew cask snapshot rows include the installable cask token in `name`. When a matching `.app` bundle is found, backup also records `display_name`, `path`, and `app_version` so Markdown reports can show the real app name and location without changing restore behavior.
+
+During restore, manual apps with a recorded `brew_cask_candidate` are offered as Homebrew cask installs instead of being treated as plain manual-only items. Restore verifies each candidate with `brew info --cask` before prompting or installing, so stale or invalid candidates from older snapshots are skipped with a warning. Interactive restore prompts per valid candidate. `--yes` installs valid candidate casks automatically, `--no` skips them, and non-interactive restore reports the candidate with instructions to rerun interactively or pass `--yes`. Manual apps without candidates still produce manual restore warnings.
 
 `--versions true|false`, `-V true|false`
 
@@ -458,7 +468,47 @@ Add a dotfile path to the setup snapshot. Repeatable.
 mac-setup backup -F ~/.zshrc -F ~/.config/git/config
 ```
 
-Dotfile backup is allowlist-only. Paths must resolve under `$HOME`.
+Dotfile backup is allowlist-only. Paths must resolve under `$HOME`. Missing allowlist entries are skipped, so the setup snapshot and copied `files/` folder only record dotfiles that exist at backup time.
+
+The default dotfile allowlist is:
+
+- `~/.zshrc`
+- `~/.zprofile`
+- `~/.zshenv`
+- `~/.bashrc`
+- `~/.bash_profile`
+- `~/.profile`
+- `~/.gitconfig`
+- `~/.gitignore_global`
+- `~/.editorconfig`
+- `~/.hushlogin`
+- `~/.inputrc`
+- `~/.vimrc`
+- `~/.ideavimrc`
+- `~/.tmux.conf`
+- `~/.screenrc`
+- `~/.asdfrc`
+- `~/.tool-versions`
+- `~/.default-npm-packages`
+- `~/.ripgreprc`
+- `~/.config/git/config`
+- `~/.config/starship.toml`
+- `~/.config/bat/config`
+- `~/.config/direnv/direnvrc`
+- `~/.config/atuin/config.toml`
+- `~/.config/zellij/config.kdl`
+- `~/.config/ghostty/config`
+- `~/.config/wezterm/wezterm.lua`
+- `~/.config/alacritty/alacritty.toml`
+- `~/.config/kitty/kitty.conf`
+- `~/.config/fish/config.fish`
+- `~/.config/nvim/init.lua`
+- `~/.config/nvim/init.vim`
+- `~/.config/helix/config.toml`
+- `~/.config/lazygit/config.yml`
+- `~/.ssh/config`
+
+Common additional candidates include `~/.config/gh/config.yml`, `~/.npmrc`, `~/.pypirc`, `~/.netrc`, `~/.docker/config.json`, `~/.kube/config`, cloud CLI config under `~/.aws`, `~/.azure`, or `~/.config/gcloud`, and selected files under `~/.config`, `~/.ssh`, or `~/.gnupg`. Review each file before adding it; many common developer dotfiles can contain tokens, private hostnames, registry credentials, or encryption metadata. `~/.ssh/config` is included by default for restore usefulness, but it can contain private host aliases; remove it from generated config if that is too sensitive for your backup.
 
 ## Restore Options
 
@@ -523,7 +573,7 @@ Valid sections:
 
 Limit output to a section. Repeatable.
 
-`--format table|yaml|json`, `-f table|yaml|json`
+`--format table|yaml|json|md`, `-f table|yaml|json|md`
 
 Output format. Default: `table`.
 
@@ -667,12 +717,43 @@ prepare:
   pause_after_manual_steps: true
 
 backup:
-  check_manual_brew: false
+  check_manual_brew: true
   manual_brew_match: ask
   dotfiles:
     - ~/.zshrc
+    - ~/.zprofile
+    - ~/.zshenv
+    - ~/.bashrc
+    - ~/.bash_profile
+    - ~/.profile
     - ~/.gitconfig
     - ~/.gitignore_global
+    - ~/.editorconfig
+    - ~/.hushlogin
+    - ~/.inputrc
+    - ~/.vimrc
+    - ~/.ideavimrc
+    - ~/.tmux.conf
+    - ~/.screenrc
+    - ~/.asdfrc
+    - ~/.tool-versions
+    - ~/.default-npm-packages
+    - ~/.ripgreprc
+    - ~/.config/git/config
+    - ~/.config/starship.toml
+    - ~/.config/bat/config
+    - ~/.config/direnv/direnvrc
+    - ~/.config/atuin/config.toml
+    - ~/.config/zellij/config.kdl
+    - ~/.config/ghostty/config
+    - ~/.config/wezterm/wezterm.lua
+    - ~/.config/alacritty/alacritty.toml
+    - ~/.config/kitty/kitty.conf
+    - ~/.config/fish/config.fish
+    - ~/.config/nvim/init.lua
+    - ~/.config/nvim/init.vim
+    - ~/.config/helix/config.toml
+    - ~/.config/lazygit/config.yml
     - ~/.ssh/config
 
 restore:
@@ -699,6 +780,8 @@ Default path:
 ```text
 mac-setup.yml
 ```
+
+For local and iCloud backups, `backup-list.md` is generated next to `mac-setup.yml` as a readable Markdown summary of the snapshot, and `README.md` is generated with restore instructions.
 
 High-level sections:
 
@@ -777,21 +860,17 @@ Apple ID login and Xcode account state cannot be fully automated. If App Store a
 
 ## Process Reports
 
-By default, workflow commands print a final process report:
+By default, workflow commands print a friendly terminal summary:
 
 ```text
-Process report
-  command: restore
-  status: ok
-  dry_run: true
-  inventory: mac-setup.yml
-  duration_seconds: 12
-  counts: apps=0 brew_formulae=47 brew_casks=43 npm=3 pip=4 pipx=0 manual_apps=105 dotfiles=4
-  warnings/actions:
-    - [warn] apps/appstore_not_logged_in: App Store access is unavailable; restore cannot use mas until App Store authentication succeeds
+Mac Setup Snapshot summary
+  restore completed in 12s.
+  Dry run: true
+  Snapshot: mac-setup.yml
+  Next step: Review the dry-run output. Run without --dry-run when you are ready to restore.
 ```
 
-Use `--report <path>` to write the report to a file. Use `--skip-report` when embedding output in another script and the summary would be noisy.
+Use `--verbose` to include raw inventory counts in the terminal summary. Use `--report <path>` to write a structured report file. Use `--skip-report` when embedding output in another script and the summary would be noisy.
 
 ## Exit Status
 
@@ -803,6 +882,8 @@ Use `--report <path>` to write the report to a file. Use `--skip-report` when em
 ## Files
 
 - `mac-setup.yml`: default setup snapshot.
+- `backup-list.md`: default human-readable Markdown summary generated from local and iCloud backups.
+- `README.md`: restore instructions generated into local and iCloud backup folders.
 - `mac-setup.config.yml`: default config.
 - `files/`: copied dotfiles next to the setup snapshot.
 - `~/.mac-setup/restore-backups/<timestamp>/`: dotfile restore backups.

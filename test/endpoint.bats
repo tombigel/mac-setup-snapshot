@@ -22,25 +22,39 @@ make_icloud() {
 }
 
 @test "backup to iCloud creates bundle and metadata" {
+  command -v yq >/dev/null 2>&1 || skip "yq is required for markdown backup list rendering"
   make_icloud
   run "$BIN" backup --skip-report --interactive=false --icloud-root "$ICLOUD_ROOT" --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
   [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml" ]
+  [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/backup-list.md" ]
+  [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/README.md" ]
   [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/metadata.yml" ]
   grep -q 'endpoint: icloud' "$ICLOUD_ROOT/Mac Setup Snapshot/metadata.yml"
+  grep -q 'backup_list: backup-list.md' "$ICLOUD_ROOT/Mac Setup Snapshot/metadata.yml"
+  grep -q 'readme: README.md' "$ICLOUD_ROOT/Mac Setup Snapshot/metadata.yml"
+  grep -q '# Mac Setup Snapshot' "$ICLOUD_ROOT/Mac Setup Snapshot/backup-list.md"
+  grep -q 'mac-setup restore --source icloud' "$ICLOUD_ROOT/Mac Setup Snapshot/README.md"
 }
 
 @test "backup to iCloud moves previous bundle into history" {
+  command -v yq >/dev/null 2>&1 || skip "yq is required for markdown backup list rendering"
   make_icloud
   mkdir -p "$ICLOUD_ROOT/Mac Setup Snapshot/files"
   echo old >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml"
   echo old >"$ICLOUD_ROOT/Mac Setup Snapshot/metadata.yml"
+  echo old >"$ICLOUD_ROOT/Mac Setup Snapshot/backup-list.md"
+  echo old >"$ICLOUD_ROOT/Mac Setup Snapshot/README.md"
 
   run "$BIN" backup --skip-report --interactive=false --icloud-root "$ICLOUD_ROOT" --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
   [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml" ]
   history_count="$(find "$ICLOUD_ROOT/Mac Setup Snapshot/history" -name mac-setup.yml | wc -l | tr -d ' ')"
   [ "$history_count" -eq 1 ]
+  history_list_count="$(find "$ICLOUD_ROOT/Mac Setup Snapshot/history" -name backup-list.md | wc -l | tr -d ' ')"
+  [ "$history_list_count" -eq 1 ]
+  history_readme_count="$(find "$ICLOUD_ROOT/Mac Setup Snapshot/history" -name README.md | wc -l | tr -d ' ')"
+  [ "$history_readme_count" -eq 1 ]
 }
 
 @test "restore dry-run defaults to iCloud bundle when present" {

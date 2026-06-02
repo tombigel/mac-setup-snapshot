@@ -46,6 +46,12 @@ Create or update the setup bundle in iCloud Drive:
 mac-setup backup
 ```
 
+Backup prints per-section progress by default and writes the YAML snapshot, a human-readable Markdown list, and restore notes. The Markdown list is named `backup-list.md` and is generated from the completed snapshot, so it does not contain copied dotfile contents. The restore notes are written to `README.md` in the backup folder.
+
+Manual app scanning also prints the app currently being checked when Homebrew cask matching is enabled.
+
+Use `--verbose` during backup to show command start/status lines, captured output counts, app indexing details, App Store parsing decisions, and manual app matching decisions.
+
 The default bundle path is:
 
 ```text
@@ -103,7 +109,9 @@ No arguments, `help`, `--help`, and `-h` show help.
 
 Mac App Store backup and restore depend on `mas` and an active App Store sign-in. The CLI never asks for Apple ID credentials and cannot automate Apple sign-in. By default, enabled App Store work is required: the CLI tries to install/check `mas`, prompts to open the App Store when interactive, and fails until sign-in is available. Use `--apps=false` or `--appstore-login=skip` only when you explicitly want to omit App Store apps.
 
-Every `backup`, `prepare`, `restore`, `continue`, and Gist workflow emits a final process report unless `--skip-report` is used. To write a report file:
+App Store backup records currently installed apps from `mas list`, preferring JSON output when supported and falling back to text output. The snapshot is normalized and de-duplicated before restore/list/report output uses it. When a `mas` row matches an installed bundle, the snapshot prefers the local bundle name, path, and version so similarly named App Store apps remain distinguishable.
+
+Every `backup`, `prepare`, `restore`, `continue`, and Gist workflow emits a friendly terminal summary unless `--quiet` or `--skip-report` is used. Use `--verbose` when you also want raw counts in that summary. To write a structured report file:
 
 ```bash
 mac-setup restore --dry-run --report reports/restore.md --report-format md
@@ -115,15 +123,19 @@ mac-setup backup --report reports/backup.yml --report-format yaml
 By default, `backup` captures:
 
 - Mac App Store apps through `mas`.
-- Homebrew taps, formulae, and casks.
+- Homebrew taps, top-level formulae from `brew leaves`, and casks. Cask snapshot rows include the cask token plus matched installed app name and path when an app bundle can be found.
 - Global npm packages.
 - pip and pipx packages.
 - Oh My Zsh install state, theme, plugins, and `.zshrc` reference.
 - Xcode Command Line Tools and Xcode.app state.
-- Explicitly allowlisted dotfiles and config files.
-- Manual apps from `/Applications` and `~/Applications`.
+- Explicitly allowlisted dotfiles and config files that exist at backup time. Defaults include common shell, Git, editor, terminal, and low-risk CLI config files; see `docs/MANUAL.md` for the full list.
+- Manual apps from `/Applications` and `~/Applications`, excluding apps already represented by App Store receipts or installed Homebrew casks. Other standalone apps are checked for not-yet-installed Homebrew cask replacement candidates and record the candidate only when `brew info --cask` confirms it is installable, unless the migration policy accepts it into the Homebrew cask list.
 
 Disable categories with flags such as `--apps=false`, `--brew=false`, or `--dotfiles=false`.
+
+During restore, manual apps with a recorded `brew_cask_candidate` are prompted as Homebrew cask installs by default. Non-interactive restore reports the candidate without installing; pass `--yes` to install candidate casks automatically. Manual apps without candidates still require manual restore.
+
+Other useful dotfiles you may want to add explicitly with `-F` include `~/.config/gh/config.yml`, `~/.npmrc`, `~/.pypirc`, `~/.netrc`, `~/.docker/config.json`, `~/.kube/config`, cloud CLI config under `~/.aws`, `~/.azure`, or `~/.config/gcloud`, and selected files under `~/.config`, `~/.ssh`, or `~/.gnupg`. Review these before backing up or sharing because many can contain tokens, hostnames, or credentials.
 
 ## Examples
 
@@ -172,7 +184,7 @@ mac-setup backup -B=false
 
 ## Safety
 
-- `--dry-run` prevents operational writes, uploads, downloads, installs, upgrades, overwrites, license acceptance, and shell changes. If `--report <path>` is explicitly passed, only that report artifact is written.
+- `--dry-run` prevents operational writes, uploads, downloads, installs, upgrades, overwrites, license acceptance, generated backup-list/README writes, and shell changes. If `--report <path>` is explicitly passed, only that report artifact is written.
 - Dotfile restore defaults to skip existing files.
 - Explicit dotfile overwrite first backs up the existing file to `~/.mac-setup/restore-backups/<timestamp>/`.
 - Remote installers are downloaded to temp files and executed only after policy allows it; the implementation does not use direct `curl | sh`.

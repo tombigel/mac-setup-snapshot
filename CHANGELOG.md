@@ -11,6 +11,11 @@
 - Added config keys for default storage endpoints and the iCloud bundle folder name.
 - Added endpoint Bats coverage and a manual iCloud endpoint smoke-test script.
 - Added `list --format md` for a human-readable Markdown setup snapshot summary.
+- Added default per-section backup progress output with elapsed time and item counts when available.
+- Added friendlier default backup/restore welcome messages, progress bars, next-step hints, and terminal summaries.
+- Added default `backup-list.md` generation for local and iCloud backups.
+- Added default backup-folder `README.md` generation with restore instructions for local and iCloud backups.
+- Added richer `backup --verbose` diagnostics for command captures, app indexing, App Store parsing, and manual app matching.
 
 ### Changed
 
@@ -22,6 +27,9 @@
 - Replaced the invalid `mas account` readiness check with real `mas list` access checks.
 - Changed the stale resume prompt so declining to continue starts a fresh requested workflow instead of aborting.
 - Changed `list` to use the source endpoint flow, so it defaults to the iCloud setup snapshot like `restore`.
+- Changed generated config and defaults so manual app Homebrew cask matching is enabled by default.
+- Changed App Store backup to normalize and de-duplicate `mas list` output before writing the snapshot.
+- Changed manual app backup to omit apps already represented by App Store receipts or installed Homebrew casks.
 
 ### Fixed
 
@@ -29,6 +37,21 @@
 - Fixed validation failures from shellcheck and host-dependent Bats fixtures.
 - Enforced the documented `yq v4` requirement instead of accepting any `yq` binary on `PATH`.
 - Made App Store inventory failures abort backup unless the user explicitly disables App Store work.
+- Applied generated config keys for manual app matching, version recording, and missing-tool installation policy.
+- Kept verbose logs out of generated YAML by writing verbose output to stderr.
+- Avoided apparent backup hangs by matching manual apps against one Homebrew cask catalog lookup and printing per-app manual scan progress.
+- Fixed App Store rows with shared MAS names by preferring matched local bundle names and versions in the snapshot.
+- Fixed manual app de-duplication so installed Homebrew casks such as `vlc` are excluded before cask candidate search.
+- Fixed manual app cask matching for cask tokens that differ from app names by punctuation, such as `firefox@nightly`.
+- Added matched app display name, path, and app version metadata to Homebrew cask snapshot rows for human-readable lists.
+- Kept not-yet-installed Homebrew cask replacement candidate search for standalone manual apps, with per-app search fallback.
+- Changed restore so manual apps with `brew_cask_candidate` prompt for Homebrew cask installation by default, install with `--yes`, and remain manual-only only when no candidate exists or the user skips.
+- Added matched app paths to App Store snapshot rows and Markdown list output.
+- Tightened manual app cask candidates by requiring `brew info --cask` to resolve before recording, prompting, or installing a candidate.
+- Honored generated config `backup.dotfiles` lists and documented default and recommended dotfile candidates.
+- Expanded the default low-risk dotfile allowlist for common shell, Git, editor, terminal, and CLI presentation configs.
+- Changed dotfile backup to skip missing allowlist entries instead of recording `exists: false` rows.
+- Cleaned tracked temporary files after successful command runs.
 
 ## 0.5.0 - 2026-06-01
 

@@ -101,7 +101,7 @@ Gist options:
 List options:
 
 - `--section <name>`, `-S <name>`
-- `--format table|yaml|json`, `-f table|yaml|json`
+- `--format table|yaml|json|md`, `-f table|yaml|json|md`
 - `--installed-only`, `-e`
 - `--missing-only`, `-m`
 
@@ -112,14 +112,18 @@ Use two YAML files:
 - Config: source enablement, restore policy, matching policy, dotfile allowlist.
 - Inventory: generated machine state.
 
-Inventory includes host metadata, App Store apps, Homebrew taps/formulae/casks, npm/pip/pipx packages, Oh My Zsh state, Xcode and Command Line Tools state, explicit allowlisted dotfiles, and manual apps with optional Homebrew cask candidates.
+Inventory includes host metadata, normalized currently installed App Store apps with matched paths when available, Homebrew taps/top-level formulae/casks, npm/pip/pipx packages, Oh My Zsh state, Xcode and Command Line Tools state, explicit allowlisted dotfiles that exist at backup time, and manual apps with optional Homebrew cask candidates. Homebrew casks keep the installable cask token and may include matched app display name, path, and app version for reports.
+
+Local and iCloud backups also generate `backup-list.md` and `README.md` next to `mac-setup.yml`. The list is derived from the YAML snapshot and must not include copied dotfile contents, secrets, or raw command output. The README contains restore instructions and a backup folder file map.
 
 Manual app matching:
 
 - If `--check-manual-brew=true`, default `--manual-brew-match=ask`.
+- App Store apps and already-installed Homebrew casks are excluded from `manual_apps`; installed cask matching runs before migration-candidate search and normalizes punctuation differences in cask names. Standalone apps that are not already installed as casks are still searched for replacement cask candidates, but candidate tokens must resolve with `brew info --cask`.
 - `ask`: prompt per candidate. If approved, add cask to brew inventory and remove app from `manual_apps`.
 - `never`: record candidates but leave app in `manual_apps`.
 - `all`: accept all candidates, add casks, and remove matched apps from `manual_apps`.
+- Restore prompts to install recorded `brew_cask_candidate` values for manual apps by default; non-interactive restore reports them unless `--yes` is passed.
 - Non-interactive `ask` behaves like `never` unless `--yes` is set, then it behaves like `all`.
 
 Safety rules:
@@ -127,7 +131,7 @@ Safety rules:
 - Restore is additive-only in v1.
 - Restore runs prepare preflight by default unless `--skip-prepare=true`.
 - Prepare/restore create durable resume state under `~/.mac-setup/resume.yml`.
-- `--dry-run` prevents snapshot writes, iCloud history moves, Gist writes, dotfile copies, downloads, installs, upgrades, license acceptance, overwrites, and shell changes.
+- `--dry-run` prevents snapshot writes, backup-list/README writes, iCloud history moves, Gist writes, dotfile copies, downloads, installs, upgrades, license acceptance, overwrites, and shell changes.
 - Never execute YAML/config/inventory content with `eval` or command substitution.
 - Do not implement arbitrary user-defined restore hooks in v1.
 - Do not use direct `curl | sh`.

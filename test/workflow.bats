@@ -29,6 +29,100 @@ setup() {
   [[ "$output" == *"setup snapshot not found"* ]]
 }
 
+@test "restore shows welcome progress and friendly summary" {
+  cat >"$BATS_TEST_TMPDIR/inventory.yml" <<'YAML'
+version: 1
+brew:
+  taps: []
+  formulae: []
+  casks: []
+YAML
+
+  run "$BIN" restore --dry-run --skip-prepare=true --apps=false --brew=true --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false --inventory "$BATS_TEST_TMPDIR/inventory.yml"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Restore starting"* ]]
+  [[ "$output" == *"Next step: Homebrew"* ]]
+  [[ "$output" == *"restore: brew..."* ]]
+  [[ "$output" == *"[############] 1/1"* ]]
+  [[ "$output" == *"Mac Setup Snapshot summary"* ]]
+  [[ "$output" == *"restore completed"* ]]
+  [[ "$output" != *"Counts:"* ]]
+}
+
+@test "restore dry-run prompts for manual app cask candidates" {
+  mock_command brew 'case "$1 $2 $3" in "list --cask candidate-app") exit 1 ;; *) exit 0 ;; esac'
+  cat >"$BATS_TEST_TMPDIR/inventory.yml" <<'YAML'
+version: 1
+manual_apps:
+  apps:
+    - name: "Candidate App"
+      path: "/Applications/Candidate App.app"
+      version: "5.0"
+      brew_cask_candidate: "candidate-app"
+      selected_brew_cask: ""
+YAML
+
+  run "$BIN" restore --dry-run --skip-prepare=true --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --inventory "$BATS_TEST_TMPDIR/inventory.yml"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"dry-run: would prompt to install Homebrew cask candidate-app for manual app Candidate App"* ]]
+}
+
+@test "restore non-interactive reports manual app cask candidates without installing" {
+  mock_command brew 'case "$1 $2 $3" in "list --cask candidate-app") exit 1 ;; "install --cask candidate-app") echo install >> "$BATS_TEST_TMPDIR/brew.log" ;; *) exit 0 ;; esac'
+  cat >"$BATS_TEST_TMPDIR/inventory.yml" <<'YAML'
+version: 1
+manual_apps:
+  apps:
+    - name: "Candidate App"
+      path: "/Applications/Candidate App.app"
+      version: "5.0"
+      brew_cask_candidate: "candidate-app"
+      selected_brew_cask: ""
+YAML
+
+  run "$BIN" restore --interactive=false --skip-prepare=true --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --inventory "$BATS_TEST_TMPDIR/inventory.yml"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"manual app Candidate App can be restored with Homebrew cask candidate-app; rerun interactively or pass --yes to install it"* ]]
+  [ ! -f "$BATS_TEST_TMPDIR/brew.log" ]
+}
+
+@test "restore yes installs manual app cask candidates" {
+  mock_command brew 'case "$1 $2 $3" in "list --cask candidate-app") exit 1 ;; "install --cask candidate-app") echo install >> "$BATS_TEST_TMPDIR/brew.log" ;; *) exit 0 ;; esac'
+  cat >"$BATS_TEST_TMPDIR/inventory.yml" <<'YAML'
+version: 1
+manual_apps:
+  apps:
+    - name: "Candidate App"
+      path: "/Applications/Candidate App.app"
+      version: "5.0"
+      brew_cask_candidate: "candidate-app"
+      selected_brew_cask: ""
+YAML
+
+  run "$BIN" restore --yes --skip-prepare=true --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --inventory "$BATS_TEST_TMPDIR/inventory.yml"
+  [ "$status" -eq 0 ]
+  grep -q '^install$' "$BATS_TEST_TMPDIR/brew.log"
+}
+
+@test "restore skips manual app cask candidates that brew info cannot resolve" {
+  mock_command brew 'case "$1 $2 $3" in "info --json=v2 --cask") exit 1 ;; "install --cask falcon") echo install >> "$BATS_TEST_TMPDIR/brew.log" ;; *) exit 0 ;; esac'
+  cat >"$BATS_TEST_TMPDIR/inventory.yml" <<'YAML'
+version: 1
+manual_apps:
+  apps:
+    - name: "Falcon"
+      path: "/Applications/Falcon.app"
+      version: "1.0"
+      brew_cask_candidate: "falcon"
+      selected_brew_cask: ""
+YAML
+
+  run "$BIN" restore --yes --skip-prepare=true --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --inventory "$BATS_TEST_TMPDIR/inventory.yml"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"manual app Falcon has Homebrew cask candidate falcon, but brew info --cask could not resolve it"* ]]
+  [ ! -f "$BATS_TEST_TMPDIR/brew.log" ]
+}
+
 @test "status prints existing resume state" {
   cat >"$BATS_TEST_TMPDIR/resume.yml" <<'YAML'
 version: 1
