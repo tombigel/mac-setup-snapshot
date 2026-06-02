@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 PROJECT_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
-BIN="$PROJECT_ROOT/bin/mac-inventory"
+BIN="$PROJECT_ROOT/bin/mac-setup"
 
 make_mock_bin() {
   MOCK_BIN="$BATS_TEST_TMPDIR/bin"
@@ -18,4 +18,3 @@ $body
 EOF
   chmod +x "$MOCK_BIN/$name"
 }
-

@@ -1,8 +1,12 @@
 .DS_Store
+mac-setup.yml
+mac-setup.yml.tmp.*
+mac-setup.config.yml
 mac-inventory.yml
 mac-inventory.yml.tmp.*
 mac-inventory.config.yml
 files/
+.mac-setup/
 .mac-inventory/
 tmp/
 coverage/

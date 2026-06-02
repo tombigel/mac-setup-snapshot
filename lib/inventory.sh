@@ -27,8 +27,8 @@ mi_inventory_backup() {
   local tmp tmp_dry
 
   if [ "$MI_DRY_RUN" = "true" ]; then
-    mi_info "dry-run: would write inventory to $MI_INVENTORY"
-    tmp_dry="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-dry.XXXXXX")" || return 1
+    mi_info "dry-run: would write setup snapshot to $MI_INVENTORY"
+    tmp_dry="$(mktemp "${TMPDIR:-/tmp}/mac-setup-dry.XXXXXX")" || return 1
     mi_inventory_emit_backup "$tmp_dry" || { rm -f "$tmp_dry"; return 1; }
     cat "$tmp_dry"
     rm -f "$tmp_dry"
@@ -55,7 +55,7 @@ mi_inventory_emit_backup() {
   } >"$inventory_out"
 
   mi_inventory_emit_or_copy "$inventory_out" apps appstore_backup
-  MI_MATCHED_CASKS_FILE="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-casks.XXXXXX")"
+  MI_MATCHED_CASKS_FILE="$(mktemp "${TMPDIR:-/tmp}/mac-setup-casks.XXXXXX")"
   export MI_MATCHED_CASKS_FILE
   mi_inventory_emit_or_copy "$inventory_out" manual_apps manual_apps_backup
   mi_inventory_emit_or_copy "$inventory_out" brew brew_backup
@@ -93,7 +93,7 @@ mi_inventory_copy_section() {
 }
 
 mi_inventory_list() {
-  [ -f "$MI_INVENTORY" ] || { mi_error "inventory not found: $MI_INVENTORY"; return 1; }
+  [ -f "$MI_INVENTORY" ] || { mi_error "setup snapshot not found: $MI_INVENTORY"; return 1; }
   case "$MI_FORMAT" in
     yaml)
       if [ -z "$MI_SECTIONS" ]; then
@@ -133,7 +133,7 @@ mi_inventory_restore() {
 }
 
 mi_inventory_restore_body() {
-  [ -f "$MI_INVENTORY" ] || { mi_error "inventory not found: $MI_INVENTORY"; return 1; }
+  [ -f "$MI_INVENTORY" ] || { mi_error "setup snapshot not found: $MI_INVENTORY"; return 1; }
   mi_require_yq || return 1
 
   mi_restore_section apps appstore_restore

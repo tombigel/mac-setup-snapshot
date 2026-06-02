@@ -4,23 +4,23 @@ Date: 2026-06-01
 
 ## Summary
 
-Ran a real local backup and a dry-run restore on this Mac using the local `mac-inventory` CLI.
+Ran a real local backup and a dry-run restore on this Mac using the local `mac-setup` CLI.
 
 Final backup command:
 
 ```bash
-env HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_AUTO_UPDATE=1 bin/mac-inventory backup -i mac-inventory.yml --apps=false --versions=false
+env HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_AUTO_UPDATE=1 bin/mac-setup backup --target local -i mac-setup.yml --apps=false --versions=false
 ```
 
 Final dry-run restore command:
 
 ```bash
-bin/mac-inventory restore -i mac-inventory.yml --dry-run --interactive=false
+bin/mac-setup restore --source local -i mac-setup.yml --dry-run --interactive=false
 ```
 
 Generated local artifacts:
 
-- `mac-inventory.yml`: generated inventory, approximately 40 KB.
+- `mac-setup.yml`: generated setup snapshot, approximately 40 KB.
 - `files/.zshrc`
 - `files/.gitconfig`
 - `files/.gitignore_global`

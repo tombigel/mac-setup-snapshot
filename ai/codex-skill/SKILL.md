@@ -1,6 +1,6 @@
-# mac-inventory Skill
+# Mac Setup Snapshot Skill
 
-Use this skill when working on the `mac-inventory` repository.
+Use this skill when working on the `mac-setup-snapshot` repository.
 
 ## Workflow
 
@@ -10,7 +10,7 @@ Use this skill when working on the `mac-inventory` repository.
 4. For code changes, run:
 
 ```bash
-find bin lib -type f \( -name '*.sh' -o -name 'mac-inventory' \) -print0 | xargs -0 -n1 bash -n
+find bin lib -type f \( -name '*.sh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 bash -n
 ```
 
 5. Run `shellcheck` and `bats test` when installed.
@@ -19,5 +19,5 @@ find bin lib -type f \( -name '*.sh' -o -name 'mac-inventory' \) -print0 | xargs
 
 - Restore is additive-only.
 - Dry-run means no user-state mutation.
-- Resume state lives under `~/.mac-inventory/resume.yml`.
+- Resume state lives under `~/.mac-setup/resume.yml`.
 - Remote installers are downloaded first; never pipe directly into a shell.

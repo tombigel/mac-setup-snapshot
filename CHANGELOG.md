@@ -2,7 +2,25 @@
 
 ## Unreleased
 
-No unreleased changes yet.
+### Added
+
+- Added `bin/mac-setup` as the CLI entrypoint for Mac Setup Snapshot.
+- Added README and manual common usage flows for checking backup readiness, saving a setup snapshot to iCloud Drive, and restoring from iCloud after formatting.
+- Added iCloud Drive as the default backup and restore endpoint, with explicit local and GitHub/Gist endpoint options.
+- Added iCloud endpoint preflight checks, macOS privacy guidance, endpoint metadata, and timestamped iCloud history for replaced snapshots.
+- Added config keys for default storage endpoints and the iCloud bundle folder name.
+- Added endpoint Bats coverage and a manual iCloud endpoint smoke-test script.
+
+### Changed
+
+- Renamed user-facing docs, defaults, generated filenames, Gist filenames, reports, and runtime state paths to Mac Setup Snapshot / `mac-setup`.
+- Moved the README manual and usage documentation links near the top of the file.
+- Updated common usage docs to show iCloud-first backup and restore, with GitHub/Gist as an explicit developer option.
+- Updated GitHub/Gist dry-run flows so they report intended work without requiring GitHub authentication first.
+
+### Fixed
+
+- Preserved explicit snapshot paths when iCloud endpoint defaults are active.
 
 ## 0.5.0 - 2026-06-01
 
@@ -29,7 +47,7 @@ No unreleased changes yet.
 
 - Added clean-Mac bootstrap commands: `prepare`, `continue`, and `status`.
 - Added restore preflight through `prepare` unless `--skip-prepare=true`.
-- Added resumable workflow state with a YAML checklist under `~/.mac-inventory/resume.yml`.
+- Added resumable workflow state with a YAML checklist under `~/.mac-setup/resume.yml`.
 - Added clean step output before prepare/restore actions, including why the step is needed and how to resume after interruption.
 - Added optional `caffeinate` support for long interactive workflows.
 - Added AI-agent repo guidance: `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `docs/AI.md`, and `ai/codex-skill/SKILL.md`.
@@ -57,7 +75,7 @@ No unreleased changes yet.
 - Preserved command failure exit codes from `backup`, `restore`, `list`, `doctor`, `config generate`, and Gist commands instead of masking failures at the end of the CLI entrypoint.
 - Fixed literal `~` expansion for dotfile paths so `~/.zshrc`, `~/.gitconfig`, `~/.gitignore_global`, and `~/.ssh/config` resolve under `$HOME`.
 - Replaced invalid `brew leaves --versions` usage with `brew leaves` plus `brew list --versions <formula>` for compatibility with the installed Homebrew CLI.
-- Ignored interrupted backup temp files via `mac-inventory.yml.tmp.*`.
+- Ignored interrupted backup temp files via `mac-setup.yml.tmp.*`.
 
 ## 0.1.0 - 2026-06-01
 

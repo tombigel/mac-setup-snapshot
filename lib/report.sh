@@ -17,7 +17,7 @@ mi_report_start() {
   mi_report_should_emit || return 0
   MI_REPORT_STARTED_AT="$(mi_timestamp)"
   MI_REPORT_STARTED_EPOCH="$(date '+%s' 2>/dev/null || printf '0')"
-  MI_REPORT_EVENTS_FILE="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-report.XXXXXX")" || {
+  MI_REPORT_EVENTS_FILE="$(mktemp "${TMPDIR:-/tmp}/mac-setup-report.XXXXXX")" || {
     mi_warn "report: could not create temporary report event file"
     MI_REPORT_EVENTS_FILE=""
     return 0
@@ -90,7 +90,7 @@ mi_report_render_text() {
   printf '  command: %s%s\n' "$MI_COMMAND" "${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}"
   printf '  status: %s\n' "$status"
   printf '  dry_run: %s\n' "$MI_DRY_RUN"
-  printf '  inventory: %s\n' "$MI_INVENTORY"
+  printf '  setup_snapshot: %s\n' "$MI_INVENTORY"
   printf '  duration_seconds: %s\n' "$duration"
   printf '  counts: %s\n' "$(mi_report_counts_line)"
   mi_report_events_text
@@ -101,11 +101,11 @@ mi_report_render_md() {
   local status="ok"
   local severity section code message
   [ "$rc" -eq 0 ] || status="failed"
-  printf '# mac-inventory Process Report\n\n'
+  printf '# Mac Setup Snapshot Process Report\n\n'
   printf '%s `%s`\n' "- Command:" "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}"
   printf '%s `%s`\n' "- Status:" "$status"
   printf '%s `%s`\n' "- Dry run:" "$MI_DRY_RUN"
-  printf '%s `%s`\n' "- Inventory:" "$MI_INVENTORY"
+  printf '%s `%s`\n' "- Setup snapshot:" "$MI_INVENTORY"
   printf '%s `%s`\n' "- Started:" "$MI_REPORT_STARTED_AT"
   printf '%s `%s`\n' "- Finished:" "$(mi_timestamp)"
   printf '%s `%s`\n' "- Duration seconds:" "$(mi_report_duration_seconds)"
@@ -136,7 +136,7 @@ mi_report_render_yaml() {
   printf 'command: %s\n' "$(mi_yaml_scalar "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}")"
   printf 'status: %s\n' "$(mi_yaml_scalar "$status")"
   printf 'dry_run: %s\n' "$(mi_yaml_scalar "$MI_DRY_RUN")"
-  printf 'inventory: %s\n' "$(mi_yaml_scalar "$MI_INVENTORY")"
+  printf 'setup_snapshot: %s\n' "$(mi_yaml_scalar "$MI_INVENTORY")"
   printf 'started_at: %s\n' "$(mi_yaml_scalar "$MI_REPORT_STARTED_AT")"
   printf 'finished_at: %s\n' "$(mi_yaml_scalar "$(mi_timestamp)")"
   printf 'duration_seconds: %s\n' "$(mi_yaml_scalar "$(mi_report_duration_seconds)")"
@@ -161,7 +161,7 @@ mi_report_render_json() {
   printf '  "command": "%s",\n' "$(mi_report_json_escape "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}")"
   printf '  "status": "%s",\n' "$status"
   printf '  "dry_run": "%s",\n' "$MI_DRY_RUN"
-  printf '  "inventory": "%s",\n' "$(mi_report_json_escape "$MI_INVENTORY")"
+  printf '  "setup_snapshot": "%s",\n' "$(mi_report_json_escape "$MI_INVENTORY")"
   printf '  "started_at": "%s",\n' "$MI_REPORT_STARTED_AT"
   printf '  "finished_at": "%s",\n' "$(mi_timestamp)"
   printf '  "duration_seconds": "%s",\n' "$(mi_report_duration_seconds)"

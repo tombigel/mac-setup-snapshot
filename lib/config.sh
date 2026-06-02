@@ -16,6 +16,13 @@ mi_config_apply() {
     mi_config_bool defaults.overwrite MI_OVERWRITE
     mi_config_bool defaults.caffeinate MI_CAFFEINATE
     mi_config_string defaults.resume_file MI_RESUME_FILE
+    if [ "$MI_TARGET_EXPLICIT" != "true" ]; then
+      mi_config_enum storage.default_target MI_TARGET icloud local github
+    fi
+    if [ "$MI_SOURCE_EXPLICIT" != "true" ]; then
+      mi_config_enum storage.default_source MI_SOURCE icloud local github
+    fi
+    mi_config_string storage.icloud_folder MI_ICLOUD_FOLDER_NAME
     mi_config_bool prepare.pause_after_manual_steps MI_PAUSE_AFTER_PREPARE
     mi_config_number defaults.command_timeout MI_COMMAND_TIMEOUT
     mi_config_enum restore.appstore_login MI_APPSTORE_LOGIN skip prompt pause require
@@ -77,7 +84,7 @@ mi_config_bool() {
 mi_config_generate() {
   output="${MI_OUTPUT:-$MI_CONFIG}"
   if [ -z "$output" ]; then
-    output="mac-inventory.config.yml"
+    output="mac-setup.config.yml"
   fi
 
   if [ "$MI_DRY_RUN" = "true" ]; then
@@ -102,7 +109,13 @@ defaults:
   overwrite: false
   command_timeout: 30
   caffeinate: true
-  resume_file: ~/.mac-inventory/resume.yml
+  resume_file: ~/.mac-setup/resume.yml
+
+storage:
+  default_target: icloud
+  default_source: icloud
+  icloud_folder: "Mac Setup Snapshot"
+  github_backend: gist
 
 sources:
   apps: true
@@ -143,8 +156,8 @@ prepare:
 
 gist:
   visibility: secret
-  inventory_file: mac-inventory.yml
-  config_file: mac-inventory.config.yml
+  inventory_file: mac-setup.yml
+  config_file: mac-setup.config.yml
 
 reports:
   path: ""

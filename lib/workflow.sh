@@ -115,7 +115,7 @@ mi_resume_existing_policy() {
   fi
 
   if [ "$MI_INTERACTIVE" != "true" ] || [ ! -t 0 ]; then
-    mi_error "resume state exists at $resume; run 'mac-inventory continue' or --reset-resume"
+    mi_error "resume state exists at $resume; run '${MI_PROGRAM_NAME:-mac-setup} continue' or --reset-resume"
     return 1
   fi
   mi_warn "resume state exists at $resume"
@@ -167,7 +167,7 @@ mi_action_intro() {
   printf '%s\n' "$why"
   [ -n "$command_preview" ] && printf 'Command: %s\n' "$command_preview"
   [ -n "$prompt_note" ] && printf '%s\n' "$prompt_note"
-  printf 'Press Ctrl-C to stop safely; resume later with: mac-inventory continue\n'
+  printf 'Press Ctrl-C to stop safely; resume later with: %s continue\n' "${MI_PROGRAM_NAME:-mac-setup}"
 }
 
 mi_caffeinate_enabled() {
@@ -211,7 +211,7 @@ mi_workflow_run() {
     mi_workflow_build_steps "$workflow"
     mi_resume_existing_policy || return 1
     if [ "$MI_DRY_RUN" = "true" ]; then
-      MI_ACTIVE_RESUME_FILE="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-resume-dry.XXXXXX")" || return 1
+      MI_ACTIVE_RESUME_FILE="$(mktemp "${TMPDIR:-/tmp}/mac-setup-resume-dry.XXXXXX")" || return 1
     fi
     mi_resume_init "$workflow"
   else
@@ -219,12 +219,12 @@ mi_workflow_run() {
     mi_resume_load_steps || return 1
     if [ "$MI_DRY_RUN" = "true" ]; then
       real_resume="$(mi_resume_path)"
-      MI_ACTIVE_RESUME_FILE="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-resume-dry.XXXXXX")" || return 1
+      MI_ACTIVE_RESUME_FILE="$(mktemp "${TMPDIR:-/tmp}/mac-setup-resume-dry.XXXXXX")" || return 1
       cp "$real_resume" "$MI_ACTIVE_RESUME_FILE"
     fi
   fi
 
-  trap 'mi_caffeinate_stop; mi_warn "workflow interrupted; resume with: mac-inventory continue"; exit 130' INT TERM
+  trap 'mi_caffeinate_stop; mi_warn "workflow interrupted; resume with: ${MI_PROGRAM_NAME:-mac-setup} continue"; exit 130' INT TERM
   mi_caffeinate_start
   MI_WORKFLOW_INDEX=0
   workflow_rc=0
@@ -243,7 +243,7 @@ mi_workflow_run() {
       mi_resume_mark_step "$step" "failed"
       mi_caffeinate_stop
       trap - INT TERM
-      mi_error "workflow failed at step $step; resume with: mac-inventory continue"
+      mi_error "workflow failed at step $step; resume with: ${MI_PROGRAM_NAME:-mac-setup} continue"
       workflow_rc="$rc"
       break
     fi
@@ -293,7 +293,7 @@ mi_workflow_step_install_homebrew() {
     return 0
   fi
   mi_prompt_yes_no "Install Homebrew now?" "yes" || return 0
-  installer="${TMPDIR:-/tmp}/mac-inventory-homebrew-install.sh"
+  installer="${TMPDIR:-/tmp}/mac-setup-homebrew-install.sh"
   mi_download_installer "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh" "$installer" || return 1
   mi_run /bin/bash "$installer" || return 1
   if [ -x /opt/homebrew/bin/brew ]; then
@@ -335,7 +335,7 @@ mi_workflow_step_check_github_auth() {
 }
 
 mi_workflow_step_check_appstore_login() {
-  mi_action_intro "Check App Store login" "Required for mas install/list operations." "mas account" "If not signed in, open the App Store and sign in, then run mac-inventory continue."
+  mi_action_intro "Check App Store login" "Required for mas install/list operations." "mas account" "If not signed in, open the App Store and sign in, then run ${MI_PROGRAM_NAME:-mac-setup} continue."
   if ! mi_has mas; then
     mi_warn "appstore: mas missing"
     mi_report_event warn apps mas_missing "mas is missing; App Store login could not be checked"
@@ -349,7 +349,7 @@ mi_workflow_step_check_appstore_login() {
 }
 
 mi_workflow_step_restore_inventory() {
-  mi_action_intro "Restore inventory" "Runs the selected additive restore steps from the inventory." "mac-inventory restore --skip-prepare=true"
+  mi_action_intro "Restore setup snapshot" "Runs the selected additive restore steps from the setup snapshot." "${MI_PROGRAM_NAME:-mac-setup} restore --skip-prepare=true"
   if [ "$MI_PAUSE_AFTER_PREPARE" = "true" ]; then
     mi_prompt_yes_no "Prepare completed. Continue with restore now?" "yes" || return 0
   fi

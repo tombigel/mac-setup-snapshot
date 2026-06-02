@@ -51,12 +51,13 @@ mi_github_ensure_auth() {
 
 mi_gist_pull() {
   [ -n "$MI_GIST_ID" ] || { mi_error "--gist-id is required for gist pull"; return 2; }
-  mi_github_ensure_auth || { mi_error "GitHub auth is required for gist pull"; return 1; }
 
   if [ "$MI_DRY_RUN" = "true" ]; then
     mi_info "dry-run: would pull gist $MI_GIST_ID"
     return 0
   fi
+
+  mi_github_ensure_auth || { mi_error "GitHub auth is required for gist pull"; return 1; }
 
   if mi_github_has_gh_auth; then
     tmpdir="$(mktemp -d)"
@@ -84,6 +85,11 @@ mi_gist_copy_pulled_file() {
 }
 
 mi_gist_push() {
+  if [ "$MI_DRY_RUN" = "true" ]; then
+    mi_info "dry-run: would push snapshot/config to GitHub Gist"
+    return 0
+  fi
+
   mi_github_ensure_auth || { mi_error "GitHub auth is required for gist push"; return 1; }
 
   files_to_scan=""
@@ -100,16 +106,11 @@ mi_gist_push() {
 
   if [ "$MI_GIST_VISIBILITY" = "public" ]; then
     if [ "$MI_INTERACTIVE" = "true" ]; then
-      mi_prompt_yes_no "Upload inventory/config as a public Gist?" "no" || return 1
+      mi_prompt_yes_no "Upload snapshot/config as a public Gist?" "no" || return 1
     elif [ "$MI_YES" != "true" ]; then
       mi_error "public Gist upload in non-interactive mode requires --yes"
       return 1
     fi
-  fi
-
-  if [ "$MI_DRY_RUN" = "true" ]; then
-    mi_info "dry-run: would push inventory/config to GitHub Gist"
-    return 0
   fi
 
   if mi_github_has_gh_auth; then

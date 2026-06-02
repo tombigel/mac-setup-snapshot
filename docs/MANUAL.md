@@ -1,75 +1,132 @@
-# mac-inventory Manual
+# Mac Setup Snapshot Manual
 
 ## Name
 
-`mac-inventory` - inventory and restore reinstallable macOS software, shell tooling, developer tooling, selected dotfiles, and optional GitHub Gist storage.
+`mac-setup` - snapshot and restore reinstallable macOS software, shell tooling, developer tooling, selected dotfiles, and optional iCloud Drive or GitHub Gist storage.
 
 ## Synopsis
 
 ```bash
-mac-inventory <command> [options]
-mac-inventory backup [options]
-mac-inventory prepare [options]
-mac-inventory restore [options]
-mac-inventory continue [options]
-mac-inventory status [options]
-mac-inventory list [options]
-mac-inventory doctor [options]
-mac-inventory config generate [options]
-mac-inventory gist pull [options]
-mac-inventory gist push [options]
-mac-inventory help
-mac-inventory --help
-mac-inventory -h
+mac-setup <command> [options]
+mac-setup backup [options]
+mac-setup prepare [options]
+mac-setup restore [options]
+mac-setup continue [options]
+mac-setup status [options]
+mac-setup list [options]
+mac-setup doctor [options]
+mac-setup config generate [options]
+mac-setup gist pull [options]
+mac-setup gist push [options]
+mac-setup help
+mac-setup --help
+mac-setup -h
 ```
 
-Calling `mac-inventory` without arguments prints help.
+Calling `mac-setup` without arguments prints help.
 
 ## Description
 
-`mac-inventory` is a Bash CLI for preparing a Mac rebuild. It creates a YAML inventory of installed software and selected user configuration, then uses that inventory to run an additive restore.
+`mac-setup` is a Bash CLI for preparing a Mac rebuild. It creates a YAML setup snapshot of installed software and selected user configuration, then uses that snapshot to run an additive restore.
 
-Restore is additive-only in v1. It installs, copies, checks, and reports. It does not uninstall packages, delete applications, clean directories, or remove software that is not in the inventory.
+Restore is additive-only in v1. It installs, copies, checks, and reports. It does not uninstall packages, delete applications, clean directories, or remove software that is not in the snapshot.
+
+## Common Usage
+
+### Save This Mac To iCloud Drive
+
+Check backup prerequisites and account state:
+
+```bash
+mac-setup doctor
+```
+
+Generate a starter config if you want to review or customize sources:
+
+```bash
+mac-setup config generate -o mac-setup.config.yml
+```
+
+Create or update the default iCloud Drive setup snapshot:
+
+```bash
+mac-setup backup
+```
+
+The default iCloud bundle is:
+
+```text
+~/Library/Mobile Documents/com~apple~CloudDocs/Mac Setup Snapshot/
+```
+
+macOS may ask the app running this command, such as Terminal, iTerm, or Codex, for permission to access iCloud Drive. If access is denied, allow iCloud Drive access in System Settings > Privacy & Security > Files & Folders.
+
+### Restore After Formatting
+
+On the fresh Mac, install only enough to clone this repo. If `git` prompts for Xcode Command Line Tools, accept that prompt.
+
+```bash
+git clone https://github.com/tombigel/mac-setup-snapshot.git
+cd mac-setup-snapshot
+```
+
+Run a dry-run restore from the iCloud Drive bundle first:
+
+```bash
+./bin/mac-setup restore --appstore-login=pause --dry-run
+```
+
+Then run the real additive restore:
+
+```bash
+./bin/mac-setup restore --appstore-login=pause
+```
+
+`restore` runs `prepare` automatically unless `--skip-prepare=true` is passed.
 
 ## Commands
 
 ### `backup`
 
-Create an inventory file from the current Mac.
+Create a setup snapshot file from the current Mac.
 
 ```bash
-mac-inventory backup
-mac-inventory backup -i mac-inventory.yml
-mac-inventory backup --update
-mac-inventory backup --apps=false --versions=false
-mac-inventory backup --check-manual-brew=true --manual-brew-match=ask
-mac-inventory backup --gist-create=true --gist-push
+mac-setup backup
+mac-setup backup -i mac-setup.yml
+mac-setup backup --target local
+mac-setup backup --target github --gist-create=true --github-login=interactive
+mac-setup backup --update
+mac-setup backup --apps=false --versions=false
+mac-setup backup --check-manual-brew=true --manual-brew-match=ask
+mac-setup backup --gist-create=true --gist-push
 ```
 
 By default, backup includes App Store apps, Homebrew, npm globals, pip, pipx, Oh My Zsh, Xcode, dotfiles, and manual apps.
 
-Use `--dry-run` to print the inventory that would be generated without writing it.
+Use `--dry-run` to print the snapshot that would be generated without writing it.
 
 ### `restore`
 
-Restore from an existing inventory file.
+Restore from an existing setup snapshot file.
 
 ```bash
-mac-inventory restore
-mac-inventory restore -i mac-inventory.yml --dry-run
-mac-inventory restore -S brew
-mac-inventory restore --skip-existing=true
-mac-inventory restore --overwrite=true -S dotfiles
-mac-inventory restore --appstore-login=pause
-mac-inventory restore --report reports/restore.md --report-format md
-mac-inventory restore -g abc123 --gist-pull --dry-run
+mac-setup restore
+mac-setup restore -i mac-setup.yml --dry-run
+mac-setup restore --source local -i mac-setup.yml --dry-run
+mac-setup restore --source github -g abc123 --dry-run
+mac-setup restore -S brew
+mac-setup restore --skip-existing=true
+mac-setup restore --overwrite=true -S dotfiles
+mac-setup restore --appstore-login=pause
+mac-setup restore --report reports/restore.md --report-format md
+mac-setup restore -g abc123 --gist-pull --dry-run
 ```
 
 Restore checks existing installations first. By default, existing items are skipped. Dotfiles are skipped unless `--overwrite=true` is used; when overwriting, the current file is backed up first.
 
 Restore runs `prepare` first unless `--skip-prepare=true` is passed.
 
-`--dry-run` prevents installs, downloads, Gist writes, inventory writes, dotfile copies, overwrites, shell changes, and license acceptance. If `--report <path>` is explicitly passed, only that report artifact is written.
+`--dry-run` prevents installs, downloads, Gist writes, snapshot writes, dotfile copies, overwrites, shell changes, and license acceptance. If `--report <path>` is explicitly passed, only that report artifact is written.
 
 Mac App Store restore requires `mas` plus a signed-in App Store app. The CLI never asks for Apple ID credentials. Use `--appstore-login` to choose skip, prompt, pause/resume, or require behavior.
 
@@ -78,10 +135,10 @@ Mac App Store restore requires `mas` plus a signed-in App Store app. The CLI nev
 Check and install clean-Mac prerequisites before restore.
 
 ```bash
-mac-inventory prepare
-mac-inventory prepare --dry-run
-mac-inventory prepare --check-only=true
-mac-inventory prepare --caffeinate=false
+mac-setup prepare
+mac-setup prepare --dry-run
+mac-setup prepare --check-only=true
+mac-setup prepare --caffeinate=false
 ```
 
 Prerequisite order:
@@ -99,9 +156,9 @@ Prerequisite order:
 Resume an interrupted `prepare` or `restore` workflow from the resume checklist.
 
 ```bash
-mac-inventory continue
-mac-inventory continue --dry-run
-mac-inventory continue --resume-file ~/.mac-inventory/resume.yml
+mac-setup continue
+mac-setup continue --dry-run
+mac-setup continue --resume-file ~/.mac-setup/resume.yml
 ```
 
 ### `status`
@@ -109,36 +166,36 @@ mac-inventory continue --resume-file ~/.mac-inventory/resume.yml
 Print the current resume checklist.
 
 ```bash
-mac-inventory status
-mac-inventory status --resume-file ~/.mac-inventory/resume.yml
+mac-setup status
+mac-setup status --resume-file ~/.mac-setup/resume.yml
 ```
 
 ### `list`
 
-List inventory sections.
+List setup snapshot sections.
 
 ```bash
-mac-inventory list
-mac-inventory list -i mac-inventory.yml
-mac-inventory list -S brew
-mac-inventory list -S manual_apps
-mac-inventory list --format yaml
-mac-inventory list --format json
+mac-setup list
+mac-setup list -i mac-setup.yml
+mac-setup list -S brew
+mac-setup list -S manual_apps
+mac-setup list --format yaml
+mac-setup list --format json
 ```
 
 Formats:
 
 - `table`: default, prints section names or selected section labels.
-- `yaml`: prints the full inventory or selected YAML sections.
-- `json`: converts inventory to JSON with `yq`.
+- `yaml`: prints the full setup snapshot or selected YAML sections.
+- `json`: converts the setup snapshot to JSON with `yq`.
 
 ### `doctor`
 
 Check local readiness.
 
 ```bash
-mac-inventory doctor
-mac-inventory doctor --command-timeout 5
+mac-setup doctor
+mac-setup doctor --command-timeout 5
 ```
 
 Checks include:
@@ -161,42 +218,72 @@ Checks include:
 Generate a starter YAML config.
 
 ```bash
-mac-inventory config generate
-mac-inventory config generate -o mac-inventory.config.yml
-mac-inventory config generate --output ./config.yml
-mac-inventory config generate --dry-run
+mac-setup config generate
+mac-setup config generate -o mac-setup.config.yml
+mac-setup config generate --output ./config.yml
+mac-setup config generate --dry-run
 ```
 
-If no output path is provided, the default is `mac-inventory.config.yml`.
+If no output path is provided, the default is `mac-setup.config.yml`.
 
 If the target file already exists, interactive mode prompts before overwriting. Non-interactive mode fails conservatively unless `--yes` allows the write.
 
+## Endpoint Options
+
+`--target icloud|local|github`
+
+Backup endpoint. Default: `icloud`.
+
+- `icloud`: write the setup snapshot bundle to iCloud Drive.
+- `local`: write `mac-setup.yml`, optional config, and copied `files/` in the current directory or explicit paths.
+- `github`: write locally and push snapshot/config to GitHub Gist.
+
+`--source icloud|local|github`
+
+Restore endpoint. Default: `icloud`.
+
+- `icloud`: read the setup snapshot bundle from iCloud Drive.
+- `local`: read from current directory or explicit paths.
+- `github`: pull snapshot/config from GitHub Gist before restore.
+
+`--icloud-folder <name>`
+
+iCloud Drive folder name. Default: `Mac Setup Snapshot`.
+
+`--icloud-root <path>`
+
+iCloud Drive root path. Default: `~/Library/Mobile Documents/com~apple~CloudDocs`.
+
+The iCloud endpoint stores `mac-setup.yml`, optional `mac-setup.config.yml`, copied `files/`, and `metadata.yml` in one bundle folder. Before overwriting an existing bundle, backup moves current bundle files into `history/YYYYMMDDTHHMMSSZ/`.
+
+If iCloud Drive is missing or inaccessible, interactive commands offer local/GitHub fallback where possible. Non-interactive commands fail clearly unless a non-iCloud endpoint is explicit.
+
 ### `gist pull`
 
-Download inventory and config files from a GitHub Gist.
+Download setup snapshot and config files from a GitHub Gist.
 
 ```bash
-mac-inventory gist pull -g abc123
-mac-inventory gist pull --gist-id abc123 --inventory mac-inventory.yml --config mac-inventory.config.yml
-mac-inventory gist pull -g abc123 --github-login=interactive
+mac-setup gist pull -g abc123
+mac-setup gist pull --gist-id abc123 --inventory mac-setup.yml --config mac-setup.config.yml
+mac-setup gist pull -g abc123 --github-login=interactive
 ```
 
 Pull currently prefers authenticated `gh` usage. Existing local files are backed up before replacement.
 
 ### `gist push`
 
-Upload inventory and/or config files to a GitHub Gist.
+Upload setup snapshot and/or config files to a GitHub Gist.
 
 ```bash
-mac-inventory gist push -g abc123
-mac-inventory gist push --gist-create=true
-mac-inventory gist push -g abc123 --github-token-env GITHUB_TOKEN
-mac-inventory gist push -g abc123 --github-login=interactive
+mac-setup gist push -g abc123
+mac-setup gist push --gist-create=true
+mac-setup gist push -g abc123 --github-token-env GITHUB_TOKEN
+mac-setup gist push -g abc123 --github-login=interactive
 ```
 
 Secret Gists are the default. Public Gist upload requires explicit `--gist-visibility public` and confirmation policy.
 
-Before upload, files are scanned for common secret patterns. Tokens are masked in logs and are not written to inventory or config files.
+Before upload, files are scanned for common secret patterns. Tokens are masked in logs and are not written to snapshot or config files.
 
 ## Global Options
 
@@ -204,11 +291,11 @@ Before upload, files are scanned for common secret patterns. Tokens are masked i
 
 `--config <path>`, `-c <path>`
 
-Config file path. Default: `mac-inventory.config.yml`.
+Config file path. Default: `mac-setup.config.yml`.
 
 `--inventory <path>`, `-i <path>`
 
-Inventory file path. Default: `mac-inventory.yml`.
+Setup snapshot file path. Default: `mac-setup.yml`.
 
 `--output <path>`, `-o <path>`
 
@@ -219,8 +306,8 @@ Output path for `backup` and `config generate`. For backup, this is an alias for
 Boolean source options accept `true` or `false`.
 
 ```bash
-mac-inventory backup --apps=false --brew=true
-mac-inventory restore -B false -N true
+mac-setup backup --apps=false --brew=true
+mac-setup restore -B false -N true
 ```
 
 Available source flags:
@@ -274,8 +361,8 @@ Set timeout for external package-manager commands. Default: `30`.
 Use `0` to disable the wrapper timeout.
 
 ```bash
-mac-inventory backup -t 10
-mac-inventory restore --command-timeout 5 --dry-run
+mac-setup backup -t 10
+mac-setup restore --command-timeout 5 --dry-run
 ```
 
 Homebrew commands are invoked with these environment variables where possible:
@@ -305,7 +392,7 @@ Use `caffeinate` to reduce sleep interruptions during `prepare`, `restore`, and 
 
 `--resume-file <path>`
 
-Resume checklist path. Default: `~/.mac-inventory/resume.yml`.
+Resume checklist path. Default: `~/.mac-setup/resume.yml`.
 
 `--reset-resume`
 
@@ -329,13 +416,13 @@ Report file format. Default: `text`.
 
 Suppress the final process report. Errors and warnings still print through normal command output.
 
-Reports include command, status, dry-run state, inventory path, duration, inventory counts where available, and warnings or manual actions such as missing App Store login. Reports must not include secrets, tokens, copied dotfile contents, or raw command output.
+Reports include command, status, dry-run state, setup snapshot path, duration, snapshot counts where available, and warnings or manual actions such as missing App Store login. Reports must not include secrets, tokens, copied dotfile contents, or raw command output.
 
 ## Backup Options
 
 `--update`, `-u`
 
-Merge into an existing inventory by preserving unselected sections where supported.
+Merge into an existing setup snapshot by preserving unselected sections where supported.
 
 `--check-manual-brew true|false`, `-C true|false`
 
@@ -345,7 +432,7 @@ Try to match manually installed `.app` bundles to Homebrew casks during backup.
 
 Manual app matching policy.
 
-- `ask`: prompt per candidate. If approved, add the cask to Homebrew inventory and remove that app from `manual_apps`.
+- `ask`: prompt per candidate. If approved, add the cask to the Homebrew snapshot section and remove that app from `manual_apps`.
 - `never`: record the cask candidate but keep the app in `manual_apps`.
 - `all`: accept all detected candidates, add casks, and remove matched apps from `manual_apps`.
 
@@ -359,10 +446,10 @@ Version lookups can require external package-manager calls. Use `--versions=fals
 
 `--dotfiles-path <path>`, `-F <path>`
 
-Add a dotfile path to inventory. Repeatable.
+Add a dotfile path to the setup snapshot. Repeatable.
 
 ```bash
-mac-inventory backup -F ~/.zshrc -F ~/.config/git/config
+mac-setup backup -F ~/.zshrc -F ~/.config/git/config
 ```
 
 Dotfile backup is allowlist-only. Paths must resolve under `$HOME`.
@@ -380,7 +467,7 @@ Allow overwrite/reinstall behavior where supported. Default: `false`.
 For dotfiles, overwrite first backs up the existing target to:
 
 ```text
-~/.mac-inventory/restore-backups/<timestamp>/
+~/.mac-setup/restore-backups/<timestamp>/
 ```
 
 `--use-versions true|false`, `-U true|false`
@@ -403,7 +490,7 @@ Control behavior when App Store login is missing and `mas` is needed.
 
 - `skip`: skip App Store inventory/restore work and continue other sections.
 - `prompt`: in interactive mode, offer to open the App Store app, then continue without using `mas` until sign-in is available. In non-interactive mode, behaves like `skip`.
-- `pause`: open/prompt when allowed, mark the workflow as blocked, and resume after sign-in with `mac-inventory continue`.
+- `pause`: open/prompt when allowed, mark the workflow as blocked, and resume after sign-in with `mac-setup continue`.
 - `require`: fail the workflow until App Store login is available.
 
 The CLI does not accept Apple ID credentials and does not attempt to automate Apple sign-in.
@@ -458,11 +545,11 @@ Gist visibility. Default: `secret`.
 
 `--gist-file <name>`
 
-Inventory filename inside the Gist. Default: `mac-inventory.yml`.
+Setup snapshot filename inside the Gist. Default: `mac-setup.yml`.
 
 `--gist-config-file <name>`
 
-Config filename inside the Gist. Default: `mac-inventory.config.yml`.
+Config filename inside the Gist. Default: `mac-setup.config.yml`.
 
 `--gist-pull`
 
@@ -498,13 +585,13 @@ Environment variable containing the token. Default: `GITHUB_TOKEN`.
 No-argument short flags can be chained Git-style.
 
 ```bash
-mac-inventory restore -dyq
+mac-setup restore -dyq
 ```
 
 Equivalent to:
 
 ```bash
-mac-inventory restore --dry-run --yes --quiet
+mac-setup restore --dry-run --yes --quiet
 ```
 
 Value-taking short options must be standalone or last in a chain.
@@ -512,15 +599,15 @@ Value-taking short options must be standalone or last in a chain.
 Valid:
 
 ```bash
-mac-inventory backup -i mac-inventory.yml
-mac-inventory backup -dqS brew
-mac-inventory restore -t 10
+mac-setup backup -i mac-setup.yml
+mac-setup backup -dqS brew
+mac-setup restore -t 10
 ```
 
 Invalid:
 
 ```bash
-mac-inventory backup -diq inventory.yml
+mac-setup backup -diq inventory.yml
 ```
 
 `-i` requires a value and appears before the end of the chain.
@@ -530,7 +617,7 @@ mac-inventory backup -diq inventory.yml
 Generate a starter config:
 
 ```bash
-mac-inventory config generate -o mac-inventory.config.yml
+mac-setup config generate -o mac-setup.config.yml
 ```
 
 Example:
@@ -546,7 +633,13 @@ defaults:
   overwrite: false
   command_timeout: 30
   caffeinate: true
-  resume_file: ~/.mac-inventory/resume.yml
+  resume_file: ~/.mac-setup/resume.yml
+
+storage:
+  default_target: icloud
+  default_source: icloud
+  icloud_folder: "Mac Setup Snapshot"
+  github_backend: gist
 
 sources:
   apps: true
@@ -593,12 +686,12 @@ reports:
 
 CLI flags override config defaults for the current run.
 
-## Inventory File
+## Setup Snapshot File
 
 Default path:
 
 ```text
-mac-inventory.yml
+mac-setup.yml
 ```
 
 High-level sections:
@@ -621,7 +714,7 @@ xcode: {}
 dotfiles: {}
 ```
 
-Generated inventory files and copied dotfiles are ignored by Git by default.
+Generated setup snapshot files and copied dotfiles are ignored by Git by default.
 
 ## Dotfiles
 
@@ -632,7 +725,7 @@ Default allowlist:
 - `~/.gitignore_global`
 - `~/.ssh/config`
 
-Backup copies allowlisted files into an inventory-adjacent `files/` directory.
+Backup copies allowlisted files into a setup-snapshot-adjacent `files/` directory.
 
 Restore only writes under `$HOME`, rejects unsafe paths, skips existing files by default, and backs up existing files before overwrite.
 
@@ -685,7 +778,7 @@ Process report
   command: restore
   status: ok
   dry_run: true
-  inventory: mac-inventory.yml
+  inventory: mac-setup.yml
   duration_seconds: 12
   counts: apps=0 brew_formulae=47 brew_casks=43 npm=3 pip=4 pipx=0 manual_apps=105 dotfiles=4
   warnings/actions:
@@ -699,15 +792,15 @@ Use `--report <path>` to write the report to a file. Use `--skip-report` when em
 - `0`: command completed successfully.
 - `1`: command failed.
 - `2`: usage or argument parse error.
-- `124`: internal external-command timeout code, usually converted into a warning for optional inventory sources.
+- `124`: internal external-command timeout code, usually converted into a warning for optional snapshot sources.
 
 ## Files
 
-- `mac-inventory.yml`: default inventory.
-- `mac-inventory.config.yml`: default config.
-- `files/`: copied dotfiles next to the inventory.
-- `~/.mac-inventory/restore-backups/<timestamp>/`: dotfile restore backups.
-- `~/.mac-inventory/resume.yml`: default prepare/restore resume checklist.
+- `mac-setup.yml`: default setup snapshot.
+- `mac-setup.config.yml`: default config.
+- `files/`: copied dotfiles next to the setup snapshot.
+- `~/.mac-setup/restore-backups/<timestamp>/`: dotfile restore backups.
+- `~/.mac-setup/resume.yml`: default prepare/restore resume checklist.
 - `docs/PLAN.md`: implementation plan.
 - `docs/PROMPT.md`: prompt history.
 - `docs/MANUAL.md`: this manual.
@@ -729,13 +822,13 @@ Used for temporary command output, downloaded installers, and timeout wrappers.
 
 ## Safety Notes
 
-- Do not commit generated inventory or copied dotfiles unless you intentionally reviewed them.
+- Do not commit generated setup snapshots or copied dotfiles unless you intentionally reviewed them.
 - Prefer secret Gists over public Gists.
 - Prefer `--github-token-env` over `--github-token`.
 - Run `restore --dry-run` first on a newly formatted Mac.
-- Use `--versions=false` when you want a faster inventory without remote version lookups.
+- Use `--versions=false` when you want a faster snapshot without remote version lookups.
 - Use `--command-timeout` to keep package-manager hangs bounded.
-- Use `mac-inventory continue` after interrupting a prepare or restore workflow.
+- Use `mac-setup continue` after interrupting a prepare or restore workflow.
 
 ## AI Contributor Notes
 
@@ -751,33 +844,33 @@ When implementing changes, keep restore additive-only, preserve `--dry-run` beha
 
 ## Examples
 
-Fast inventory without App Store or remote version lookups:
+Fast snapshot without App Store or remote version lookups:
 
 ```bash
-mac-inventory backup --apps=false --versions=false -t 10
+mac-setup backup --apps=false --versions=false -t 10
 ```
 
-Full dry-run restore from Gist:
+Full dry-run restore from GitHub Gist:
 
 ```bash
-mac-inventory restore -g abc123 --gist-pull --dry-run
+mac-setup restore -g abc123 --gist-pull --dry-run
 ```
 
 Only restore Homebrew:
 
 ```bash
-mac-inventory restore -S brew --dry-run
-mac-inventory restore -S brew
+mac-setup restore -S brew --dry-run
+mac-setup restore -S brew
 ```
 
 Backup selected dotfiles:
 
 ```bash
-mac-inventory backup --dotfiles=true -F ~/.zshrc -F ~/.gitconfig
+mac-setup backup --dotfiles=true -F ~/.zshrc -F ~/.gitconfig
 ```
 
-Create and upload a secret Gist:
+Create and upload to a secret GitHub Gist:
 
 ```bash
-mac-inventory backup --gist-create=true --gist-push --github-login=interactive
+mac-setup backup --gist-create=true --gist-push --github-login=interactive
 ```

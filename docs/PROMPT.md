@@ -31,7 +31,7 @@ It should support:
 - Support chained no-argument short flags such as `-dyq`.
 - Add explicit `config generate` support.
 - Save the plan and prompt history in the repo.
-- Create a public GitHub repository at `tombigel/mac-inventory`.
+- Create a public GitHub repository at `tombigel/mac-setup-snapshot`.
 - Commit and push in task/stage commits.
 - Add a safety model.
 - Manual app to Homebrew cask matching defaults to interactive `ask`, with `never` and `all` modes.

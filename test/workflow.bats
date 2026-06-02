@@ -26,7 +26,7 @@ setup() {
   run "$BIN" restore --skip-prepare=true --dry-run --inventory "$BATS_TEST_TMPDIR/missing.yml"
   [ "$status" -eq 1 ]
   [[ "$output" != *"Check Xcode Command Line Tools"* ]]
-  [[ "$output" == *"inventory not found"* ]]
+  [[ "$output" == *"setup snapshot not found"* ]]
 }
 
 @test "status prints existing resume state" {
@@ -35,7 +35,7 @@ version: 1
 workflow: "prepare"
 created_at: "2026-06-01T00:00:00Z"
 updated_at: "2026-06-01T00:00:00Z"
-inventory: "mac-inventory.yml"
+inventory: "mac-setup.yml"
 current_step: "install_yq"
 steps:
   - id: "check_xcode_cli"
@@ -55,7 +55,7 @@ version: 1
 workflow: "prepare"
 created_at: "2026-06-01T00:00:00Z"
 updated_at: "2026-06-01T00:00:00Z"
-inventory: "mac-inventory.yml"
+inventory: "mac-setup.yml"
 current_step: "install_yq"
 steps:
   - id: "check_xcode_cli"

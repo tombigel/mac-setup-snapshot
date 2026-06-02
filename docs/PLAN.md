@@ -1,33 +1,33 @@
-# mac-inventory OSS Project Plan
+# mac-setup OSS Project Plan
 
 ## Summary
 
-Create a public GitHub repo at `tombigel/mac-inventory` containing a Bash-first macOS backup/restore inventory CLI.
+Create a public GitHub repo at `tombigel/mac-setup-snapshot` containing a Bash-first macOS setup snapshot and additive restore CLI.
 
 Defaults:
 
 - Runtime: Bash.
-- Config/inventory format: YAML.
+- Config/snapshot format: YAML.
 - YAML parser: `yq` v4.
 - Test framework: `bats-core`.
 - Static check: `shellcheck`.
-- Remote sync: optional GitHub Gist input/output.
+- Remote sync: default iCloud Drive endpoint, with optional GitHub Gist input/output.
 - Restore policy: additive-only by default; no uninstall/delete behavior in v1.
 
 ## CLI Scope
 
 Commands:
 
-- `backup`: create or update inventory.
+- `backup`: create or update setup snapshot.
 - `prepare`: check/install clean-Mac prerequisites before restore.
-- `restore`: restore from inventory.
+- `restore`: restore from setup snapshot.
 - `continue`: resume interrupted prepare/restore workflows.
 - `status`: show the current resume checklist.
-- `list`: list inventory or installed/missing items.
+- `list`: list snapshot sections or installed/missing items.
 - `doctor`: check tools, login/auth state, Xcode state, GitHub auth state, and readiness.
 - `config generate`: generate starter config.
-- `gist pull`: download inventory/config from a Gist.
-- `gist push`: upload inventory/config to a Gist.
+- `gist pull`: download snapshot/config from a Gist.
+- `gist push`: upload snapshot/config to a Gist.
 - `help`, `--help`, `-h`: show help.
 - No args: show help.
 
@@ -35,6 +35,8 @@ Main options:
 
 - `--config`, `-c`
 - `--inventory`, `-i`
+- `--target icloud|local|github`
+- `--source icloud|local|github`
 - `--apps`, `-A`
 - `--brew`, `-B`
 - `--npm`, `-N`
@@ -60,7 +62,7 @@ Main options:
 
 Short-option behavior:
 
-- No-arg short flags chain Git-style, for example `mac-inventory restore -dyq`.
+- No-arg short flags chain Git-style, for example `mac-setup restore -dyq`.
 - Value options may use `-i file.yml`, `-B true`, `-B=false`, or long equivalents.
 - A value-consuming short option may appear only at the end of a chain.
 
@@ -124,8 +126,8 @@ Safety rules:
 
 - Restore is additive-only in v1.
 - Restore runs prepare preflight by default unless `--skip-prepare=true`.
-- Prepare/restore create durable resume state under `~/.mac-inventory/resume.yml`.
-- `--dry-run` prevents inventory writes, Gist writes, dotfile copies, downloads, installs, upgrades, license acceptance, overwrites, and shell changes.
+- Prepare/restore create durable resume state under `~/.mac-setup/resume.yml`.
+- `--dry-run` prevents snapshot writes, iCloud history moves, Gist writes, dotfile copies, downloads, installs, upgrades, license acceptance, overwrites, and shell changes.
 - Never execute YAML/config/inventory content with `eval` or command substitution.
 - Do not implement arbitrary user-defined restore hooks in v1.
 - Do not use direct `curl | sh`.
@@ -135,14 +137,14 @@ Safety rules:
 - `--yes` accepts safe install/upload prompts only.
 - External package-manager commands should avoid unrelated work where possible. Homebrew commands run with auto-update, analytics, cleanup, and env hints disabled for the invoked command. Commands that do not provide immediate-fail flags are wrapped with a configurable timeout.
 - Prefer `--github-token-env` or `gh` auth over `--github-token`.
-- Public repo preparation excludes copied dotfiles, inventories, Gist payloads, and secrets by default.
+- Public repo preparation excludes copied dotfiles, setup snapshots, Gist payloads, and secrets by default.
 
 ## Implementation Plan
 
 Create:
 
 ```text
-bin/mac-inventory
+bin/mac-setup
 lib/args.sh
 lib/common.sh
 lib/config.sh
@@ -163,11 +165,12 @@ Behavior:
 - Parse CLI flags first, merge config defaults second, then command defaults.
 - `config generate -o <path>` writes starter YAML config.
 - `doctor` checks local package managers, Gist auth, App Store login, Oh My Zsh, and Xcode state.
+- Default backup/restore uses the iCloud Drive `Mac Setup Snapshot` bundle when available.
 - `prepare` checks Xcode CLT, Homebrew, yq, mas, pipx, GitHub auth, and App Store login in order.
 - Gist auth order: explicit token, token env var, `gh auth status`, then interactive `gh auth login` if allowed.
 - Gist operations prefer `gh gist`; token fallback uses the GitHub REST API.
 - `backup` gathers enabled sources, records versions, writes YAML atomically, and supports `--update`.
-- `restore` runs prepare preflight, loads inventory, checks existing installs, then skips/prompts/overwrites according to flags.
+- `restore` runs endpoint preflight, prepare preflight, loads the setup snapshot, checks existing installs, then skips/prompts/overwrites according to flags.
 - Oh My Zsh restore installs only when missing and uses `RUNZSH=no CHSH=no KEEP_ZSHRC=yes`.
 - `.zshrc` restore is handled only through dotfiles.
 - Xcode CLT restore uses `xcode-select --install` when missing.
@@ -183,7 +186,7 @@ Required coverage:
 - Config generation.
 - Gist auth and dry-run behavior.
 - Safety helpers.
-- Backup inventory generation for every source.
+- Backup setup snapshot generation for every source.
 - Manual app cask matching.
 - Restore dry-run and existing detection.
 - Prepare dry-run, resume/continue/status, caffeinate, and restore preflight behavior.
@@ -194,7 +197,7 @@ Required coverage:
 Acceptance commands:
 
 ```bash
-shellcheck bin/mac-inventory lib/**/*.sh
+shellcheck bin/mac-setup lib/**/*.sh
 bats test
 ```
 

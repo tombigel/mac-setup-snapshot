@@ -9,6 +9,8 @@ PROJECT_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 . "$PROJECT_DIR/lib/common.sh"
 # shellcheck source=../lib/args.sh
 . "$PROJECT_DIR/lib/args.sh"
+# shellcheck source=../lib/endpoint.sh
+. "$PROJECT_DIR/lib/endpoint.sh"
 # shellcheck source=../lib/config.sh
 . "$PROJECT_DIR/lib/config.sh"
 # shellcheck source=../lib/safety.sh
@@ -44,7 +46,9 @@ main() {
     return 0
   fi
 
+  mi_endpoint_resolve_config_path || return $?
   mi_config_apply
+  mi_endpoint_resolve || return $?
   mi_report_start
 
   rc=0
@@ -56,7 +60,7 @@ main() {
   if [ "$rc" -eq 0 ]; then
     case "$MI_COMMAND" in
       backup)
-        mi_inventory_backup
+        mi_endpoint_prepare_backup && mi_inventory_backup && mi_endpoint_write_metadata
         rc=$?
         ;;
       restore)

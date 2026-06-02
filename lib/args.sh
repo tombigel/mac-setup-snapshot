@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
 
 mi_args_init() {
+  MI_PROGRAM_NAME="${MI_PROGRAM_NAME:-$(basename "$0")}"
   MI_COMMAND=""
   MI_SUBCOMMAND=""
   MI_HELP="false"
-  MI_CONFIG="mac-inventory.config.yml"
-  MI_INVENTORY="mac-inventory.yml"
+  MI_CONFIG="mac-setup.config.yml"
+  MI_INVENTORY="mac-setup.yml"
+  MI_CONFIG_EXPLICIT="false"
+  MI_INVENTORY_EXPLICIT="false"
+  MI_TARGET=""
+  MI_SOURCE=""
+  MI_TARGET_EXPLICIT="false"
+  MI_SOURCE_EXPLICIT="false"
+  MI_ICLOUD_FOLDER_NAME="Mac Setup Snapshot"
+  MI_ICLOUD_ROOT="$HOME/Library/Mobile Documents/com~apple~CloudDocs"
   MI_SKIP_PREPARE="false"
   MI_PREPARE_ONLY="false"
   MI_PAUSE_AFTER_PREPARE="false"
   MI_CAFFEINATE="auto"
-  MI_RESUME_FILE="~/.mac-inventory/resume.yml"
+  MI_RESUME_FILE="~/.mac-setup/resume.yml"
   MI_RESET_RESUME="false"
   MI_CHECK_ONLY="false"
   MI_OUTPUT=""
@@ -45,8 +54,8 @@ mi_args_init() {
   MI_GIST_ID=""
   MI_GIST_CREATE="false"
   MI_GIST_VISIBILITY="secret"
-  MI_GIST_FILE="mac-inventory.yml"
-  MI_GIST_CONFIG_FILE="mac-inventory.config.yml"
+  MI_GIST_FILE="mac-setup.yml"
+  MI_GIST_CONFIG_FILE="mac-setup.config.yml"
   MI_GIST_PULL="false"
   MI_GIST_PUSH="false"
   MI_GITHUB_LOGIN="gh"
@@ -118,7 +127,7 @@ mi_set_command_token() {
 
 mi_long_option_needs_value() {
   case "$1" in
-    --config|--inventory|--skip-prepare|--pause-after-prepare|--caffeinate|--resume-file|--check-only|--apps|--brew|--npm|--pip|--pipx|--oh-my-zsh|--xcode|--dotfiles|--manual-apps|--interactive|--check-manual-brew|--manual-brew-match|--versions|--dotfiles-path|--output|--skip-existing|--overwrite|--use-versions|--install-missing-tools|--login-check|--appstore-login|--section|--format|--gist-id|--gist-create|--gist-visibility|--gist-file|--gist-config-file|--github-login|--github-token|--github-token-env|--command-timeout|--report|--report-format)
+    --config|--inventory|--target|--source|--icloud-folder|--icloud-root|--skip-prepare|--pause-after-prepare|--caffeinate|--resume-file|--check-only|--apps|--brew|--npm|--pip|--pipx|--oh-my-zsh|--xcode|--dotfiles|--manual-apps|--interactive|--check-manual-brew|--manual-brew-match|--versions|--dotfiles-path|--output|--skip-existing|--overwrite|--use-versions|--install-missing-tools|--login-check|--appstore-login|--section|--format|--gist-id|--gist-create|--gist-visibility|--gist-file|--gist-config-file|--github-login|--github-token|--github-token-env|--command-timeout|--report|--report-format)
       return 0
       ;;
     *)
@@ -138,8 +147,16 @@ mi_set_long_option() {
   name="$1"
   value="$2"
   case "$name" in
-    --config) MI_CONFIG="$value" ;;
-    --inventory) MI_INVENTORY="$value" ;;
+    --config) MI_CONFIG="$value"; MI_CONFIG_EXPLICIT="true" ;;
+    --inventory) MI_INVENTORY="$value"; MI_INVENTORY_EXPLICIT="true" ;;
+    --target)
+      case "$value" in icloud|local|github) MI_TARGET="$value"; MI_TARGET_EXPLICIT="true" ;; *) mi_error "--target expects icloud, local, or github"; return 2 ;; esac
+      ;;
+    --source)
+      case "$value" in icloud|local|github) MI_SOURCE="$value"; MI_SOURCE_EXPLICIT="true" ;; *) mi_error "--source expects icloud, local, or github"; return 2 ;; esac
+      ;;
+    --icloud-folder) MI_ICLOUD_FOLDER_NAME="$value" ;;
+    --icloud-root) MI_ICLOUD_ROOT="$value" ;;
     --skip-prepare) mi_set_bool_var MI_SKIP_PREPARE "$value" || return 2 ;;
     --prepare-only) MI_PREPARE_ONLY="true" ;;
     --pause-after-prepare) mi_set_bool_var MI_PAUSE_AFTER_PREPARE "$value" || return 2 ;;
@@ -177,7 +194,7 @@ mi_set_long_option() {
     --versions) mi_set_bool_var MI_RECORD_VERSIONS "$value" || return 2 ;;
     --dotfiles-path) MI_DOTFILES_PATHS="${MI_DOTFILES_PATHS}${MI_DOTFILES_PATHS:+
 }$value" ;;
-    --output) MI_OUTPUT="$value"; MI_INVENTORY="$value" ;;
+    --output) MI_OUTPUT="$value"; MI_INVENTORY="$value"; MI_INVENTORY_EXPLICIT="true" ;;
     --skip-existing) mi_set_bool_var MI_SKIP_EXISTING "$value" || return 2 ;;
     --overwrite) mi_set_bool_var MI_OVERWRITE "$value" || return 2 ;;
     --use-versions) mi_set_bool_var MI_USE_VERSIONS "$value" || return 2 ;;

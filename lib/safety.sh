@@ -63,7 +63,7 @@ mi_backup_existing_file() {
   target="$1"
   [ -e "$target" ] || return 0
   stamp="$(date '+%Y%m%d%H%M%S')"
-  backup_dir="$HOME/.mac-inventory/restore-backups/$stamp"
+  backup_dir="$HOME/.mac-setup/restore-backups/$stamp"
   if [ "$MI_DRY_RUN" = "true" ]; then
     mi_info "dry-run: would back up $target to $backup_dir/"
     return 0

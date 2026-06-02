@@ -39,7 +39,7 @@ appstore_handle_missing_login() {
     prompt)
       if [ "$MI_INTERACTIVE" = "true" ] && [ -t 0 ]; then
         appstore_open_prompt
-        mi_warn "appstore: sign in, then rerun this command or use mac-inventory continue if a resume file exists"
+        mi_warn "appstore: sign in, then rerun this command or use ${MI_PROGRAM_NAME:-mac-setup} continue if a resume file exists"
       else
         mi_info "appstore: non-interactive prompt policy behaves like skip"
       fi
@@ -47,7 +47,7 @@ appstore_handle_missing_login() {
       ;;
     pause)
       appstore_open_prompt
-      mi_error "appstore: sign in to the App Store app, then run: mac-inventory continue"
+      mi_error "appstore: sign in to the App Store app, then run: ${MI_PROGRAM_NAME:-mac-setup} continue"
       return 1
       ;;
     require)

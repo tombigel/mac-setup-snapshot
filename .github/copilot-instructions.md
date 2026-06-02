@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-This project is a Bash CLI for macOS backup/restore inventory.
+This project is a Bash CLI for macOS setup snapshots and additive restore.
 
 Prefer:
 
@@ -13,5 +13,5 @@ Avoid:
 
 - `eval` on user-controlled content.
 - direct `curl | sh`.
-- committing generated inventory, copied dotfiles, resume state, or secrets.
+- committing generated setup snapshots, copied dotfiles, resume state, or secrets.
 - destructive restore behavior.

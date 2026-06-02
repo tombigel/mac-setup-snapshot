@@ -113,8 +113,8 @@ mi_command_run() {
   local label="$1"
   local out err rc
   shift
-  out="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-command-out.XXXXXX")" || return 1
-  err="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-command-err.XXXXXX")" || { rm -f "$out"; return 1; }
+  out="$(mktemp "${TMPDIR:-/tmp}/mac-setup-command-out.XXXXXX")" || return 1
+  err="$(mktemp "${TMPDIR:-/tmp}/mac-setup-command-err.XXXXXX")" || { rm -f "$out"; return 1; }
   mi_command_capture_files "$label" "$out" "$err" "$@"
   rc=$?
   cat "$out"
@@ -128,8 +128,8 @@ mi_command_capture() {
   local label="$2"
   local out err rc value detail
   shift 2
-  out="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-command-out.XXXXXX")" || return 1
-  err="$(mktemp "${TMPDIR:-/tmp}/mac-inventory-command-err.XXXXXX")" || { rm -f "$out"; return 1; }
+  out="$(mktemp "${TMPDIR:-/tmp}/mac-setup-command-out.XXXXXX")" || return 1
+  err="$(mktemp "${TMPDIR:-/tmp}/mac-setup-command-err.XXXXXX")" || { rm -f "$out"; return 1; }
   mi_command_capture_files "$label" "$out" "$err" "$@"
   rc=$?
   if [ "$rc" -eq 0 ]; then
@@ -258,27 +258,31 @@ mi_is_enabled() {
 
 mi_show_help() {
   cat <<EOF
-mac-inventory $MI_VERSION
+${MI_PROGRAM_NAME:-mac-setup} $MI_VERSION
 
 Usage:
-  mac-inventory <command> [options]
+  ${MI_PROGRAM_NAME:-mac-setup} <command> [options]
 
 Commands:
-  backup             Create or update an inventory
-  restore            Restore from an inventory
-  list               List inventory sections
+  backup             Create or update a setup snapshot
+  restore            Restore from a setup snapshot
+  list               List snapshot sections
   doctor             Check local readiness
   prepare            Install/check prerequisites before restore
   continue           Resume an interrupted workflow
   status             Show current resume checklist
   config generate    Generate starter config
-  gist pull          Pull inventory/config from GitHub Gist
-  gist push          Push inventory/config to GitHub Gist
+  gist pull          Pull snapshot/config from GitHub Gist
+  gist push          Push snapshot/config to GitHub Gist
   help               Show this help
 
 Global options:
   -c, --config <path>                 Config path
-  -i, --inventory <path>              Inventory path
+  -i, --inventory <path>              Setup snapshot path
+      --target icloud|local|github    Backup endpoint
+      --source icloud|local|github    Restore endpoint
+      --icloud-folder <name>           iCloud Drive endpoint folder
+      --icloud-root <path>             iCloud Drive root path
   -A, --apps true|false               Include Mac App Store apps
   -B, --brew true|false               Include Homebrew
   -N, --npm true|false                Include npm globals
