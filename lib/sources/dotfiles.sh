@@ -5,12 +5,47 @@ dotfiles_default_paths() {
     printf '%s\n' "$MI_DOTFILES_PATHS"
   else
     # shellcheck disable=SC2088
-    printf '%s\n' "~/.zshrc" "~/.gitconfig" "~/.gitignore_global" "~/.ssh/config"
+    printf '%s\n' \
+      "~/.zshrc" \
+      "~/.zprofile" \
+      "~/.zshenv" \
+      "~/.bashrc" \
+      "~/.bash_profile" \
+      "~/.profile" \
+      "~/.gitconfig" \
+      "~/.gitignore_global" \
+      "~/.editorconfig" \
+      "~/.hushlogin" \
+      "~/.inputrc" \
+      "~/.vimrc" \
+      "~/.ideavimrc" \
+      "~/.tmux.conf" \
+      "~/.screenrc" \
+      "~/.asdfrc" \
+      "~/.tool-versions" \
+      "~/.default-npm-packages" \
+      "~/.ripgreprc" \
+      "~/.config/git/config" \
+      "~/.config/starship.toml" \
+      "~/.config/bat/config" \
+      "~/.config/direnv/direnvrc" \
+      "~/.config/atuin/config.toml" \
+      "~/.config/zellij/config.kdl" \
+      "~/.config/ghostty/config" \
+      "~/.config/wezterm/wezterm.lua" \
+      "~/.config/alacritty/alacritty.toml" \
+      "~/.config/kitty/kitty.conf" \
+      "~/.config/fish/config.fish" \
+      "~/.config/nvim/init.lua" \
+      "~/.config/nvim/init.vim" \
+      "~/.config/helix/config.toml" \
+      "~/.config/lazygit/config.yml" \
+      "~/.ssh/config"
   fi
 }
 
 dotfiles_backup() {
-  local base_dir raw safe_path rel backup_path exists sha
+  local base_dir raw safe_path rel backup_path sha
   printf 'dotfiles:\n'
   printf '  files:\n'
   base_dir="$(dirname "$MI_INVENTORY")/files"
@@ -22,20 +57,18 @@ dotfiles_backup() {
     fi
     rel="${safe_path#"$HOME"/}"
     backup_path="files/$rel"
-    if [ -f "$safe_path" ]; then
-      mi_file_has_secret "$safe_path" && mi_warn "dotfiles: possible secret in $raw"
-      if [ "$MI_DRY_RUN" != "true" ]; then
-        mkdir -p "$(dirname "$base_dir/$rel")"
-        cp -p "$safe_path" "$base_dir/$rel"
-      fi
-      exists="true"
-      sha="$(mi_sha256 "$safe_path")"
-    else
-      exists="false"
-      sha=""
+    if [ ! -f "$safe_path" ]; then
+      mi_verbose "dotfiles: skipped missing $raw"
+      continue
     fi
+    mi_file_has_secret "$safe_path" && mi_warn "dotfiles: possible secret in $raw"
+    if [ "$MI_DRY_RUN" != "true" ]; then
+      mkdir -p "$(dirname "$base_dir/$rel")"
+      cp -p "$safe_path" "$base_dir/$rel"
+    fi
+    sha="$(mi_sha256 "$safe_path")"
     printf '    - path: %s\n' "$(mi_yaml_scalar "$raw")"
-    printf '      exists: %s\n' "$exists"
+    printf '      exists: true\n'
     printf '      sha256: %s\n' "$(mi_yaml_scalar "$sha")"
     printf '      backup_path: %s\n' "$(mi_yaml_scalar "$backup_path")"
   done
