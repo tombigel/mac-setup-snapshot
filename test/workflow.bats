@@ -165,7 +165,7 @@ YAML
 }
 
 @test "caffeinate dry-run reports intended wrapper when enabled" {
-  mock_command caffeinate 'echo caffeinate "$@" >> "$BATS_TEST_TMPDIR/caffeinate.log"; sleep 2 & wait'
+  mock_command caffeinate 'echo caffeinate "$@" >> "$BATS_TEST_TMPDIR/caffeinate.log"'
   run "$BIN" prepare --dry-run --caffeinate=true --apps=false --xcode=false --pipx=false --resume-file "$BATS_TEST_TMPDIR/resume.yml"
   [ "$status" -eq 0 ]
   [[ "$output" == *"would use caffeinate"* ]]

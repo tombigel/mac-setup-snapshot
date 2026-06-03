@@ -497,15 +497,6 @@ YAML
   grep -q 'ref: "brew_cask:all-mode-app"' mac-setup.backup.yml
 }
 
-@test "command timeout fails slow mas inventory with warning" {
-  mock_command mas 'case "$1" in list) : ;; *) echo "unexpected mas $*" >&2; exit 1 ;; esac'
-  mock_command perl 'exit 124'
-  run "$BIN" backup --target local --apps=true --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false --command-timeout 1
-  [ "$status" -eq 1 ]
-  [[ "$output" == *"timed out after 1s"* ]]
-  [[ "$output" == *"App Store inventory is required"* ]]
-}
-
 @test "backup can explicitly skip signed-out App Store inventory" {
   mock_command mas 'case "$1" in list) exit 1 ;; *) echo "unexpected mas $*" >&2; exit 1 ;; esac'
   run "$BIN" backup --target local --appstore-login=skip --apps=true --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false

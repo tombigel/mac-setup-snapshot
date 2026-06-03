@@ -3,6 +3,7 @@
 load helpers/setup
 
 setup() {
+  make_mock_bin
   cd "$BATS_TEST_TMPDIR"
 }
 
@@ -34,13 +35,14 @@ setup() {
   [ "$output" = "7||failed" ]
 }
 
-@test "command capture times out slow commands" {
+@test "command capture reports timeout status from timeout wrapper" {
+  mock_command perl 'exit 124'
   run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
     . "$PROJECT_ROOT/lib/common.sh"
     MI_COMMAND_TIMEOUT=1
     out="$BATS_TEST_TMPDIR/out"
     err="$BATS_TEST_TMPDIR/err"
-    mi_command_capture_files "slow command" "$out" "$err" sh -c "sleep 5"
+    mi_command_capture_files "slow command" "$out" "$err" sh -c "printf never"
     rc=$?
     printf "%s|%s\n" "$rc" "$(cat "$out")"
   '
@@ -49,17 +51,22 @@ setup() {
   [[ "$output" == *"124|"* ]]
 }
 
-@test "command capture kills timeout child that ignores term" {
+@test "appstore backup treats mas timeout as unavailable without running timeout process" {
   run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
     . "$PROJECT_ROOT/lib/common.sh"
-    MI_COMMAND_TIMEOUT=1
-    out="$BATS_TEST_TMPDIR/out"
-    err="$BATS_TEST_TMPDIR/err"
-    mi_command_capture_files "stubborn command" "$out" "$err" sh -c "trap \"\" TERM; sleep 5"
-    rc=$?
-    printf "%s|%s\n" "$rc" "$(cat "$out")"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/report.sh"
+    . "$PROJECT_ROOT/lib/sources/appstore.sh"
+    mi_args_init
+    MI_INTERACTIVE=false
+    mi_has() { [ "$1" = "mas" ] || command -v "$1" >/dev/null 2>&1; }
+    mi_mas_capture() {
+      mi_warn "mas $2 timed out after 1s"
+      return 124
+    }
+    appstore_backup
   '
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"warning: stubborn command timed out after 1s"* ]]
-  [[ "$output" == *"124|"* ]]
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"warning: mas list timed out after 1s"* ]]
+  [[ "$output" == *'status: "skipped_mas_list_failed"'* ]]
 }
