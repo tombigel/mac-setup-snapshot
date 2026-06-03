@@ -27,7 +27,7 @@ mi_section_selected() {
 mi_progress_bar() {
   local index="$1"
   local total="$2"
-  local width=12
+  local width="${3:-12}"
   local filled empty i
   if [ "$total" -le 0 ] 2>/dev/null; then
     total=1
@@ -118,6 +118,7 @@ mi_next_section_after() {
 
 mi_ux_line() {
   [ "${MI_QUIET:-false}" = "true" ] && return 0
+  mi_live_finish
   printf '%s\n' "$*" >&2
 }
 
@@ -131,11 +132,11 @@ mi_backup_welcome() {
   list_path="$(mi_inventory_backup_list_path 2>/dev/null || true)"
   readme_path="$(mi_inventory_backup_readme_path 2>/dev/null || true)"
   mi_ux_line ""
-  mi_ux_line "Mac Setup Snapshot $MI_VERSION"
-  mi_ux_line "Backup starting"
-  mi_ux_line "What will happen: capture $total enabled section(s), then write the setup snapshot, backup-list, and README."
-  mi_ux_line "Target: $target"
-  mi_ux_line "Snapshot: $MI_INVENTORY"
+  mi_ux_line "$(mi_heading "Mac Setup Snapshot $MI_VERSION")"
+  mi_ux_line "$(mi_success_text "Backup starting")"
+  mi_ux_line "$(mi_muted "What will happen: capture $total enabled section(s), then write the setup snapshot, backup-list, and README.")"
+  mi_ux_line "$(mi_muted "Target: $target")"
+  mi_ux_line "$(mi_muted "Snapshot: $MI_INVENTORY")"
   [ -n "$list_path" ] && mi_ux_line "Readable list: $list_path"
   [ -n "$readme_path" ] && mi_ux_line "Restore notes: $readme_path"
   if [ -n "$next" ]; then
@@ -159,13 +160,13 @@ mi_restore_welcome() {
     prepare_note="Prepare preflight: will run before restore"
   fi
   mi_ux_line ""
-  mi_ux_line "Mac Setup Snapshot $MI_VERSION"
-  mi_ux_line "Restore starting"
-  mi_ux_line "What will happen: restore $total enabled section(s) additively from the setup snapshot."
-  mi_ux_line "$prepare_note"
-  mi_ux_line "Source: $source"
-  mi_ux_line "Snapshot: $MI_INVENTORY"
-  mi_ux_line "Existing items are skipped by default; no uninstall or cleanup will be performed."
+  mi_ux_line "$(mi_heading "Mac Setup Snapshot $MI_VERSION")"
+  mi_ux_line "$(mi_success_text "Restore starting")"
+  mi_ux_line "$(mi_muted "What will happen: restore $total enabled section(s) additively from the setup snapshot.")"
+  mi_ux_line "$(mi_muted "$prepare_note")"
+  mi_ux_line "$(mi_muted "Source: $source")"
+  mi_ux_line "$(mi_muted "Snapshot: $MI_INVENTORY")"
+  mi_ux_line "$(mi_muted "Existing items are skipped by default; no uninstall or cleanup will be performed.")"
   if [ -n "$next" ]; then
     mi_ux_line "Next step: $(mi_section_display_name "$next")"
   else
@@ -263,12 +264,17 @@ mi_inventory_emit_or_copy() {
 
 mi_inventory_progress_start() {
   local section="$1"
-  local sections total index bar
+  local sections total index bar label
   [ "${MI_QUIET:-false}" = "true" ] && return 0
   sections="$(mi_sections_for_backup)"
   total="$(printf '%s\n' "$sections" | mi_sections_count)"
   index="$(printf '%s\n' "$sections" | mi_section_index "$section")"
   bar="$(mi_progress_bar "$index" "$total")"
+  label="$(mi_section_display_name "$section")"
+  if mi_live_enabled; then
+    mi_live_line "$(mi_heading Backup) $bar $label"
+    return 0
+  fi
   printf 'backup: %s... %s\n' "$section" "$bar" >&2
 }
 
@@ -290,15 +296,27 @@ mi_inventory_progress_done() {
   bar="$(mi_progress_bar "$index" "$total")"
   count="$(mi_inventory_section_count "$section" "$section_file")"
   if [ -n "$count" ]; then
-    printf 'backup: %s done (%s items, %ss) %s\n' "$section" "$count" "$elapsed" "$bar" >&2
+    if mi_live_enabled; then
+      mi_live_line "$(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") ($count items, ${elapsed}s)"
+      mi_live_finish
+    else
+      printf 'backup: %s done (%s items, %ss) %s\n' "$section" "$count" "$elapsed" "$bar" >&2
+    fi
   else
-    printf 'backup: %s done (%ss) %s\n' "$section" "$elapsed" "$bar" >&2
+    if mi_live_enabled; then
+      mi_live_line "$(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") (${elapsed}s)"
+      mi_live_finish
+    else
+      printf 'backup: %s done (%ss) %s\n' "$section" "$elapsed" "$bar" >&2
+    fi
   fi
   next="$(printf '%s\n' "$sections" | mi_next_section_after "$section")"
-  if [ -n "$next" ]; then
-    printf 'backup: next step: %s\n' "$(mi_section_display_name "$next")" >&2
-  else
-    printf 'backup: next step: write output files\n' >&2
+  if ! mi_live_enabled; then
+    if [ -n "$next" ]; then
+      printf 'backup: next step: %s\n' "$(mi_section_display_name "$next")" >&2
+    else
+      printf 'backup: next step: write output files\n' >&2
+    fi
   fi
 }
 
@@ -306,6 +324,10 @@ mi_inventory_progress_detail() {
   local section="$1"
   local message="$2"
   [ "${MI_QUIET:-false}" = "true" ] && return 0
+  if mi_live_enabled; then
+    mi_live_line "$(mi_heading Backup) $(mi_muted "$(mi_section_display_name "$section") $message")"
+    return 0
+  fi
   printf 'backup: %s %s\n' "$section" "$message" >&2
 }
 
@@ -673,12 +695,17 @@ mi_restore_section() {
 
 mi_restore_progress_start() {
   local section="$1"
-  local sections total index bar
+  local sections total index bar label
   [ "${MI_QUIET:-false}" = "true" ] && return 0
   sections="$(mi_sections_for_restore)"
   total="$(printf '%s\n' "$sections" | mi_sections_count)"
   index="$(printf '%s\n' "$sections" | mi_section_index "$section")"
   bar="$(mi_progress_bar "$index" "$total")"
+  label="$(mi_section_display_name "$section")"
+  if mi_live_enabled; then
+    mi_live_line "$(mi_heading Restore) $bar $label"
+    return 0
+  fi
   printf 'restore: %s... %s\n' "$section" "$bar" >&2
 }
 
@@ -700,8 +727,17 @@ mi_restore_progress_done() {
   total="$(printf '%s\n' "$sections" | mi_sections_count)"
   index="$(printf '%s\n' "$sections" | mi_section_index "$section")"
   bar="$(mi_progress_bar "$index" "$total")"
-  printf 'restore: %s %s (%ss) %s\n' "$section" "$status" "$elapsed" "$bar" >&2
-  if [ "$rc" -eq 0 ]; then
+  if mi_live_enabled; then
+    if [ "$rc" -eq 0 ]; then
+      mi_live_line "$(mi_heading Restore) $bar $(mi_success_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+    else
+      mi_live_line "$(mi_heading Restore) $bar $(mi_alert_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+    fi
+    mi_live_finish
+  else
+    printf 'restore: %s %s (%ss) %s\n' "$section" "$status" "$elapsed" "$bar" >&2
+  fi
+  if [ "$rc" -eq 0 ] && ! mi_live_enabled; then
     next="$(printf '%s\n' "$sections" | mi_next_section_after "$section")"
     if [ -n "$next" ]; then
       printf 'restore: next step: %s\n' "$(mi_section_display_name "$next")" >&2

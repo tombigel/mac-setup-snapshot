@@ -1,9 +1,80 @@
 #!/usr/bin/env bash
 
 MI_VERSION="0.6.0"
+MI_LIVE_LINE_ACTIVE="false"
+
+mi_color_enabled() {
+  [ "${MI_QUIET:-false}" != "true" ] || return 1
+  [ -z "${NO_COLOR:-}" ] || return 1
+  [ -t 2 ] || return 1
+  [ "${TERM:-}" != "dumb" ] || return 1
+  [ -n "${TERM:-}" ] || return 1
+  [ -z "${CI:-}" ] || return 1
+  return 0
+}
+
+mi_live_enabled() {
+  [ "${MI_QUIET:-false}" != "true" ] || return 1
+  [ "${MI_VERBOSE:-false}" != "true" ] || return 1
+  [ -t 2 ] || return 1
+  [ "${TERM:-}" != "dumb" ] || return 1
+  [ -n "${TERM:-}" ] || return 1
+  [ -z "${CI:-}" ] || return 1
+  return 0
+}
+
+mi_ansi() {
+  mi_color_enabled || return 0
+  printf '\033[%sm' "$1"
+}
+
+mi_style() {
+  local code="$1"
+  shift
+  if mi_color_enabled; then
+    printf '\033[%sm%s\033[0m' "$code" "$*"
+  else
+    printf '%s' "$*"
+  fi
+}
+
+mi_heading() {
+  mi_style "1" "$*"
+}
+
+mi_muted() {
+  mi_style "2" "$*"
+}
+
+mi_success_text() {
+  mi_style "32" "$*"
+}
+
+mi_alert_text() {
+  mi_style "31" "$*"
+}
+
+mi_live_clear() {
+  [ "${MI_LIVE_LINE_ACTIVE:-false}" = "true" ] || return 0
+  printf '\r\033[2K' >&2
+  MI_LIVE_LINE_ACTIVE="false"
+}
+
+mi_live_line() {
+  mi_live_enabled || return 1
+  printf '\r\033[2K%s' "$*" >&2
+  MI_LIVE_LINE_ACTIVE="true"
+}
+
+mi_live_finish() {
+  [ "${MI_LIVE_LINE_ACTIVE:-false}" = "true" ] || return 0
+  printf '\n' >&2
+  MI_LIVE_LINE_ACTIVE="false"
+}
 
 mi_info() {
   if [ "${MI_QUIET:-false}" != "true" ]; then
+    mi_live_finish
     printf '%s\n' "$*"
   fi
 }
@@ -15,11 +86,13 @@ mi_verbose() {
 }
 
 mi_warn() {
-  printf 'warning: %s\n' "$*" >&2
+  mi_live_finish
+  printf '%s %s\n' "$(mi_alert_text warning:)" "$*" >&2
 }
 
 mi_error() {
-  printf 'error: %s\n' "$*" >&2
+  mi_live_finish
+  printf '%s %s\n' "$(mi_alert_text error:)" "$*" >&2
 }
 
 mi_has() {
@@ -54,6 +127,7 @@ mi_prompt_yes_no() {
   if [ "$default" = "yes" ]; then
     suffix="[Y/n]"
   fi
+  mi_live_finish
   printf '%s %s ' "$prompt" "$suffix" >&2
   read -r answer
   case "$answer" in
@@ -82,6 +156,7 @@ mi_mkdir_parent() {
 }
 
 mi_cleanup_temp_files() {
+  mi_live_finish
   [ -n "${MI_REPORT_EVENTS_FILE:-}" ] && rm -f -- "$MI_REPORT_EVENTS_FILE"
   [ -n "${MI_MATCHED_CASKS_FILE:-}" ] && rm -f -- "$MI_MATCHED_CASKS_FILE"
   [ -n "${MI_APP_INDEX_FILE:-}" ] && rm -f -- "$MI_APP_INDEX_FILE"
@@ -100,6 +175,7 @@ mi_cleanup_inventory_temp_files() {
 }
 
 mi_run() {
+  mi_live_finish
   if [ "${MI_DRY_RUN:-false}" = "true" ]; then
     printf 'dry-run:'
     for arg in "$@"; do
@@ -137,6 +213,7 @@ mi_command_run() {
   mi_command_capture_files "$label" "$out" "$err" "$@"
   rc=$?
   mi_verbose "$label exited with status $rc"
+  mi_live_finish
   cat "$out"
   cat "$err" >&2
   rm -f "$out" "$err"
