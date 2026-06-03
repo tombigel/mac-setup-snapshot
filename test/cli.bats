@@ -121,12 +121,13 @@ backup:
   check_manual_brew: false
   manual_brew_match: never
 YAML
-  mock_command brew 'while [ "$1" = "env" ] || [ "${1#HOMEBREW_}" != "$1" ]; do shift; done; case "$1 $2 $3" in "list --cask ") : ;; "search --casks /.*/") echo override-app ;; *) exit 0 ;; esac'
+  mock_command brew 'while [ "$1" = "env" ] || [ "${1#HOMEBREW_}" != "$1" ]; do shift; done; case "$1 $2 $3" in "tap  ") echo homebrew/core ;; "leaves  ") : ;; "list --cask ") : ;; "list --cask --versions") : ;; "search --casks "*) echo override-app ;; "info --json=v2 --cask") printf "{\"casks\":[{\"token\":\"override-app\",\"deprecated\":false,\"disabled\":false}]}\n" ;; *) exit 0 ;; esac'
 
-  run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --check-manual-brew=true --manual-brew-match=all
+  run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=true --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --check-manual-brew=true --manual-brew-match=all
   [ "$status" -eq 0 ]
   grep -q 'name: "override-app"' mac-setup.backup.yml
-  ! grep -q 'Override App' mac-setup.backup.yml
+  grep -q 'ref: "brew_cask:override-app"' mac-setup.backup.yml
+  ! grep -q 'ref: "manual_app:com.example.override' mac-setup.backup.yml
 }
 
 @test "backup applies generated config dotfile paths" {
@@ -449,7 +450,8 @@ YAML
 }
 
 @test "command timeout fails slow mas inventory with warning" {
-  mock_command mas 'if [ "$1" = "account" ]; then echo "user@example.com"; elif [ "$1" = "list" ]; then sleep 5; fi'
+  mock_command mas 'case "$1" in list) : ;; *) echo "unexpected mas $*" >&2; exit 1 ;; esac'
+  mock_command perl 'exit 124'
   run "$BIN" backup --target local --apps=true --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false --command-timeout 1
   [ "$status" -eq 1 ]
   [[ "$output" == *"timed out after 1s"* ]]
