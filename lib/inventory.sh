@@ -470,13 +470,21 @@ Snapshot: $(basename "$source_inventory")
 $prepare_command
 \`\`\`
 
-3. Preview restore actions:
+3. For a guided restore, run the wizard and choose restore:
+
+\`\`\`bash
+${MI_PROGRAM_NAME:-mac-setup} wizard
+\`\`\`
+
+The wizard asks for dry-run mode, storage endpoint, enabled sources, and App Store login policy, then runs the matching restore command.
+
+4. Or preview restore actions directly:
 
 \`\`\`bash
 $dry_restore_command
 \`\`\`
 
-4. Restore additively:
+5. Restore additively:
 
 \`\`\`bash
 $restore_command
@@ -488,6 +496,7 @@ Restore is additive: it installs, copies, checks, and reports. It does not unins
 
 \`\`\`bash
 ${MI_PROGRAM_NAME:-mac-setup} list --format md --source local --inventory mac-setup.yml
+${MI_PROGRAM_NAME:-mac-setup} wizard
 ${MI_PROGRAM_NAME:-mac-setup} status
 ${MI_PROGRAM_NAME:-mac-setup} continue
 \`\`\`

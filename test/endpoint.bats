@@ -35,6 +35,7 @@ make_icloud() {
   grep -q 'readme: README.md' "$ICLOUD_ROOT/Mac Setup Snapshot/metadata.yml"
   grep -q '# Mac Setup Snapshot' "$ICLOUD_ROOT/Mac Setup Snapshot/backup-list.md"
   grep -q 'mac-setup restore --source icloud' "$ICLOUD_ROOT/Mac Setup Snapshot/README.md"
+  grep -q 'mac-setup wizard' "$ICLOUD_ROOT/Mac Setup Snapshot/README.md"
 }
 
 @test "backup to iCloud moves previous bundle into history" {

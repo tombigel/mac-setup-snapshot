@@ -257,6 +257,15 @@ YAML
   grep -q '# Mac Setup Snapshot' backup-list.md
   grep -q '# Mac Setup Snapshot Backup' README.md
   grep -q 'mac-setup restore --source local --inventory mac-setup.yml' README.md
+  grep -q 'mac-setup wizard' README.md
+}
+
+@test "backup generated README includes wizard restore instructions" {
+  run "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
+  [ "$status" -eq 0 ]
+  [ -f README.md ]
+  grep -q 'For a guided restore' README.md
+  grep -q 'mac-setup wizard' README.md
 }
 
 @test "backup dry-run reports markdown list path without writing it" {
