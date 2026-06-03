@@ -3,6 +3,7 @@
 xcode_backup() {
   local developer_dir version
   printf 'xcode:\n'
+  printf '  ref: %s\n' "$(mi_yaml_scalar "$(mi_xcode_ref)")"
   if xcode-select -p >/dev/null 2>&1; then
     developer_dir="$(xcode-select -p 2>/dev/null)"
     printf '  command_line_tools: true\n'
@@ -38,6 +39,10 @@ xcode_backup() {
 }
 
 xcode_restore() {
+  if [ "$(yq e '.xcode.ignored // false' "$MI_INVENTORY" 2>/dev/null)" = "true" ]; then
+    mi_info "xcode: ignored $(mi_xcode_ref); skipping"
+    return 0
+  fi
   if ! xcode-select -p >/dev/null 2>&1; then
     mi_run xcode-select --install
   else

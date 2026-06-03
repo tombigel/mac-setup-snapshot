@@ -96,7 +96,7 @@ mac-setup continue
 - `prepare`: check/install clean-Mac prerequisites before restore.
 - `restore`: rebuild from saved setup state.
 - `ignore`: keep an app in the snapshot but skip it during restore.
-- `unignore`: restore an ignored app entry again.
+- `unignore`: restore an ignored snapshot entry again.
 - `continue`: resume an interrupted prepare/restore workflow.
 - `status`: show the current resume checklist.
 - `list`: inspect saved setup sections.
@@ -111,7 +111,7 @@ No arguments, `help`, `--help`, and `-h` show help.
 
 Mac App Store backup and restore depend on `mas` and an active App Store sign-in. The CLI never asks for Apple ID credentials and cannot automate Apple sign-in. By default, enabled App Store work is required: the CLI tries to install/check `mas`, prompts to open the App Store when interactive, and fails until sign-in is available. Use `--apps=false` or `--appstore-login=skip` only when you explicitly want to omit App Store apps.
 
-App Store backup records currently installed apps from `mas list`, preferring JSON output when supported and falling back to text output. The snapshot is normalized and de-duplicated before restore/list/report output uses it. App-like entries get stable refs such as `appstore:123456789`, `brew_cask:visual-studio-code`, or `manual:com.example.App` for targeting with `ignore` and `unignore`. When a `mas` row matches an installed bundle, the snapshot prefers the local bundle name, path, and version so similarly named App Store apps remain distinguishable.
+App Store backup records currently installed apps from `mas list`, preferring JSON output when supported and falling back to text output. The snapshot is normalized and de-duplicated before restore/list/report output uses it. Restore entries get stable refs such as `appstore:123456789`, `brew_formula:git`, `brew_cask:visual-studio-code`, `npm:typescript`, or `manual:com.example.App` for targeting with `ignore` and `unignore`. When a `mas` row matches an installed bundle, the snapshot prefers the local bundle name, path, and version so similarly named App Store apps remain distinguishable.
 
 Every `backup`, `prepare`, `restore`, `continue`, and Gist workflow emits a friendly terminal summary unless `--quiet` or `--skip-report` is used. Use `--verbose` when you also want raw counts in that summary. To write a structured report file:
 

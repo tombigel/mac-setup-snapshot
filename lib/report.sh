@@ -123,7 +123,7 @@ mi_report_default_summary_next_step() {
       printf 'Run list or restore to inspect the pulled snapshot, or backup to update it.'
       ;;
     ignore|unignore)
-      printf 'Run list --format md to inspect ignored app refs before restore.'
+      printf 'Run list --format md to inspect ignored refs before restore.'
       ;;
     *)
       printf 'Done.'

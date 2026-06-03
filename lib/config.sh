@@ -183,7 +183,7 @@ backup:
 
 restore:
   appstore_login: prompt
-  ignored_apps: []
+  ignored_items: []
   dotfiles_mode: skip_existing
   oh_my_zsh_mode: install_if_missing
   xcode:

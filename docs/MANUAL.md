@@ -136,7 +136,7 @@ Mac App Store backup and restore require `mas` plus a signed-in App Store app wh
 
 ### `ignore`
 
-Mark one app-like snapshot entry as ignored while keeping it recorded.
+Mark one restore-relevant snapshot entry as ignored while keeping it recorded.
 
 ```bash
 mac-setup ignore brew_cask:visual-studio-code
@@ -153,7 +153,7 @@ Dry-run prints the entry and files that would be changed without writing the sna
 
 ### `unignore`
 
-Clear an ignored app rule.
+Clear an ignored snapshot-entry rule.
 
 ```bash
 mac-setup unignore brew_cask:visual-studio-code
@@ -786,7 +786,7 @@ backup:
 
 restore:
   appstore_login: prompt
-  ignored_apps:
+  ignored_items:
     - ref: "brew_cask:visual-studio-code"
       name: "Visual Studio Code"
   dotfiles_mode: skip_existing
@@ -802,7 +802,7 @@ reports:
   skip: false
 ```
 
-CLI flags override config defaults for the current run. `ignore` adds refs to `restore.ignored_apps`; backup reapplies those refs to matching app-like rows so future snapshots keep the same restore exclusions visible.
+CLI flags override config defaults for the current run. `ignore` adds refs to `restore.ignored_items`; backup reapplies those refs to matching rows so future snapshots keep the same restore exclusions visible. Older `restore.ignored_apps` config entries are still read for compatibility.
 
 ## Setup Snapshot File
 
@@ -840,12 +840,17 @@ dotfiles: {}
 
 Generated setup snapshot files and copied dotfiles are ignored by Git by default.
 
-App-like restore rows use stable `ref` values:
+Restore rows use stable `ref` values:
 
 - `appstore:<id>` for Mac App Store rows.
+- `brew_tap:<tap>` for Homebrew tap rows.
+- `brew_formula:<formula>` for Homebrew formula rows.
 - `brew_cask:<cask>` for Homebrew cask rows.
+- `npm:<package>`, `pip:<package>`, and `pipx:<package>` for package rows.
+- `dotfile:<normalized-path>-<short-hash>` for dotfile rows.
 - `manual:<bundle_id>` for manual app rows with bundle IDs.
 - `manual:<normalized-name>-<short-hash>` for manual app rows without bundle IDs.
+- `oh_my_zsh:state` and `xcode:state` for section-level restore state.
 
 Ignored rows keep their normal fields plus `ignored: true` and `ignored_at`. They remain in list output and generated Markdown, but restore skips them.
 

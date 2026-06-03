@@ -554,41 +554,50 @@ mi_inventory_list_md() {
     ' "$MI_INVENTORY"
   fi
 
-  mi_inventory_md_section_selected apps && mi_inventory_md_table "App Store Apps" "| Ref | ID | Name | Path | Version | Ignored |
+  mi_inventory_md_section_selected apps && mi_inventory_md_table "App Store Apps" "| ID | Name | Path | Version | Ignored | Ref |
 | --- | --- | --- | --- | --- | --- |" '
     (.apps.items // .apps // [])[]? |
-    "| " + (.ref // "" | tostring) + " | " + (.id // "" | tostring) + " | " + (.name // "" | tostring) + " | " + (.path // "" | tostring) + " | " + (.version // "" | tostring) + " | " + (.ignored // false | tostring) + " |"
+    "| " + (.id // "" | tostring) + " | " + (.name // "" | tostring) + " | " + (.path // "" | tostring) + " | " + (.version // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
   '
 
   if mi_inventory_md_section_selected brew; then
-    mi_inventory_md_table "Homebrew Formulae" "| Name | Version |
-| --- | --- |" '
-      (.brew.formulae // [])[]? |
-      "| " + (.name // "" | tostring) + " | " + (.version // "" | tostring) + " |"
+    mi_inventory_md_table "Homebrew Taps" "| Name | Ignored | Ref |
+| --- | --- | --- |" '
+      (.brew.taps // [])[]? |
+      select(type == "!!map") |
+      "| " + (.name // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |",
+      (.brew.taps // [])[]? |
+      select(type != "!!map") |
+      "| " + (. // "" | tostring) + " | false |  |"
     '
-    mi_inventory_md_table "Homebrew Casks" "| Ref | Cask | App | Path | Version | Ignored |
+    mi_inventory_md_table "Homebrew Formulae" "| Name | Version | Ignored | Ref |
+| --- | --- | --- | --- |" '
+      (.brew.formulae // [])[]? |
+      "| " + (.name // "" | tostring) + " | " + (.version // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
+    '
+    mi_inventory_md_table "Homebrew Casks" "| Cask | App | Path | Version | Ignored | Ref |
 | --- | --- | --- | --- | --- | --- |" '
       (.brew.casks // [])[]? |
-      "| " + (.ref // "" | tostring) + " | " + (.name // "" | tostring) + " | " + (.display_name // "" | tostring) + " | " + (.path // "" | tostring) + " | " + (.version // "" | tostring) + " | " + (.ignored // false | tostring) + " |"
+      "| " + (.name // "" | tostring) + " | " + (.display_name // "" | tostring) + " | " + (.path // "" | tostring) + " | " + (.version // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
     '
   fi
 
-  mi_inventory_md_section_selected npm && mi_inventory_md_table "npm Globals" "| Name | Version |
-| --- | --- |" '
+  mi_inventory_md_section_selected npm && mi_inventory_md_table "npm Globals" "| Name | Version | Ignored | Ref |
+| --- | --- | --- | --- |" '
     (.npm.globals // [])[]? |
-    "| " + (.name // "" | tostring) + " | " + (.version // "" | tostring) + " |"
+    "| " + (.name // "" | tostring) + " | " + (.version // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
   '
 
-  mi_inventory_md_section_selected pip && mi_inventory_md_table "pip Packages" "| Name | Version |
-| --- | --- |" '
+  mi_inventory_md_section_selected pip && mi_inventory_md_table "pip Packages" "| Name | Version | Ignored | Ref |
+| --- | --- | --- | --- |" '
     (.pip.packages // [])[]? |
-    "| " + (.name // "" | tostring) + " | " + (.version // "" | tostring) + " |"
+    "| " + (.name // "" | tostring) + " | " + (.version // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
   '
 
-  mi_inventory_md_section_selected pipx && mi_inventory_md_table "pipx Packages" "| Name | Version |
-| --- | --- |" '
+  mi_inventory_md_section_selected pipx && mi_inventory_md_table "pipx Packages" "| Name | Version | Ignored | Ref |
+| --- | --- | --- | --- |" '
     (.pipx.packages // [])[]? |
-    "| " + (.name // "" | tostring) + " | " + (.version // "" | tostring) + " |"
+    "| " + (.name // "" | tostring) + " | " + (.version // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
   '
 
   if mi_inventory_md_section_selected oh_my_zsh; then
@@ -611,16 +620,16 @@ mi_inventory_list_md() {
     ' "$MI_INVENTORY"
   fi
 
-  mi_inventory_md_section_selected dotfiles && mi_inventory_md_table "Dotfiles" "| Path | Exists | Backup Path |
-| --- | --- | --- |" '
+  mi_inventory_md_section_selected dotfiles && mi_inventory_md_table "Dotfiles" "| Path | Exists | Backup Path | Ignored | Ref |
+| --- | --- | --- | --- | --- |" '
     (.dotfiles.files // [])[]? |
-    "| " + (.path // "" | tostring) + " | " + (.exists // "" | tostring) + " | " + (.backup_path // "" | tostring) + " |"
+    "| " + (.path // "" | tostring) + " | " + (.exists // "" | tostring) + " | " + (.backup_path // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
   '
 
-  mi_inventory_md_section_selected manual_apps && mi_inventory_md_table "Manual Apps" "| Ref | Name | Path | Version | Brew Cask | Ignored |
+  mi_inventory_md_section_selected manual_apps && mi_inventory_md_table "Manual Apps" "| Name | Path | Version | Brew Cask | Ignored | Ref |
 | --- | --- | --- | --- | --- | --- |" '
     (.manual_apps.apps // [])[]? |
-    "| " + (.ref // "" | tostring) + " | " + (.name // "" | tostring) + " | " + (.path // "" | tostring) + " | " + (.version // "" | tostring) + " | " + ((.selected_brew_cask | select(. != null and . != "")) // (.brew_cask_candidate | select(. != null and . != "")) // "" | tostring) + " | " + (.ignored // false | tostring) + " |"
+    "| " + (.name // "" | tostring) + " | " + (.path // "" | tostring) + " | " + (.version // "" | tostring) + " | " + ((.selected_brew_cask | select(. != null and . != "")) // (.brew_cask_candidate | select(. != null and . != "")) // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
   '
 }
 

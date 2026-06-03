@@ -68,6 +68,7 @@ dotfiles_backup() {
     fi
     sha="$(mi_sha256 "$safe_path")"
     printf '    - path: %s\n' "$(mi_yaml_scalar "$raw")"
+    printf '      ref: %s\n' "$(mi_yaml_scalar "$(mi_dotfile_ref "$raw")")"
     printf '      exists: true\n'
     printf '      sha256: %s\n' "$(mi_yaml_scalar "$sha")"
     printf '      backup_path: %s\n' "$(mi_yaml_scalar "$backup_path")"
@@ -75,9 +76,17 @@ dotfiles_backup() {
 }
 
 dotfiles_restore() {
-  local raw safe_path rel source_path
-  yq e '.dotfiles.files[]?.path' "$MI_INVENTORY" 2>/dev/null | while IFS= read -r raw; do
+  local rows raw ref ignored safe_path rel source_path
+  rows="$(yq e -r '
+    (.dotfiles.files // [])[]? |
+    (.path // "" | tostring) + "|" + (.ref // "" | tostring) + "|" + (.ignored // false | tostring)
+  ' "$MI_INVENTORY" 2>/dev/null || true)"
+  printf '%s\n' "$rows" | while IFS="|" read -r raw ref ignored; do
     [ -n "$raw" ] && [ "$raw" != "null" ] || continue
+    if [ "$ignored" = "true" ]; then
+      mi_info "dotfiles: ignored ${ref:-$raw}; skipping"
+      continue
+    fi
     safe_path="$(mi_safe_home_path "$raw")" || { mi_warn "dotfiles: unsafe restore path skipped: $raw"; continue; }
     rel="${safe_path#"$HOME"/}"
     source_path="$(dirname "$MI_INVENTORY")/files/$rel"

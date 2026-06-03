@@ -13,6 +13,7 @@ oh_my_zsh_backup() {
   zsh_dir="$(oh_my_zsh_path)"
   zshrc="$HOME/.zshrc"
   printf 'oh_my_zsh:\n'
+  printf '  ref: %s\n' "$(mi_yaml_scalar "$(mi_oh_my_zsh_ref)")"
   if [ -d "$zsh_dir" ]; then
     printf '  installed: true\n'
   else
@@ -35,6 +36,10 @@ oh_my_zsh_backup() {
 
 oh_my_zsh_restore() {
   local zsh_dir tmp url rc
+  if [ "$(yq e '.oh_my_zsh.ignored // false' "$MI_INVENTORY" 2>/dev/null)" = "true" ]; then
+    mi_info "oh-my-zsh: ignored $(mi_oh_my_zsh_ref); skipping"
+    return 0
+  fi
   zsh_dir="$(oh_my_zsh_path)"
   if [ -d "$zsh_dir" ] && [ "$MI_SKIP_EXISTING" = "true" ]; then
     mi_info "oh-my-zsh: already installed"

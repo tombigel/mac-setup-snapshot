@@ -7,7 +7,9 @@ brew_backup() {
   if mi_has brew; then
     mi_brew_capture brew_taps tap || brew_taps=""
     printf '%s\n' "$brew_taps" | while IFS= read -r tap; do
-      [ -n "$tap" ] && printf '    - %s\n' "$(mi_yaml_scalar "$tap")"
+      [ -n "$tap" ] || continue
+      printf '    - name: %s\n' "$(mi_yaml_scalar "$tap")"
+      printf '      ref: %s\n' "$(mi_yaml_scalar "$(mi_brew_tap_ref "$tap")")"
     done
     printf '  formulae:\n'
     mi_brew_capture brew_formulae leaves || brew_formulae=""
@@ -18,6 +20,7 @@ brew_backup() {
         version="$(printf '%s\n' "$formula_version" | cut -d' ' -f2-)"
       fi
       printf '    - name: %s\n' "$(mi_yaml_scalar "$name")"
+      printf '      ref: %s\n' "$(mi_yaml_scalar "$(mi_brew_formula_ref "$name")")"
       printf '      version: %s\n' "$(mi_yaml_scalar "$version")"
     done
     printf '  casks:\n'
@@ -73,16 +76,36 @@ EOF
 }
 
 brew_restore() {
-  local installed_taps tap name ref display_name ignored cask_rows
+  local installed_taps tap tap_ref tap_ignored tap_rows name ref display_name ignored formula_rows cask_rows
   mi_has brew || { mi_warn "brew missing; skipping Homebrew restore"; return 0; }
   mi_brew_capture installed_taps tap || installed_taps=""
-  yq e '.brew.taps[]?' "$MI_INVENTORY" 2>/dev/null | while IFS= read -r tap; do
+  tap_rows="$(yq e -r '
+    (.brew.taps // [])[]? |
+    select(type == "!!map") |
+    (.name // "" | tostring) + "|" + (.ref // "" | tostring) + "|" + (.ignored // false | tostring),
+    (.brew.taps // [])[]? |
+    select(type != "!!map") |
+    (. // "" | tostring) + "||false"
+  ' "$MI_INVENTORY" 2>/dev/null || true)"
+  printf '%s\n' "$tap_rows" | while IFS="|" read -r tap tap_ref tap_ignored; do
     [ -n "$tap" ] && [ "$tap" != "null" ] || continue
+    if [ "$tap_ignored" = "true" ]; then
+      mi_info "brew tap: ignored ${tap_ref:-$tap}; skipping"
+      continue
+    fi
     mi_validate_identifier "$tap" || { mi_warn "invalid tap: $tap"; continue; }
     printf '%s\n' "$installed_taps" | grep -Fxq "$tap" || mi_brew_run tap "$tap"
   done
-  yq e '.brew.formulae[]?.name' "$MI_INVENTORY" 2>/dev/null | while IFS= read -r name; do
+  formula_rows="$(yq e -r '
+    (.brew.formulae // [])[]? |
+    (.name // "" | tostring) + "|" + (.ref // "" | tostring) + "|" + (.ignored // false | tostring)
+  ' "$MI_INVENTORY" 2>/dev/null || true)"
+  printf '%s\n' "$formula_rows" | while IFS="|" read -r name ref ignored; do
     [ -n "$name" ] && [ "$name" != "null" ] || continue
+    if [ "$ignored" = "true" ]; then
+      mi_info "brew formula: ignored ${ref:-$name}; skipping"
+      continue
+    fi
     mi_validate_identifier "$name" || { mi_warn "invalid formula: $name"; continue; }
     if mi_brew_capture formula_check list --formula "$name" && [ "$MI_SKIP_EXISTING" = "true" ]; then
       mi_info "brew: $name already installed"

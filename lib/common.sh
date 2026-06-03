@@ -290,7 +290,7 @@ Commands:
   backup             Create or update a setup snapshot
   restore            Restore from a setup snapshot
   ignore             Keep an app in the snapshot but skip it during restore
-  unignore           Restore an ignored app entry again
+  unignore           Restore an ignored snapshot entry again
   list               List snapshot sections
   doctor             Check local readiness
   prepare            Install/check prerequisites before restore
