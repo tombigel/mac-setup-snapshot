@@ -8,6 +8,7 @@ Prefer:
 - Explicit command wrappers that preserve `--dry-run`.
 - Bats tests with mocked external commands.
 - Clear user-facing messages before long or prompting actions.
+- Validation in sandboxed shells with Homebrew paths injected, for example `PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" /opt/homebrew/bin/bats test`.
 
 Avoid:
 
@@ -15,3 +16,4 @@ Avoid:
 - direct `curl | sh`.
 - committing generated setup snapshots, copied dotfiles, resume state, or secrets.
 - destructive restore behavior.
+- timeout tests that rely on real sleepers or long-running package-manager commands.

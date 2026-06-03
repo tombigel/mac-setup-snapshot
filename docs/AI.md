@@ -33,6 +33,23 @@ Use `--report`, `--report-format`, and `--skip-report` when validating process-r
 
 Use Bats and mocked commands. Do not call real package managers in tests.
 
+Managed/sandboxed agent shells may not load the user's interactive shell profile, so Homebrew tools can be installed but missing from `PATH`. On Apple Silicon Macs, run validation with Homebrew paths injected explicitly:
+
+```bash
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" shellcheck bin/mac-setup lib/*.sh lib/sources/*.sh
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" /opt/homebrew/bin/bats test
+```
+
+If `bats` is not found by name, check standard locations before reporting it missing:
+
+```bash
+ls -l /opt/homebrew/bin/bats /usr/local/bin/bats
+```
+
+Do not assume a missing executable from plain `command -v` means the tool is not installed; first account for sandbox PATH differences. When reporting validation, include the exact command and PATH used.
+
+Timeout tests must not run real slow commands inside full CLI flows. Avoid `sleep 5` or long-running child processes in Bats unless the test runner itself has a hard fail-timeout. Test timeout plumbing by stubbing the timeout wrapper or by direct helper-level tests that return immediately. Full `backup`/`restore` tests should mock package-manager outcomes, not exercise process-killing behavior.
+
 Useful smoke checks:
 
 ```bash

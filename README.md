@@ -240,8 +240,9 @@ Expected checks:
 
 ```bash
 find bin lib -type f \( -name '*.sh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 bash -n
-shellcheck bin/mac-setup lib/*.sh lib/sources/*.sh
-bats test
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" shellcheck bin/mac-setup lib/*.sh lib/sources/*.sh
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" /opt/homebrew/bin/bats test
 ```
 
 The tests use mocked package-manager commands so they can run without installing or changing real applications.
+In sandboxed agent environments, Homebrew tools may be installed but missing from the default non-interactive `PATH`; inject `/opt/homebrew/bin:/usr/local/bin` before declaring `bats`, `shellcheck`, or `yq` unavailable.

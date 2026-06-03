@@ -29,11 +29,13 @@ Run when available:
 
 ```bash
 find bin lib -type f \( -name '*.sh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 bash -n
-shellcheck bin/mac-setup lib/*.sh lib/sources/*.sh
-bats test
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" shellcheck bin/mac-setup lib/*.sh lib/sources/*.sh
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" /opt/homebrew/bin/bats test
 ```
 
-If `shellcheck` or `bats` is missing, report that clearly.
+Sandboxed agent shells may not load the user's interactive shell PATH. Before reporting `shellcheck`, `bats`, or `yq` missing, check standard Homebrew paths such as `/opt/homebrew/bin` and `/usr/local/bin`.
+
+Do not add Bats tests that run real slow commands or sleepers to prove timeout behavior. Stub timeout outcomes or use direct helper-level tests that return immediately.
 
 ## Adding A Source Module
 
