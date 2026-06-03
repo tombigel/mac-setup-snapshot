@@ -25,15 +25,18 @@ Commands:
 - `status`: show the current resume checklist.
 - `list`: list snapshot sections or installed/missing items.
 - `doctor`: check tools, login/auth state, Xcode state, GitHub auth state, and readiness.
+- `wizard`: guided backup/restore setup.
+- `wizard config generate`: generate starter wizard config.
 - `config generate`: generate starter config.
 - `gist pull`: download snapshot/config from a Gist.
 - `gist push`: upload snapshot/config to a Gist.
 - `help`, `--help`, `-h`: show help.
-- No args: show help.
+- No args: open the wizard in an interactive terminal and show help otherwise.
 
 Main options:
 
 - `--config`, `-c`
+- `--wizard-config`
 - `--inventory`, `-i`
 - `--target icloud|local|github`
 - `--source icloud|local|github`
@@ -107,14 +110,17 @@ List options:
 
 ## Inventory, Config, And Safety
 
-Use two YAML files:
+Use three YAML files:
 
 - Config: source enablement, restore policy, matching policy, dotfile allowlist.
+- Wizard config: declarative menu labels, ordering, visibility, and defaults for known wizard flows/prompts/sources.
 - Inventory: generated machine state.
 
 Inventory includes host metadata, normalized currently installed App Store apps with matched paths when available, Homebrew taps/top-level formulae/casks, npm/pip/pipx packages, Oh My Zsh state, Xcode and Command Line Tools state, explicit allowlisted dotfiles that exist at backup time, and manual apps with optional Homebrew cask candidates. Restore-relevant rows include stable refs such as `appstore:<id>`, `brew_formula:<formula>`, `brew_cask:<cask>`, `npm:<package>`, `dotfile:<path-hash>`, and `manual:<bundle_id>` so commands can target them safely. Homebrew casks keep the installable cask token and may include matched app display name, path, and app version for reports.
 
 Local and iCloud backups also generate `backup-list.md` and `README.md` next to `mac-setup.yml`. The list is derived from the YAML snapshot and must not include copied dotfile contents, secrets, or raw command output. The README contains restore instructions and a backup folder file map.
+
+Wizard config defaults to `mac-setup.wizard.yml`. It can enable/disable the built-in backup and restore flows, relabel/reorder known sources, choose defaults, and hide known prompts. It must not define arbitrary commands, hooks, executable steps, or user-defined restore behavior.
 
 Manual app matching:
 
@@ -133,6 +139,7 @@ Safety rules:
 - Restore runs prepare preflight by default unless `--skip-prepare=true`.
 - Prepare/restore create durable resume state under `~/.mac-setup/resume.yml`.
 - `--dry-run` prevents snapshot writes, backup-list/README writes, iCloud history moves, Gist writes, dotfile copies, downloads, installs, upgrades, license acceptance, overwrites, and shell changes.
+- `wizard config generate --dry-run` reports the target path without writing the wizard config.
 - Never execute YAML/config/inventory content with `eval` or command substitution.
 - Do not implement arbitrary user-defined restore hooks in v1.
 - Do not use direct `curl | sh`.
@@ -157,6 +164,7 @@ lib/inventory.sh
 lib/gist.sh
 lib/safety.sh
 lib/workflow.sh
+lib/wizard.sh
 lib/sources/*.sh
 test/
 docs/PLAN.md
@@ -169,6 +177,8 @@ Behavior:
 
 - Parse CLI flags first, merge config defaults second, then command defaults.
 - `config generate -o <path>` writes starter YAML config.
+- `wizard config generate -o <path>` writes starter YAML wizard config.
+- `wizard` uses numbered menus and allowlisted YAML customization, then dispatches to existing backup/restore flags.
 - `doctor` checks local package managers, Gist auth, App Store login, Oh My Zsh, and Xcode state.
 - Default backup/restore uses the iCloud Drive `Mac Setup Snapshot` bundle when available.
 - `prepare` checks Xcode CLT, Homebrew, yq, mas, pipx, GitHub auth, and App Store login in order.
@@ -197,6 +207,7 @@ Required coverage:
 - Prepare dry-run, resume/continue/status, caffeinate, and restore preflight behavior.
 - Oh My Zsh and Xcode detection.
 - Prompt policy.
+- Wizard no-args behavior, non-interactive fallback, config generation, allowlisted menu config, and compiled backup/restore flags.
 - Dotfile copy/restore policy.
 
 Acceptance commands:

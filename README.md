@@ -40,13 +40,21 @@ Generate a starter config if you want to choose exactly what setup state is capt
 mac-setup config generate -o mac-setup.config.yml
 ```
 
+For a guided flow, run:
+
+```bash
+mac-setup wizard
+```
+
+In an interactive terminal, running `mac-setup` with no arguments opens the same wizard. In scripts and other non-interactive contexts, no arguments still print help.
+
 Create or update the setup bundle in iCloud Drive:
 
 ```bash
 mac-setup backup
 ```
 
-Backup prints per-section progress by default and writes the YAML snapshot, a human-readable Markdown list, and restore notes. The Markdown list is named `backup-list.md` and is generated from the completed snapshot, so it does not contain copied dotfile contents. The restore notes are written to `README.md` in the backup folder.
+Backup prints per-section progress by default and writes the YAML snapshot, a human-readable Markdown list, and restore notes. In an interactive terminal, progress updates in place and uses terminal-palette ANSI styling for headings, muted details, success, and alerts. Non-TTY output, CI, `TERM=dumb`, `NO_COLOR`, `--quiet`, and `--verbose` use plain stable output. The Markdown list is named `backup-list.md` and is generated from the completed snapshot, so it does not contain copied dotfile contents. The restore notes are written to `README.md` in the backup folder.
 
 Manual app scanning also prints the app currently being checked when Homebrew cask matching is enabled.
 
@@ -101,11 +109,13 @@ mac-setup continue
 - `status`: show the current resume checklist.
 - `list`: inspect saved setup sections.
 - `doctor`: check tools, login state, Xcode state, GitHub auth, and readiness.
+- `wizard`: guided backup/restore setup.
+- `wizard config generate`: generate editable wizard config.
 - `config generate`: generate starter config.
 - `gist pull`: download setup state/config from a GitHub Gist.
 - `gist push`: upload setup state/config to a GitHub Gist.
 
-No arguments, `help`, `--help`, and `-h` show help.
+No arguments open the wizard in an interactive terminal and show help otherwise. `help`, `--help`, and `-h` always show help.
 
 ## Restore Notes
 
@@ -119,6 +129,14 @@ Every `backup`, `prepare`, `restore`, `continue`, and Gist workflow emits a frie
 mac-setup restore --dry-run --report reports/restore.md --report-format md
 mac-setup backup --report reports/backup.yml --report-format yaml
 ```
+
+Wizard menus are controlled by built-in defaults or an editable `mac-setup.wizard.yml` file. Generate one with:
+
+```bash
+mac-setup wizard config generate -o mac-setup.wizard.yml
+```
+
+The wizard config can reorder, hide, relabel, and set defaults for known backup/restore sources and prompts. It cannot define shell commands, hooks, arbitrary steps, or executable restore behavior.
 
 ## Captured Setup State
 
@@ -191,6 +209,7 @@ mac-setup backup -B=false
 ## Safety
 
 - `--dry-run` prevents operational writes, uploads, downloads, installs, upgrades, overwrites, license acceptance, generated backup-list/README writes, and shell changes. If `--report <path>` is explicitly passed, only that report artifact is written.
+- `wizard config generate --dry-run` reports the wizard config path without writing it.
 - Dotfile restore defaults to skip existing files.
 - Explicit dotfile overwrite first backs up the existing file to `~/.mac-setup/restore-backups/<timestamp>/`.
 - Remote installers are downloaded to temp files and executed only after policy allows it; the implementation does not use direct `curl | sh`.

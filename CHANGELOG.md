@@ -18,6 +18,9 @@
 - Added richer `backup --verbose` diagnostics for command captures, app indexing, App Store parsing, and manual app matching.
 - Added stable refs for restore entries including apps, packages, dotfiles, Homebrew items, Xcode, and Oh My Zsh.
 - Added `ignore` and `unignore` commands to keep entries in the snapshot while excluding them from restore.
+- Added `wizard` for guided backup/restore setup with numbered menus.
+- Added `wizard config generate` and `mac-setup.wizard.yml` for declarative wizard menu labels, ordering, visibility, and defaults.
+- Added terminal-palette ANSI styling for interactive headings, muted details, success states, and alerts.
 
 ### Changed
 
@@ -34,6 +37,8 @@
 - Changed manual app backup to omit apps already represented by App Store receipts or installed Homebrew casks.
 - Changed readable lists to show stable refs as the last column and include ignored state for restore rows.
 - Changed backup to reapply persisted ignored-item config rules to fresh snapshots.
+- Changed interactive terminal progress to update in place by default while keeping plain line output for verbose, quiet, non-TTY, CI, `TERM=dumb`, and `NO_COLOR` contexts.
+- Changed no-argument interactive terminal runs to open the wizard; non-interactive no-argument runs still print help.
 
 ### Fixed
 

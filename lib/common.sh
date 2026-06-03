@@ -370,9 +370,12 @@ Commands:
   unignore           Restore an ignored snapshot entry again
   list               List snapshot sections
   doctor             Check local readiness
+  wizard             Guided backup/restore setup
   prepare            Install/check prerequisites before restore
   continue           Resume an interrupted workflow
   status             Show current resume checklist
+  wizard config generate
+                     Generate starter wizard config
   config generate    Generate starter config
   gist pull          Pull snapshot/config from GitHub Gist
   gist push          Push snapshot/config to GitHub Gist
@@ -380,6 +383,7 @@ Commands:
 
 Global options:
   -c, --config <path>                 Config path
+      --wizard-config <path>          Wizard config path
   -i, --inventory <path>              Setup snapshot path
       --target icloud|local|github    Backup endpoint
       --source icloud|local|github    Restore endpoint
@@ -448,6 +452,7 @@ List options:
   -e, --installed-only
   -m, --missing-only
 
+No arguments open the guided wizard in an interactive terminal and show help otherwise.
 Short no-argument flags can be chained, e.g. -dyq.
 Value-taking short options must be standalone or last in a chain.
 EOF

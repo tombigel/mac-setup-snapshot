@@ -15,6 +15,8 @@ mac-setup continue [options]
 mac-setup status [options]
 mac-setup list [options]
 mac-setup doctor [options]
+mac-setup wizard [options]
+mac-setup wizard config generate [options]
 mac-setup config generate [options]
 mac-setup gist pull [options]
 mac-setup gist push [options]
@@ -23,7 +25,7 @@ mac-setup --help
 mac-setup -h
 ```
 
-Calling `mac-setup` without arguments prints help.
+Calling `mac-setup` without arguments opens the guided wizard in an interactive terminal and prints help otherwise.
 
 ## Description
 
@@ -45,6 +47,12 @@ Generate a starter config if you want to review or customize sources:
 
 ```bash
 mac-setup config generate -o mac-setup.config.yml
+```
+
+Generate an optional wizard config if you want to customize guided menus:
+
+```bash
+mac-setup wizard config generate -o mac-setup.wizard.yml
 ```
 
 Create or update the default iCloud Drive setup snapshot:
@@ -103,7 +111,7 @@ mac-setup backup --gist-create=true --gist-push
 
 By default, backup includes App Store apps, Homebrew, npm globals, pip, pipx, Oh My Zsh, Xcode, dotfiles, and manual apps.
 
-Backup and restore print a welcome message, the next step, a simple text progress bar for enabled sections, and a friendly terminal summary by default. Manual app scanning also prints the app currently being checked when Homebrew cask matching is enabled. Use `--quiet` to suppress the welcome, progress, and default summary. Use `--verbose` for command start/status lines, captured output counts, app indexing details, App Store parsing decisions, manual app matching decisions, and raw summary counts.
+Backup and restore print a welcome message, the next step, progress for enabled sections, and a friendly terminal summary by default. In an interactive terminal, progress updates in place and uses terminal-palette ANSI styling: bold headings, dim secondary text, green success, and red alerts. Manual app scanning also updates the current app being checked when Homebrew cask matching is enabled. Non-TTY output, CI, `TERM=dumb`, `NO_COLOR`, `--quiet`, and `--verbose` use plain stable output. Use `--quiet` to suppress the welcome, progress, and default summary. Use `--verbose` for command start/status lines, captured output counts, app indexing details, App Store parsing decisions, manual app matching decisions, and raw summary counts.
 
 For local and iCloud backups, backup also writes `backup-list.md` and `README.md` next to `mac-setup.yml`. The list is generated from the completed snapshot using the same renderer as `mac-setup list --format md`; it does not include copied dotfile contents or raw command output. The README contains restore instructions and a file map for the backup folder.
 
@@ -264,6 +272,32 @@ If no output path is provided, the default is `mac-setup.config.yml`.
 
 If the target file already exists, interactive mode prompts before overwriting. Non-interactive mode fails conservatively unless `--yes` allows the write.
 
+### `wizard`
+
+Start a guided backup or restore flow.
+
+```bash
+mac-setup wizard
+mac-setup --wizard-config ./mac-setup.wizard.yml wizard
+```
+
+The wizard uses numbered menus and comma/range source selection such as `1,3-5`, `all`, or `none`. It compiles choices into the existing `backup` or `restore` flags and then runs that command, preserving additive restore, dry-run, endpoint, skip-existing, and prompt safety behavior.
+
+The wizard requires an interactive terminal. Use normal `backup` or `restore` commands for scripts and automation. Running `mac-setup` with no arguments opens the wizard only when stdin is a TTY; non-interactive no-args still prints help.
+
+### `wizard config generate`
+
+Generate a starter YAML wizard config.
+
+```bash
+mac-setup wizard config generate
+mac-setup wizard config generate -o mac-setup.wizard.yml
+mac-setup wizard config generate --wizard-config ./wizard.yml
+mac-setup wizard config generate --dry-run
+```
+
+If no output path is provided, the default is `mac-setup.wizard.yml`. If the target file already exists, interactive mode prompts before overwriting. Non-interactive mode fails conservatively unless `--yes` allows the write. Dry-run reports the target path without writing the file.
+
 ## Endpoint Options
 
 `--target icloud|local|github`
@@ -329,6 +363,10 @@ Before upload, files are scanned for common secret patterns. Tokens are masked i
 
 Config file path. Default: `mac-setup.config.yml`.
 
+`--wizard-config <path>`
+
+Wizard config file path. Default: `mac-setup.wizard.yml`.
+
 `--inventory <path>`, `-i <path>`
 
 Setup snapshot file path. Default: `mac-setup.yml`.
@@ -363,6 +401,8 @@ Available source flags:
 `--interactive true|false`, `-I true|false`
 
 Enable or disable prompts. Defaults to true when running in an interactive terminal.
+
+The wizard ignores non-interactive stdin and fails clearly instead of guessing choices. Use explicit backup/restore flags for automation.
 
 `--yes`, `-y`
 
@@ -804,6 +844,78 @@ reports:
 
 CLI flags override config defaults for the current run. `ignore` adds refs to `restore.ignored_items`; backup reapplies those refs to matching rows so future snapshots keep the same restore exclusions visible.
 
+## Wizard Config File
+
+Default path:
+
+```text
+mac-setup.wizard.yml
+```
+
+Example:
+
+```yaml
+version: 1
+wizard:
+  flows:
+    backup:
+      enabled: true
+      label: "Create or update a setup snapshot"
+      default_target: icloud
+      prompts:
+        dry_run: true
+        storage: true
+        sources: true
+        manual_brew_match: true
+      sources:
+        - id: apps
+          label: "App Store apps"
+          default: true
+        - id: brew
+          label: "Homebrew"
+          default: true
+        - id: npm
+          label: "npm globals"
+          default: true
+        - id: pip
+          label: "pip packages"
+          default: true
+        - id: pipx
+          label: "pipx packages"
+          default: true
+        - id: oh_my_zsh
+          label: "Oh My Zsh"
+          default: true
+        - id: xcode
+          label: "Xcode"
+          default: true
+        - id: dotfiles
+          label: "dotfiles"
+          default: true
+        - id: manual_apps
+          label: "manual apps"
+          default: true
+
+    restore:
+      enabled: true
+      label: "Restore from a setup snapshot"
+      default_source: icloud
+      prompts:
+        dry_run: true
+        storage: true
+        sources: true
+        appstore_login: true
+      sources:
+        - id: apps
+          label: "App Store apps"
+          default: true
+        - id: brew
+          label: "Homebrew"
+          default: true
+```
+
+The wizard config is declarative and allowlisted. It can enable or disable the built-in backup/restore flows, relabel them, choose default local/iCloud/GitHub storage, show or hide known prompts, and reorder/relabel/default known sources. Unsupported flow IDs, source IDs, prompt IDs, and enum values are ignored with warnings. It cannot define arbitrary shell commands, hooks, custom restore steps, or executable behavior.
+
 ## Setup Snapshot File
 
 Default path:
@@ -921,6 +1033,8 @@ Mac Setup Snapshot summary
 
 Use `--verbose` to include raw inventory counts in the terminal summary. Use `--report <path>` to write a structured report file. Use `--skip-report` when embedding output in another script and the summary would be noisy.
 
+ANSI styling and live progress are human-terminal only. Structured reports and non-TTY output stay plain and stable for scripts.
+
 ## Exit Status
 
 - `0`: command completed successfully.
@@ -934,6 +1048,7 @@ Use `--verbose` to include raw inventory counts in the terminal summary. Use `--
 - `backup-list.md`: default human-readable Markdown summary generated from local and iCloud backups.
 - `README.md`: restore instructions generated into local and iCloud backup folders.
 - `mac-setup.config.yml`: default config.
+- `mac-setup.wizard.yml`: optional editable wizard config.
 - `files/`: copied dotfiles next to the setup snapshot.
 - `~/.mac-setup/restore-backups/<timestamp>/`: dotfile restore backups.
 - `~/.mac-setup/resume.yml`: default prepare/restore resume checklist.
