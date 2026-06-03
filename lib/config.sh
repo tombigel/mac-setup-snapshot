@@ -26,8 +26,8 @@ mi_config_apply() {
     fi
     mi_config_string storage.icloud_folder MI_ICLOUD_FOLDER_NAME
     mi_config_bool prepare.pause_after_manual_steps MI_PAUSE_AFTER_PREPARE
-    mi_config_bool backup.check_manual_brew MI_CHECK_MANUAL_BREW
-    mi_config_enum backup.manual_brew_match MI_MANUAL_BREW_MATCH ask never all
+    [ "$MI_CHECK_MANUAL_BREW_EXPLICIT" = "true" ] || mi_config_bool backup.check_manual_brew MI_CHECK_MANUAL_BREW
+    [ "$MI_MANUAL_BREW_MATCH_EXPLICIT" = "true" ] || mi_config_enum backup.manual_brew_match MI_MANUAL_BREW_MATCH ask never all
     [ -n "$MI_DOTFILES_PATHS" ] || mi_config_string_list backup.dotfiles MI_DOTFILES_PATHS
     mi_config_number defaults.command_timeout MI_COMMAND_TIMEOUT
     mi_config_enum restore.appstore_login MI_APPSTORE_LOGIN skip prompt pause require

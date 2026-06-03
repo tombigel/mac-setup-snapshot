@@ -16,6 +16,8 @@ mi_args_init() {
   MI_INVENTORY="mac-setup.backup.yml"
   MI_CONFIG_EXPLICIT="false"
   MI_INVENTORY_EXPLICIT="false"
+  MI_CHECK_MANUAL_BREW_EXPLICIT="false"
+  MI_MANUAL_BREW_MATCH_EXPLICIT="false"
   MI_TARGET=""
   MI_SOURCE=""
   MI_TARGET_EXPLICIT="false"
@@ -204,9 +206,9 @@ mi_set_long_option() {
     --quiet) MI_QUIET="true" ;;
     --help) MI_HELP="true" ;;
     --update) MI_UPDATE="true" ;;
-    --check-manual-brew) mi_set_bool_var MI_CHECK_MANUAL_BREW "$value" || return 2 ;;
+    --check-manual-brew) mi_set_bool_var MI_CHECK_MANUAL_BREW "$value" || return 2; MI_CHECK_MANUAL_BREW_EXPLICIT="true" ;;
     --manual-brew-match)
-      case "$value" in ask|never|all) MI_MANUAL_BREW_MATCH="$value" ;; *) mi_error "--manual-brew-match expects ask, never, or all"; return 2 ;; esac
+      case "$value" in ask|never|all) MI_MANUAL_BREW_MATCH="$value"; MI_MANUAL_BREW_MATCH_EXPLICIT="true" ;; *) mi_error "--manual-brew-match expects ask, never, or all"; return 2 ;; esac
       ;;
     --versions) mi_set_bool_var MI_RECORD_VERSIONS "$value" || return 2 ;;
     --dotfiles-path) MI_DOTFILES_PATHS="${MI_DOTFILES_PATHS}${MI_DOTFILES_PATHS:+

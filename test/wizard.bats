@@ -194,6 +194,34 @@ github|GitHub Gist" 2
   [[ "$output" == *"--manual-apps=true"* ]]
 }
 
+@test "wizard manual app matching choice is dispatched as explicit cask matching" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+    . "$PROJECT_ROOT/lib/common.sh"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/endpoint.sh"
+    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/wizard.sh"
+    mi_args_init
+    MI_MANUAL_BREW_MATCH=ask
+    MI_MANUAL_BREW_MATCH_EXPLICIT=true
+    MI_CHECK_MANUAL_BREW=true
+    MI_CHECK_MANUAL_BREW_EXPLICIT=true
+    MI_APPS=false
+    MI_BREW=false
+    MI_NPM=false
+    MI_PIP=false
+    MI_PIPX=false
+    MI_OH_MY_ZSH=false
+    MI_XCODE=false
+    MI_DOTFILES=false
+    MI_MANUAL_APPS=true
+    mi_wizard_args_for_flow backup | paste -sd " " -
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"--check-manual-brew true"* ]]
+  [[ "$output" == *"--manual-brew-match ask"* ]]
+}
+
 @test "wizard config can relabel reorder and default known sources" {
   command -v yq >/dev/null 2>&1 || skip "yq is required for wizard config loading"
   cat >custom-wizard.yml <<'YAML'

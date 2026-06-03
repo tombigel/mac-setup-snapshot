@@ -119,6 +119,7 @@
 
 ### Fixed
 
+- Fixed wizard manual app matching so selecting `ask` also enables Homebrew cask matching and cannot be overwritten by backup config defaults.
 - Preserved command failure exit codes from `backup`, `restore`, `list`, `doctor`, `config generate`, and Gist commands instead of masking failures at the end of the CLI entrypoint.
 - Fixed literal `~` expansion for dotfile paths so `~/.zshrc`, `~/.gitconfig`, `~/.gitignore_global`, and `~/.ssh/config` resolve under `$HOME`.
 - Replaced invalid `brew leaves --versions` usage with `brew leaves` plus `brew list --versions <formula>` for compatibility with the installed Homebrew CLI.

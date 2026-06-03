@@ -366,6 +366,9 @@ never|Record candidates but keep apps manual
 all|Accept all Homebrew cask candidates"
   choice="$(mi_wizard_choice "Manual App Matching" "$options" 1)"
   MI_MANUAL_BREW_MATCH="$choice"
+  MI_MANUAL_BREW_MATCH_EXPLICIT="true"
+  MI_CHECK_MANUAL_BREW="true"
+  MI_CHECK_MANUAL_BREW_EXPLICIT="true"
 }
 
 mi_wizard_restore_options() {
@@ -506,27 +509,33 @@ mi_wizard_args_for_sources() {
 mi_wizard_dispatch() {
   local flow="$1"
   local args=()
-  args+=("$flow")
-  [ "$MI_DRY_RUN" = "true" ] && args+=("--dry-run")
-  case "$flow" in
-    backup)
-      args+=("--target" "$MI_TARGET")
-      args+=("--manual-brew-match" "$MI_MANUAL_BREW_MATCH")
-      ;;
-    restore)
-      args+=("--source" "$MI_SOURCE")
-      args+=("--appstore-login" "$MI_APPSTORE_LOGIN")
-      ;;
-  esac
-  [ "$MI_CONFIG_EXPLICIT" = "true" ] && args+=("--config" "$MI_CONFIG")
   while IFS= read -r arg; do
     [ -n "$arg" ] && args+=("$arg")
   done <<EOF
-$(mi_wizard_args_for_sources)
+$(mi_wizard_args_for_flow "$flow")
 EOF
   mi_ux_line ""
   mi_ux_line "$(mi_muted "Running: ${MI_PROGRAM_NAME:-mac-setup} ${args[*]}")"
   "$0" "${args[@]}"
+}
+
+mi_wizard_args_for_flow() {
+  local flow="$1"
+  printf '%s\n' "$flow"
+  [ "$MI_DRY_RUN" = "true" ] && printf '%s\n' "--dry-run"
+  case "$flow" in
+    backup)
+      printf '%s\n' "--target" "$MI_TARGET"
+      printf '%s\n' "--check-manual-brew" "$MI_CHECK_MANUAL_BREW"
+      printf '%s\n' "--manual-brew-match" "$MI_MANUAL_BREW_MATCH"
+      ;;
+    restore)
+      printf '%s\n' "--source" "$MI_SOURCE"
+      printf '%s\n' "--appstore-login" "$MI_APPSTORE_LOGIN"
+      ;;
+  esac
+  [ "$MI_CONFIG_EXPLICIT" = "true" ] && printf '%s\n' "--config" "$MI_CONFIG"
+  mi_wizard_args_for_sources
 }
 
 mi_wizard_run() {

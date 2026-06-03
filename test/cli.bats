@@ -101,6 +101,28 @@ YAML
   grep -q 'selected_brew_cask: ""' mac-setup.backup.yml
 }
 
+@test "explicit manual brew matching flags override config defaults" {
+  command -v yq >/dev/null 2>&1 || skip "yq is required for config application"
+  app_root="$BATS_TEST_TMPDIR/Applications"
+  mkdir -p "$app_root"
+  make_test_app "$app_root" "Override App" "com.example.override" "1.0" false
+  cat >mac-setup.config.yml <<'YAML'
+version: 1
+defaults:
+  record_versions: false
+  install_missing_tools: false
+backup:
+  check_manual_brew: false
+  manual_brew_match: never
+YAML
+  mock_command brew 'while [ "$1" = "env" ] || [ "${1#HOMEBREW_}" != "$1" ]; do shift; done; case "$1 $2 $3" in "list --cask ") : ;; "search --casks /.*/") echo override-app ;; *) exit 0 ;; esac'
+
+  run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --check-manual-brew=true --manual-brew-match=all
+  [ "$status" -eq 0 ]
+  grep -q 'name: "override-app"' mac-setup.backup.yml
+  ! grep -q 'Override App' mac-setup.backup.yml
+}
+
 @test "backup applies generated config dotfile paths" {
   command -v yq >/dev/null 2>&1 || skip "yq is required for config application"
   test_home="$BATS_TEST_TMPDIR/home"
