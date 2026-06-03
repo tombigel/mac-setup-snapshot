@@ -40,7 +40,7 @@ main() {
   mi_args_init
 
   if [ "$#" -eq 0 ]; then
-    if [ -t 0 ]; then
+    if mi_wizard_interactive; then
       set -- wizard
     else
       mi_show_help

@@ -197,7 +197,7 @@ mi_wizard_sources() {
 }
 
 mi_wizard_interactive() {
-  [ "${MI_INTERACTIVE:-true}" = "true" ] && [ -t 0 ]
+  [ "${MI_INTERACTIVE:-true}" = "true" ] && [ -t 0 ] && [ -t 1 ] && [ -t 2 ]
 }
 
 mi_wizard_read() {
