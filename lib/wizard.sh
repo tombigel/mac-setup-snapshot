@@ -219,18 +219,18 @@ mi_wizard_choice() {
   local title="$1"
   local options="$2"
   local default_index="$3"
-  local count answer label value index marker
+  local count answer label value index row
   mi_ux_line ""
   mi_ux_line "$(mi_heading "$title")"
   index=0
   printf '%s\n' "$options" | while IFS="|" read -r value label; do
     [ -n "$value" ] || continue
     index=$((index + 1))
+    row="    $index. $label"
     if [ "$index" -eq "$default_index" ] 2>/dev/null; then
-      marker="$(mi_success_text "*")"
-      printf '  %s %s. %s %s\n' "$marker" "$index" "$label" "$(mi_muted "(default)")" >&2
+      printf '%s\n' "$(mi_style "1;32" "$row")" >&2
     else
-      printf '    %s. %s\n' "$index" "$label" >&2
+      printf '%s\n' "$row" >&2
     fi
   done
   count="$(printf '%s\n' "$options" | sed '/^$/d' | wc -l | tr -d ' ')"
