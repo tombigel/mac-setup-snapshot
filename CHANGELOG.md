@@ -23,6 +23,7 @@
 - Added terminal-palette ANSI styling for interactive headings, muted details, success states, and alerts.
 - Added backup summary folder links and styled summary success/failure and next-step text for interactive terminals.
 - Added wizard restore guidance to the main README and generated backup-folder README.
+- Added stronger dry-run emphasis in interactive output, including yellow dry-run markers in starts, summaries, prompts, and dry-run notices.
 
 ### Changed
 

@@ -162,7 +162,7 @@ mi_report_default_summary_artifacts() {
   case "$MI_COMMAND" in
     backup)
       if [ "$MI_DRY_RUN" = "true" ]; then
-        printf '  Files written: none (dry-run)\n'
+        printf '  Files written: none (%s)\n' "$(mi_dry_run_text "dry-run")"
       else
         printf '  Snapshot: %s\n' "$MI_INVENTORY"
         backup_list="$(mi_inventory_backup_list_path 2>/dev/null || true)"
@@ -197,20 +197,38 @@ mi_report_default_summary_events() {
 mi_report_render_default_summary() {
   local rc="$1"
   local status="completed"
+  local run_label
   [ "$rc" -eq 0 ] || status="stopped with errors"
+  run_label="${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}"
   printf '\n%s\n' "$(mi_heading "Mac Setup Snapshot summary")"
   if [ "$rc" -eq 0 ]; then
-    printf '  %s %s in %ss.\n' "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}" "$(mi_success_text "$status")" "$(mi_report_duration_seconds)"
+    if [ "$MI_DRY_RUN" = "true" ]; then
+      printf '  %s %s (%s) in %ss.\n' "$run_label" "$(mi_success_text "$status")" "$(mi_dry_run_text "dry-run")" "$(mi_report_duration_seconds)"
+    else
+      printf '  %s %s in %ss.\n' "$run_label" "$(mi_success_text "$status")" "$(mi_report_duration_seconds)"
+    fi
   else
-    printf '  %s %s in %ss.\n' "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}" "$(mi_alert_text "$status")" "$(mi_report_duration_seconds)"
+    if [ "$MI_DRY_RUN" = "true" ]; then
+      printf '  %s %s (%s) in %ss.\n' "$run_label" "$(mi_alert_text "$status")" "$(mi_dry_run_text "dry-run")" "$(mi_report_duration_seconds)"
+    else
+      printf '  %s %s in %ss.\n' "$run_label" "$(mi_alert_text "$status")" "$(mi_report_duration_seconds)"
+    fi
   fi
-  printf '  Dry run: %s\n' "$MI_DRY_RUN"
+  if [ "$MI_DRY_RUN" = "true" ]; then
+    printf '  %s %s\n' "$(mi_dry_run_text "Dry run:")" "$(mi_dry_run_text "$MI_DRY_RUN")"
+  else
+    printf '  Dry run: %s\n' "$MI_DRY_RUN"
+  fi
   mi_report_default_summary_artifacts
   mi_report_default_summary_events
   if [ "$MI_VERBOSE" = "true" ]; then
     printf '  Counts: %s\n' "$(mi_report_counts_line)"
   fi
-  printf '  %s %s\n' "$(mi_heading "Next step:")" "$(mi_success_text "$(mi_report_default_summary_next_step)")"
+  if [ "$MI_DRY_RUN" = "true" ]; then
+    printf '  %s %s\n' "$(mi_heading "Next step:")" "$(mi_emphasize_dry_run "$(mi_report_default_summary_next_step)")"
+  else
+    printf '  %s %s\n' "$(mi_heading "Next step:")" "$(mi_success_text "$(mi_report_default_summary_next_step)")"
+  fi
 }
 
 mi_report_render_md() {

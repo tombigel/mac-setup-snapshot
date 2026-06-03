@@ -133,7 +133,11 @@ mi_backup_welcome() {
   readme_path="$(mi_inventory_backup_readme_path 2>/dev/null || true)"
   mi_ux_line ""
   mi_ux_line "$(mi_heading "Mac Setup Snapshot $MI_VERSION")"
-  mi_ux_line "$(mi_success_text "Backup starting")"
+  if [ "$MI_DRY_RUN" = "true" ]; then
+    mi_ux_line "$(mi_dry_run_text "Dry-run") Backup starting"
+  else
+    mi_ux_line "$(mi_success_text "Backup starting")"
+  fi
   mi_ux_line "$(mi_muted "What will happen: capture $total enabled section(s), then write the setup snapshot, backup-list, and README.")"
   mi_ux_line "$(mi_muted "Target: $target")"
   mi_ux_line "$(mi_muted "Snapshot: $MI_INVENTORY")"
@@ -161,7 +165,11 @@ mi_restore_welcome() {
   fi
   mi_ux_line ""
   mi_ux_line "$(mi_heading "Mac Setup Snapshot $MI_VERSION")"
-  mi_ux_line "$(mi_success_text "Restore starting")"
+  if [ "$MI_DRY_RUN" = "true" ]; then
+    mi_ux_line "$(mi_dry_run_text "Dry-run") Restore starting"
+  else
+    mi_ux_line "$(mi_success_text "Restore starting")"
+  fi
   mi_ux_line "$(mi_muted "What will happen: restore $total enabled section(s) additively from the setup snapshot.")"
   mi_ux_line "$(mi_muted "$prepare_note")"
   mi_ux_line "$(mi_muted "Source: $source")"
@@ -272,7 +280,11 @@ mi_inventory_progress_start() {
   bar="$(mi_progress_bar "$index" "$total")"
   label="$(mi_section_display_name "$section")"
   if mi_live_enabled; then
-    mi_live_line "$(mi_heading Backup) $bar $label"
+    if [ "$MI_DRY_RUN" = "true" ]; then
+      mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Backup) $bar $label"
+    else
+      mi_live_line "$(mi_heading Backup) $bar $label"
+    fi
     return 0
   fi
   printf 'backup: %s... %s\n' "$section" "$bar" >&2
@@ -297,14 +309,22 @@ mi_inventory_progress_done() {
   count="$(mi_inventory_section_count "$section" "$section_file")"
   if [ -n "$count" ]; then
     if mi_live_enabled; then
-      mi_live_line "$(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") ($count items, ${elapsed}s)"
+      if [ "$MI_DRY_RUN" = "true" ]; then
+        mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") ($count items, ${elapsed}s)"
+      else
+        mi_live_line "$(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") ($count items, ${elapsed}s)"
+      fi
       mi_live_finish
     else
       printf 'backup: %s done (%s items, %ss) %s\n' "$section" "$count" "$elapsed" "$bar" >&2
     fi
   else
     if mi_live_enabled; then
-      mi_live_line "$(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") (${elapsed}s)"
+      if [ "$MI_DRY_RUN" = "true" ]; then
+        mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") (${elapsed}s)"
+      else
+        mi_live_line "$(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") (${elapsed}s)"
+      fi
       mi_live_finish
     else
       printf 'backup: %s done (%ss) %s\n' "$section" "$elapsed" "$bar" >&2
@@ -325,7 +345,11 @@ mi_inventory_progress_detail() {
   local message="$2"
   [ "${MI_QUIET:-false}" = "true" ] && return 0
   if mi_live_enabled; then
-    mi_live_line "$(mi_heading Backup) $(mi_muted "$(mi_section_display_name "$section") $message")"
+    if [ "$MI_DRY_RUN" = "true" ]; then
+      mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Backup) $(mi_muted "$(mi_section_display_name "$section") $message")"
+    else
+      mi_live_line "$(mi_heading Backup) $(mi_muted "$(mi_section_display_name "$section") $message")"
+    fi
     return 0
   fi
   printf 'backup: %s %s\n' "$section" "$message" >&2
@@ -712,7 +736,11 @@ mi_restore_progress_start() {
   bar="$(mi_progress_bar "$index" "$total")"
   label="$(mi_section_display_name "$section")"
   if mi_live_enabled; then
-    mi_live_line "$(mi_heading Restore) $bar $label"
+    if [ "$MI_DRY_RUN" = "true" ]; then
+      mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Restore) $bar $label"
+    else
+      mi_live_line "$(mi_heading Restore) $bar $label"
+    fi
     return 0
   fi
   printf 'restore: %s... %s\n' "$section" "$bar" >&2
@@ -738,9 +766,17 @@ mi_restore_progress_done() {
   bar="$(mi_progress_bar "$index" "$total")"
   if mi_live_enabled; then
     if [ "$rc" -eq 0 ]; then
-      mi_live_line "$(mi_heading Restore) $bar $(mi_success_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+      if [ "$MI_DRY_RUN" = "true" ]; then
+        mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Restore) $bar $(mi_success_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+      else
+        mi_live_line "$(mi_heading Restore) $bar $(mi_success_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+      fi
     else
-      mi_live_line "$(mi_heading Restore) $bar $(mi_alert_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+      if [ "$MI_DRY_RUN" = "true" ]; then
+        mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Restore) $bar $(mi_alert_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+      else
+        mi_live_line "$(mi_heading Restore) $bar $(mi_alert_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+      fi
     fi
     mi_live_finish
   else

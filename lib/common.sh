@@ -54,6 +54,20 @@ mi_alert_text() {
   mi_style "31" "$*"
 }
 
+mi_dry_run_text() {
+  mi_style "33" "$*"
+}
+
+mi_emphasize_dry_run() {
+  local text="$*"
+  if mi_color_enabled; then
+    text="${text//dry-run/$(mi_dry_run_text "dry-run")}"
+    text="${text//Dry run/$(mi_dry_run_text "Dry run")}"
+    text="${text//Dry-run/$(mi_dry_run_text "Dry-run")}"
+  fi
+  printf '%s' "$text"
+}
+
 mi_live_clear() {
   [ "${MI_LIVE_LINE_ACTIVE:-false}" = "true" ] || return 0
   printf '\r\033[2K' >&2
@@ -75,7 +89,7 @@ mi_live_finish() {
 mi_info() {
   if [ "${MI_QUIET:-false}" != "true" ]; then
     mi_live_finish
-    printf '%s\n' "$*"
+    printf '%s\n' "$(mi_emphasize_dry_run "$*")"
   fi
 }
 
@@ -177,7 +191,7 @@ mi_cleanup_inventory_temp_files() {
 mi_run() {
   mi_live_finish
   if [ "${MI_DRY_RUN:-false}" = "true" ]; then
-    printf 'dry-run:'
+    printf '%s' "$(mi_dry_run_text "dry-run:")"
     for arg in "$@"; do
       printf ' %s' "$arg"
     done

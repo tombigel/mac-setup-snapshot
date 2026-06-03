@@ -196,7 +196,7 @@ mi_wizard_read() {
   local prompt="$1"
   local answer
   mi_live_finish
-  printf '%s ' "$prompt" >&2
+  printf '%s ' "$(mi_emphasize_dry_run "$prompt")" >&2
   IFS= read -r answer
   printf '%s\n' "$answer"
 }
