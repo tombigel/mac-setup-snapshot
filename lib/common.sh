@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MI_VERSION="0.6.0"
+MI_VERSION="0.7.0"
 MI_LIVE_LINE_ACTIVE="false"
 
 mi_color_enabled() {
