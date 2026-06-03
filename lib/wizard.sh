@@ -385,6 +385,14 @@ mi_wizard_backup_config_path() {
   esac
 }
 
+mi_wizard_backup_config_new_path() {
+  local config_path="$1"
+  local dir stamp
+  dir="$(dirname -- "$config_path")"
+  stamp="$(date -u '+%Y%m%dT%H%M%SZ' 2>/dev/null || printf 'new')"
+  printf '%s/mac-setup.config.%s.yml\n' "$dir" "$stamp"
+}
+
 mi_wizard_restore_config_path() {
   case "${MI_SOURCE:-local}" in
     icloud) printf '%s/mac-setup.config.yml\n' "$(mi_endpoint_iCloud_bundle)" ;;
@@ -420,61 +428,59 @@ mi_wizard_use_config() {
   mi_config_apply
 }
 
-mi_wizard_generate_file_if_missing() {
-  local kind="$1"
-  local output="$2"
-  local saved_output rc
-  [ -f "$output" ] && { mi_info "config exists: $output"; return 0; }
+mi_wizard_generate_config_file() {
+  local output="$1"
+  local overwrite="${2:-false}"
+  local saved_output saved_yes rc
   saved_output="$MI_OUTPUT"
+  saved_yes="$MI_YES"
   MI_OUTPUT="$output"
-  case "$kind" in
-    config) mi_config_generate; rc=$? ;;
-    wizard) mi_wizard_config_generate; rc=$? ;;
-    *) rc=2 ;;
-  esac
+  [ "$overwrite" = "true" ] && MI_YES="true"
+  mi_config_generate
+  rc=$?
   MI_OUTPUT="$saved_output"
+  MI_YES="$saved_yes"
   return "$rc"
 }
 
 mi_wizard_generate_configs() {
-  local config_path choice options default_index
+  local config_path new_config_path choice options
   mi_wizard_prompt_enabled backup config || return 0
   config_path="$(mi_wizard_backup_config_path)"
 
-  options="generate|Yes, generate missing config files
-skip|No, do not use or generate config
-existing|Use existing config from the backup directory"
-  if [ -f "$config_path" ]; then
-    default_index=3
-  else
-    default_index=1
+  if [ ! -f "$config_path" ]; then
+    mi_ux_line ""
+    mi_ux_line "$(mi_heading "Config")"
+    mi_ux_line "$(mi_muted "No config found at $config_path; generating one.")"
+    mi_wizard_generate_config_file "$config_path" "false" || return $?
+    MI_CONFIG="$config_path"
+    MI_CONFIG_EXPLICIT="true"
+    mi_has yq && mi_config_apply
+    return 0
   fi
 
-  choice="$(mi_wizard_choice "Config Files" "$options" "$default_index")"
+  new_config_path="$(mi_wizard_backup_config_new_path "$config_path")"
+  options="new|Create new config file
+overwrite|Overwrite existing config
+existing|Use existing config"
+  choice="$(mi_wizard_choice "Config" "$options" 1)"
   case "$choice" in
-    generate)
-      mi_wizard_generate_file_if_missing config "$config_path" || return $?
+    new)
+      mi_wizard_generate_config_file "$new_config_path" "false" || return $?
+      MI_CONFIG="$new_config_path"
+      MI_CONFIG_EXPLICIT="true"
+      ;;
+    overwrite)
+      mi_wizard_generate_config_file "$config_path" "true" || return $?
       MI_CONFIG="$config_path"
       MI_CONFIG_EXPLICIT="true"
-      mi_has yq && mi_config_apply
-      mi_wizard_generate_file_if_missing wizard "$MI_WIZARD_CONFIG" || return $?
       ;;
     existing)
-      if [ ! -f "$config_path" ]; then
-        mi_warn "no config found at $config_path"
-        MI_CONFIG=""
-        MI_CONFIG_EXPLICIT="true"
-        return 0
-      fi
       MI_CONFIG="$config_path"
-      MI_CONFIG_EXPLICIT="true"
-      mi_config_apply
-      ;;
-    skip)
-      MI_CONFIG=""
       MI_CONFIG_EXPLICIT="true"
       ;;
   esac
+  mi_has yq && mi_config_apply
 }
 
 mi_wizard_args_for_sources() {
@@ -561,109 +567,4 @@ mi_wizard_run() {
     restore) mi_wizard_restore_options ;;
   esac
   mi_wizard_dispatch "$flow"
-}
-
-mi_wizard_config_generate() {
-  local output
-  output="${MI_OUTPUT:-$MI_WIZARD_CONFIG}"
-  [ -n "$output" ] || output="mac-setup.wizard.yml"
-
-  if [ "$MI_DRY_RUN" = "true" ]; then
-    mi_info "dry-run: would write wizard config to $output"
-    return 0
-  fi
-
-  if [ -e "$output" ] && ! mi_prompt_yes_no "Overwrite existing wizard config $output?" "no"; then
-    mi_error "wizard config not written"
-    return 1
-  fi
-
-  mi_mkdir_parent "$output"
-  mi_wizard_default_config_content >"$output"
-  mi_info "wrote $output"
-}
-
-mi_wizard_default_config_content() {
-  cat <<'EOF'
-version: 1
-wizard:
-  flows:
-    backup:
-      enabled: true
-      label: "Create or update a setup snapshot"
-      default_target: icloud
-      prompts:
-        dry_run: true
-        storage: true
-        config: true
-        sources: true
-        manual_brew_match: true
-      sources:
-        - id: apps
-          label: "App Store apps"
-          default: true
-        - id: brew
-          label: "Homebrew"
-          default: true
-        - id: npm
-          label: "npm globals"
-          default: true
-        - id: pip
-          label: "pip packages"
-          default: true
-        - id: pipx
-          label: "pipx packages"
-          default: true
-        - id: oh_my_zsh
-          label: "Oh My Zsh"
-          default: true
-        - id: xcode
-          label: "Xcode"
-          default: true
-        - id: dotfiles
-          label: "dotfiles"
-          default: true
-        - id: manual_apps
-          label: "manual apps"
-          default: true
-
-    restore:
-      enabled: true
-      label: "Restore from a setup snapshot"
-      default_source: icloud
-      prompts:
-        dry_run: true
-        storage: true
-        use_config: true
-        sources: true
-        appstore_login: true
-      sources:
-        - id: apps
-          label: "App Store apps"
-          default: true
-        - id: brew
-          label: "Homebrew"
-          default: true
-        - id: npm
-          label: "npm globals"
-          default: true
-        - id: pip
-          label: "pip packages"
-          default: true
-        - id: pipx
-          label: "pipx packages"
-          default: true
-        - id: oh_my_zsh
-          label: "Oh My Zsh"
-          default: true
-        - id: xcode
-          label: "Xcode"
-          default: true
-        - id: dotfiles
-          label: "dotfiles"
-          default: true
-        - id: manual_apps
-          label: "manual apps"
-          default: true
-EOF
 }

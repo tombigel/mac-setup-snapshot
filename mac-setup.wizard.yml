@@ -1,0 +1,80 @@
+version: 1
+wizard:
+  flows:
+    backup:
+      enabled: true
+      label: "Create or update a setup snapshot"
+      default_target: icloud
+      prompts:
+        dry_run: true
+        storage: true
+        config: true
+        sources: true
+        manual_brew_match: true
+      sources:
+        - id: apps
+          label: "App Store apps"
+          default: true
+        - id: brew
+          label: "Homebrew"
+          default: true
+        - id: npm
+          label: "npm globals"
+          default: true
+        - id: pip
+          label: "pip packages"
+          default: true
+        - id: pipx
+          label: "pipx packages"
+          default: true
+        - id: oh_my_zsh
+          label: "Oh My Zsh"
+          default: true
+        - id: xcode
+          label: "Xcode"
+          default: true
+        - id: dotfiles
+          label: "dotfiles"
+          default: true
+        - id: manual_apps
+          label: "manual apps"
+          default: true
+
+    restore:
+      enabled: true
+      label: "Restore from a setup snapshot"
+      default_source: icloud
+      prompts:
+        dry_run: true
+        storage: true
+        use_config: true
+        sources: true
+        appstore_login: true
+      sources:
+        - id: apps
+          label: "App Store apps"
+          default: true
+        - id: brew
+          label: "Homebrew"
+          default: true
+        - id: npm
+          label: "npm globals"
+          default: true
+        - id: pip
+          label: "pip packages"
+          default: true
+        - id: pipx
+          label: "pipx packages"
+          default: true
+        - id: oh_my_zsh
+          label: "Oh My Zsh"
+          default: true
+        - id: xcode
+          label: "Xcode"
+          default: true
+        - id: dotfiles
+          label: "dotfiles"
+          default: true
+        - id: manual_apps
+          label: "manual apps"
+          default: true

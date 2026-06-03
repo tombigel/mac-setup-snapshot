@@ -234,6 +234,9 @@ mi_endpoint_prepare_backup() {
   history_dir="$MI_ENDPOINT_BUNDLE/history/$stamp"
   for item in "$MI_ENDPOINT_BUNDLE/mac-setup.backup.yml" "$MI_ENDPOINT_BUNDLE/mac-setup.config.yml" "$MI_ENDPOINT_BUNDLE/files" "$MI_ENDPOINT_BUNDLE/metadata.yml" "$MI_ENDPOINT_BUNDLE/backup-list.md" "$MI_ENDPOINT_BUNDLE/README.md"; do
     [ -e "$item" ] || continue
+    if [ "$MI_CONFIG_EXPLICIT" = "true" ] && [ "$item" = "$MI_CONFIG" ]; then
+      continue
+    fi
     [ "$moved" = "true" ] || { mkdir -p "$history_dir" || return 1; moved="true"; }
     base="$(basename "$item")"
     mv "$item" "$history_dir/$base" || return 1

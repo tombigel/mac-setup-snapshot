@@ -112,7 +112,6 @@ mac-setup continue
 - `list`: inspect saved setup sections.
 - `doctor`: check tools, login state, Xcode state, GitHub auth, and readiness.
 - `wizard`: guided backup/restore setup.
-- `wizard config generate`: generate editable wizard config.
 - `config generate`: generate starter config.
 - `gist pull`: download setup state/config from a GitHub Gist.
 - `gist push`: upload setup state/config to a GitHub Gist.
@@ -132,19 +131,14 @@ mac-setup restore --dry-run --report reports/restore.md --report-format md
 mac-setup backup --report reports/backup.yml --report-format yaml
 ```
 
-Wizard menus are controlled by built-in defaults or an editable `mac-setup.wizard.yml` file. Generate one with:
+Wizard menus are controlled by the tracked repo file `mac-setup.wizard.yml`. Edit that file to reorder, hide, relabel, and set defaults for known backup/restore sources and prompts, including backup config handling and restore config use. It cannot define shell commands, hooks, arbitrary steps, or executable restore behavior.
 
-```bash
-mac-setup wizard config generate -o mac-setup.wizard.yml
-```
-
-The wizard config can reorder, hide, relabel, and set defaults for known backup/restore sources and prompts, including backup config handling and restore config use. It cannot define shell commands, hooks, arbitrary steps, or executable restore behavior.
+The user config is separate: backup wizard mode keeps `mac-setup.config.yml` in the selected backup folder. If it is missing, the wizard generates it by default. If it already exists, the wizard asks whether to create a new timestamped config, overwrite the existing one, or use the existing one.
 
 Useful wizard commands:
 
 ```bash
 mac-setup wizard
-mac-setup wizard config generate -o mac-setup.wizard.yml
 mac-setup --wizard-config ./mac-setup.wizard.yml wizard
 ```
 
@@ -219,7 +213,7 @@ mac-setup backup -B=false
 ## Safety
 
 - `--dry-run` prevents operational writes, uploads, downloads, installs, upgrades, overwrites, license acceptance, generated backup-list/README writes, and shell changes. If `--report <path>` is explicitly passed, only that report artifact is written.
-- `wizard config generate --dry-run` reports the wizard config path without writing it.
+- `config generate --dry-run` reports the user config path without writing it.
 - Dotfile restore defaults to skip existing files.
 - Explicit dotfile overwrite first backs up the existing file to `~/.mac-setup/restore-backups/<timestamp>/`.
 - Remote installers are downloaded to temp files and executed only after policy allows it; the implementation does not use direct `curl | sh`.

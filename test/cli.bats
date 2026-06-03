@@ -61,32 +61,16 @@ setup() {
   [[ "$output" == *"wizard requires an interactive terminal"* ]]
 }
 
-@test "generates wizard config file" {
+@test "wizard config is committed instead of generated" {
   run "$BIN" wizard config generate -o generated-wizard.yml
-  [ "$status" -eq 0 ]
-  [ -f generated-wizard.yml ]
-  grep -q "wizard:" generated-wizard.yml
-  grep -q "default_target: icloud" generated-wizard.yml
-  grep -q "default_source: icloud" generated-wizard.yml
-  grep -q "config: true" generated-wizard.yml
-  grep -q "use_config: true" generated-wizard.yml
-  grep -q "manual_brew_match: true" generated-wizard.yml
-  grep -q "appstore_login: true" generated-wizard.yml
-}
-
-@test "wizard config dry-run does not write" {
-  run "$BIN" wizard config generate --dry-run -o generated-wizard.yml
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"dry-run: would write wizard config to generated-wizard.yml"* ]]
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"wizard config is committed in the repo"* ]]
   [ ! -f generated-wizard.yml ]
-}
-
-@test "wizard config generator refuses existing file without yes" {
-  printf 'existing\n' >existing-wizard.yml
-  run "$BIN" wizard config generate -o existing-wizard.yml --interactive=false
-  [ "$status" -eq 1 ]
-  [[ "$output" == *"wizard config not written"* ]]
-  [ "$(cat existing-wizard.yml)" = "existing" ]
+  grep -q "wizard:" "$PROJECT_ROOT/mac-setup.wizard.yml"
+  grep -q "default_target: icloud" "$PROJECT_ROOT/mac-setup.wizard.yml"
+  grep -q "default_source: icloud" "$PROJECT_ROOT/mac-setup.wizard.yml"
+  grep -q "config: true" "$PROJECT_ROOT/mac-setup.wizard.yml"
+  grep -q "use_config: true" "$PROJECT_ROOT/mac-setup.wizard.yml"
 }
 
 @test "non-tty output does not include ansi styling" {

@@ -26,7 +26,6 @@ Commands:
 - `list`: list snapshot sections or installed/missing items.
 - `doctor`: check tools, login/auth state, Xcode state, GitHub auth state, and readiness.
 - `wizard`: guided backup/restore setup.
-- `wizard config generate`: generate starter wizard config.
 - `config generate`: generate starter config.
 - `gist pull`: download snapshot/config from a Gist.
 - `gist push`: upload snapshot/config to a Gist.
@@ -120,7 +119,7 @@ Inventory includes host metadata, normalized currently installed App Store apps 
 
 Local and iCloud backups also generate `backup-list.md` and `README.md` next to `mac-setup.backup.yml`. The list is derived from the YAML snapshot and must not include copied dotfile contents, secrets, or raw command output. The README contains restore instructions and a backup folder file map.
 
-Wizard config defaults to `mac-setup.wizard.yml`. It can enable/disable the built-in backup and restore flows, relabel/reorder known sources, choose defaults, and hide known prompts. It must not define arbitrary commands, hooks, executable steps, or user-defined restore behavior.
+Wizard config is committed as `mac-setup.wizard.yml`. It can enable/disable the built-in backup and restore flows, relabel/reorder known sources, choose defaults, and hide known prompts. It must not define arbitrary commands, hooks, executable steps, or user-defined restore behavior.
 
 Manual app matching:
 
@@ -139,7 +138,7 @@ Safety rules:
 - Restore runs prepare preflight by default unless `--skip-prepare=true`.
 - Prepare/restore create durable resume state under `~/.mac-setup/resume.yml`.
 - `--dry-run` prevents snapshot writes, backup-list/README writes, iCloud history moves, Gist writes, dotfile copies, downloads, installs, upgrades, license acceptance, overwrites, and shell changes.
-- `wizard config generate --dry-run` reports the target path without writing the wizard config.
+- `config generate --dry-run` reports the target path without writing the user config.
 - Never execute YAML/config/inventory content with `eval` or command substitution.
 - Do not implement arbitrary user-defined restore hooks in v1.
 - Do not use direct `curl | sh`.
@@ -177,8 +176,7 @@ Behavior:
 
 - Parse CLI flags first, merge config defaults second, then command defaults.
 - `config generate -o <path>` writes starter YAML config.
-- `wizard config generate -o <path>` writes starter YAML wizard config.
-- `wizard` uses numbered menus and allowlisted YAML customization, offers backup config generate/skip/use-existing choices and restore config use when available, then dispatches to existing backup/restore flags.
+- `wizard` uses numbered menus and allowlisted YAML customization from the committed `mac-setup.wizard.yml`, generates missing backup-folder user config by default, asks whether to create new/overwrite/use existing config when one exists, offers restore config use when available, then dispatches to existing backup/restore flags.
 - `doctor` checks local package managers, Gist auth, App Store login, Oh My Zsh, and Xcode state.
 - Default backup/restore uses the iCloud Drive `Mac Setup Snapshot` bundle when available.
 - `prepare` checks Xcode CLT, Homebrew, yq, mas, pipx, GitHub auth, and App Store login in order.

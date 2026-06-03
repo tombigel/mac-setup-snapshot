@@ -95,6 +95,49 @@ github|GitHub Gist" 2
   [[ "$output" == *"local"* ]]
 }
 
+@test "wizard backup config step generates missing user config in backup folder" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" bash -c '
+    . "$PROJECT_ROOT/lib/common.sh"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/endpoint.sh"
+    . "$PROJECT_ROOT/lib/config.sh"
+    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/wizard.sh"
+    mi_args_init
+    MI_TARGET=local
+    MI_INVENTORY="$BACKUP_DIR/mac-setup.backup.yml"
+    MI_WIZARD_CONFIG="$BACKUP_DIR/mac-setup.wizard.yml"
+    mi_wizard_generate_configs
+    test -f "$BACKUP_DIR/mac-setup.config.yml"
+    test ! -f "$BACKUP_DIR/mac-setup.wizard.yml"
+    printf "%s|%s\n" "$MI_CONFIG" "$MI_CONFIG_EXPLICIT"
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"$BATS_TEST_TMPDIR/backup/mac-setup.config.yml|true"* ]]
+}
+
+@test "wizard backup config step can create new config beside existing one" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" bash -c '
+    . "$PROJECT_ROOT/lib/common.sh"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/endpoint.sh"
+    . "$PROJECT_ROOT/lib/config.sh"
+    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/wizard.sh"
+    mkdir -p "$BACKUP_DIR"
+    printf "existing\n" >"$BACKUP_DIR/mac-setup.config.yml"
+    mi_wizard_choice() { printf "%s\n" new; }
+    mi_args_init
+    MI_TARGET=local
+    MI_INVENTORY="$BACKUP_DIR/mac-setup.backup.yml"
+    mi_wizard_generate_configs
+    test "$(cat "$BACKUP_DIR/mac-setup.config.yml")" = "existing"
+    test -f "$MI_CONFIG"
+    case "$MI_CONFIG" in "$BACKUP_DIR"/mac-setup.config.*.yml) exit 0 ;; *) exit 1 ;; esac
+  '
+  [ "$status" -eq 0 ]
+}
+
 @test "wizard source args reflect current source booleans" {
   run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
     . "$PROJECT_ROOT/lib/common.sh"

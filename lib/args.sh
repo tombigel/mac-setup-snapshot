@@ -8,7 +8,11 @@ mi_args_init() {
   MI_WIZARD_SUBCOMMAND=""
   MI_HELP="false"
   MI_CONFIG="mac-setup.config.yml"
-  MI_WIZARD_CONFIG="mac-setup.wizard.yml"
+  if [ -n "${PROJECT_DIR:-}" ]; then
+    MI_WIZARD_CONFIG="$PROJECT_DIR/mac-setup.wizard.yml"
+  else
+    MI_WIZARD_CONFIG="mac-setup.wizard.yml"
+  fi
   MI_INVENTORY="mac-setup.backup.yml"
   MI_CONFIG_EXPLICIT="false"
   MI_INVENTORY_EXPLICIT="false"

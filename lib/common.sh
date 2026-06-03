@@ -386,8 +386,6 @@ Commands:
   prepare            Install/check prerequisites before restore
   continue           Resume an interrupted workflow
   status             Show current resume checklist
-  wizard config generate
-                     Generate starter wizard config
   config generate    Generate starter config
   gist pull          Pull snapshot/config from GitHub Gist
   gist push          Push snapshot/config to GitHub Gist
