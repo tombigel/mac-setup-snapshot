@@ -16,7 +16,7 @@ Mac Setup Snapshot helps rebuild a Mac by creating a YAML setup snapshot and per
 
 Use `--appstore-login=skip|prompt|pause|require` when testing App Store flows. Never ask for or store Apple ID credentials.
 
-Backup writes `mac-setup.yml`, `backup-list.md`, and `README.md` for local and iCloud targets. The Markdown list and README must stay free of copied dotfile contents, secrets, tokens, and raw command output.
+Backup writes `mac-setup.backup.yml`, `backup-list.md`, and `README.md` for local and iCloud targets. The Markdown list and README must stay free of copied dotfile contents, secrets, tokens, and raw command output.
 
 Use `--report`, `--report-format`, and `--skip-report` when validating process-report behavior. Reports must summarize outcomes without storing secrets, copied dotfile contents, tokens, or raw command output.
 

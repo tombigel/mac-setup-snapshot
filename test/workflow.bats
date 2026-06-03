@@ -130,7 +130,7 @@ version: 1
 workflow: "prepare"
 created_at: "2026-06-01T00:00:00Z"
 updated_at: "2026-06-01T00:00:00Z"
-inventory: "mac-setup.yml"
+inventory: "mac-setup.backup.yml"
 current_step: "install_yq"
 steps:
   - id: "check_xcode_cli"
@@ -150,7 +150,7 @@ version: 1
 workflow: "prepare"
 created_at: "2026-06-01T00:00:00Z"
 updated_at: "2026-06-01T00:00:00Z"
-inventory: "mac-setup.yml"
+inventory: "mac-setup.backup.yml"
 current_step: "install_yq"
 steps:
   - id: "check_xcode_cli"

@@ -40,8 +40,8 @@ mi_wizard_valid_prompt() {
   local flow="$1"
   local prompt="$2"
   case "$flow:$prompt" in
-    backup:dry_run|backup:storage|backup:sources|backup:manual_brew_match) return 0 ;;
-    restore:dry_run|restore:storage|restore:sources|restore:appstore_login) return 0 ;;
+    backup:dry_run|backup:storage|backup:config|backup:sources|backup:manual_brew_match) return 0 ;;
+    restore:dry_run|restore:storage|restore:use_config|restore:sources|restore:appstore_login) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -373,6 +373,105 @@ require|Fail unless App Store access is ready"
   MI_APPSTORE_LOGIN="$choice"
 }
 
+mi_wizard_backup_config_path() {
+  case "${MI_TARGET:-local}" in
+    icloud) printf '%s/mac-setup.config.yml\n' "$(mi_endpoint_iCloud_bundle)" ;;
+    *) printf '%s/mac-setup.config.yml\n' "$(dirname -- "$MI_INVENTORY")" ;;
+  esac
+}
+
+mi_wizard_restore_config_path() {
+  case "${MI_SOURCE:-local}" in
+    icloud) printf '%s/mac-setup.config.yml\n' "$(mi_endpoint_iCloud_bundle)" ;;
+    *) printf '%s\n' "$MI_CONFIG" ;;
+  esac
+}
+
+mi_wizard_use_config() {
+  local flow="$1"
+  local config_path answer
+  mi_wizard_prompt_enabled "$flow" use_config || return 0
+  case "$flow" in
+    backup) config_path="$(mi_wizard_backup_config_path)" ;;
+    restore) config_path="$(mi_wizard_restore_config_path)" ;;
+    *) return 0 ;;
+  esac
+
+  mi_ux_line ""
+  mi_ux_line "$(mi_heading "Config")"
+  if [ ! -f "$config_path" ]; then
+    mi_ux_line "$(mi_muted "No config found at $config_path")"
+    return 0
+  fi
+
+  answer="$(mi_wizard_yes_no_value "Use config $config_path?" "yes")"
+  if [ "$answer" != "true" ]; then
+    MI_CONFIG=""
+    MI_CONFIG_EXPLICIT="true"
+    return 0
+  fi
+  MI_CONFIG="$config_path"
+  MI_CONFIG_EXPLICIT="true"
+  mi_config_apply
+}
+
+mi_wizard_generate_file_if_missing() {
+  local kind="$1"
+  local output="$2"
+  local saved_output rc
+  [ -f "$output" ] && { mi_info "config exists: $output"; return 0; }
+  saved_output="$MI_OUTPUT"
+  MI_OUTPUT="$output"
+  case "$kind" in
+    config) mi_config_generate; rc=$? ;;
+    wizard) mi_wizard_config_generate; rc=$? ;;
+    *) rc=2 ;;
+  esac
+  MI_OUTPUT="$saved_output"
+  return "$rc"
+}
+
+mi_wizard_generate_configs() {
+  local config_path choice options default_index
+  mi_wizard_prompt_enabled backup config || return 0
+  config_path="$(mi_wizard_backup_config_path)"
+
+  options="generate|Yes, generate missing config files
+skip|No, do not use or generate config
+existing|Use existing config from the backup directory"
+  if [ -f "$config_path" ]; then
+    default_index=3
+  else
+    default_index=1
+  fi
+
+  choice="$(mi_wizard_choice "Config Files" "$options" "$default_index")"
+  case "$choice" in
+    generate)
+      mi_wizard_generate_file_if_missing config "$config_path" || return $?
+      MI_CONFIG="$config_path"
+      MI_CONFIG_EXPLICIT="true"
+      mi_has yq && mi_config_apply
+      mi_wizard_generate_file_if_missing wizard "$MI_WIZARD_CONFIG" || return $?
+      ;;
+    existing)
+      if [ ! -f "$config_path" ]; then
+        mi_warn "no config found at $config_path"
+        MI_CONFIG=""
+        MI_CONFIG_EXPLICIT="true"
+        return 0
+      fi
+      MI_CONFIG="$config_path"
+      MI_CONFIG_EXPLICIT="true"
+      mi_config_apply
+      ;;
+    skip)
+      MI_CONFIG=""
+      MI_CONFIG_EXPLICIT="true"
+      ;;
+  esac
+}
+
 mi_wizard_args_for_sources() {
   printf '%s\n' "--apps=$MI_APPS"
   printf '%s\n' "--brew=$MI_BREW"
@@ -400,6 +499,7 @@ mi_wizard_dispatch() {
       args+=("--appstore-login" "$MI_APPSTORE_LOGIN")
       ;;
   esac
+  [ "$MI_CONFIG_EXPLICIT" = "true" ] && args+=("--config" "$MI_CONFIG")
   while IFS= read -r arg; do
     [ -n "$arg" ] && args+=("$arg")
   done <<EOF
@@ -442,6 +542,14 @@ mi_wizard_run() {
     restore) MI_SOURCE="$(mi_wizard_default_endpoint restore)"; MI_SOURCE_EXPLICIT="true" ;;
   esac
   mi_wizard_prompt_enabled "$flow" storage && mi_wizard_endpoint_prompt "$flow"
+  case "$flow" in
+    backup)
+      mi_wizard_generate_configs || return $?
+      ;;
+    restore)
+      mi_wizard_use_config restore || return $?
+      ;;
+  esac
   mi_wizard_prompt_enabled "$flow" sources && mi_wizard_sources_prompt "$flow"
   case "$flow" in
     backup) mi_wizard_backup_options ;;
@@ -482,6 +590,7 @@ wizard:
       prompts:
         dry_run: true
         storage: true
+        config: true
         sources: true
         manual_brew_match: true
       sources:
@@ -520,6 +629,7 @@ wizard:
       prompts:
         dry_run: true
         storage: true
+        use_config: true
         sources: true
         appstore_login: true
       sources:

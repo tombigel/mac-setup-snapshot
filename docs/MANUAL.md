@@ -100,7 +100,7 @@ Create a setup snapshot file from the current Mac.
 
 ```bash
 mac-setup backup
-mac-setup backup -i mac-setup.yml
+mac-setup backup -i mac-setup.backup.yml
 mac-setup backup --target local
 mac-setup backup --target github --gist-create=true --github-login=interactive
 mac-setup backup --update
@@ -113,7 +113,7 @@ By default, backup includes App Store apps, Homebrew, npm globals, pip, pipx, Oh
 
 Backup and restore print a welcome message, the next step, progress for enabled sections, and a friendly terminal summary by default. In an interactive terminal, progress updates in place and uses terminal-palette ANSI styling: bold headings, dim secondary text, green success, red alerts, and yellow dry-run markers. Manual app scanning also updates the current app being checked when Homebrew cask matching is enabled. Non-TTY output, CI, `TERM=dumb`, `NO_COLOR`, `--quiet`, and `--verbose` use plain stable output. Use `--quiet` to suppress the welcome, progress, and default summary. Use `--verbose` for command start/status lines, captured output counts, app indexing details, App Store parsing decisions, manual app matching decisions, and raw summary counts.
 
-For local and iCloud backups, backup also writes `backup-list.md` and `README.md` next to `mac-setup.yml`. The list is generated from the completed snapshot using the same renderer as `mac-setup list --format md`; it does not include copied dotfile contents or raw command output. The README contains restore instructions and a file map for the backup folder.
+For local and iCloud backups, backup also writes `backup-list.md` and `README.md` next to `mac-setup.backup.yml`. The list is generated from the completed snapshot using the same renderer as `mac-setup list --format md`; it does not include copied dotfile contents or raw command output. The README contains restore instructions and a file map for the backup folder.
 
 Use `--dry-run` to print the snapshot that would be generated without writing it. In dry-run mode, the command reports where `backup-list.md` and `README.md` would be written but does not create them.
 
@@ -123,8 +123,8 @@ Restore from an existing setup snapshot file.
 
 ```bash
 mac-setup restore
-mac-setup restore -i mac-setup.yml --dry-run
-mac-setup restore --source local -i mac-setup.yml --dry-run
+mac-setup restore -i mac-setup.backup.yml --dry-run
+mac-setup restore --source local -i mac-setup.backup.yml --dry-run
 mac-setup restore --source github -g abc123 --dry-run
 mac-setup restore -S brew
 mac-setup restore --skip-existing=true
@@ -149,11 +149,11 @@ Mark one restore-relevant snapshot entry as ignored while keeping it recorded.
 ```bash
 mac-setup ignore brew_cask:visual-studio-code
 mac-setup ignore appstore:123456789
-mac-setup ignore "Visual Studio Code" --source local -i mac-setup.yml
+mac-setup ignore "Visual Studio Code" --source local -i mac-setup.backup.yml
 mac-setup ignore brew_cask:visual-studio-code --dry-run
 ```
 
-Ignored entries remain visible in `mac-setup.yml`, `backup-list.md`, and `list --format md`, but restore skips them. The command edits the selected source snapshot: iCloud by default, local when `--source local` or `--inventory` is passed, and GitHub Gist when `--source github -g <id>` is passed. GitHub source edits pull before changing the local snapshot and push after a successful non-dry-run edit.
+Ignored entries remain visible in `mac-setup.backup.yml`, `backup-list.md`, and `list --format md`, but restore skips them. The command edits the selected source snapshot: iCloud by default, local when `--source local` or `--inventory` is passed, and GitHub Gist when `--source github -g <id>` is passed. GitHub source edits pull before changing the local snapshot and push after a successful non-dry-run edit.
 
 The command first matches exact `ref` values, then exact or normalized app names, IDs, bundle IDs, cask names, and app path basenames. If no entry matches, it exits `1`. If multiple entries match, it exits `2`, prints the candidate refs, and changes nothing.
 
@@ -165,7 +165,7 @@ Clear an ignored snapshot-entry rule.
 
 ```bash
 mac-setup unignore brew_cask:visual-studio-code
-mac-setup unignore appstore:123456789 --source local -i mac-setup.yml
+mac-setup unignore appstore:123456789 --source local -i mac-setup.backup.yml
 ```
 
 `unignore` clears the snapshot `ignored` marker and removes the persisted config rule for the matched ref.
@@ -216,7 +216,7 @@ List setup snapshot sections.
 
 ```bash
 mac-setup list
-mac-setup list -i mac-setup.yml
+mac-setup list -i mac-setup.backup.yml
 mac-setup list -S brew
 mac-setup list -S manual_apps
 mac-setup list --format md
@@ -281,7 +281,7 @@ mac-setup wizard
 mac-setup --wizard-config ./mac-setup.wizard.yml wizard
 ```
 
-The wizard uses numbered menus and comma/range source selection such as `1,3-5`, `all`, or `none`. It compiles choices into the existing `backup` or `restore` flags and then runs that command, preserving additive restore, dry-run, endpoint, skip-existing, and prompt safety behavior.
+The wizard uses numbered menus and comma/range source selection such as `1,3-5`, `all`, or `none`. Backup includes a three-choice config step: generate missing config files, run without config, or use an existing config from the backup directory. Restore offers to use an existing config when one is found, and choosing no runs that restore without config. It compiles choices into the existing `backup` or `restore` flags and then runs that command, preserving additive restore, dry-run, endpoint, skip-existing, and prompt safety behavior.
 
 The wizard requires an interactive terminal. Use normal `backup` or `restore` commands for scripts and automation. Running `mac-setup` with no arguments opens the wizard only when stdin is a TTY; non-interactive no-args still prints help.
 
@@ -305,7 +305,7 @@ If no output path is provided, the default is `mac-setup.wizard.yml`. If the tar
 Backup endpoint. Default: `icloud`.
 
 - `icloud`: write the setup snapshot bundle to iCloud Drive.
-- `local`: write `mac-setup.yml`, `backup-list.md`, `README.md`, optional config, and copied `files/` in the current directory or explicit paths.
+- `local`: write `mac-setup.backup.yml`, `backup-list.md`, `README.md`, optional config, and copied `files/` in the current directory or explicit paths.
 - `github`: write locally and push snapshot/config to GitHub Gist.
 
 `--source icloud|local|github`
@@ -324,7 +324,7 @@ iCloud Drive folder name. Default: `Mac Setup Snapshot`.
 
 iCloud Drive root path. Default: `~/Library/Mobile Documents/com~apple~CloudDocs`.
 
-The iCloud endpoint stores `mac-setup.yml`, `backup-list.md`, `README.md`, optional `mac-setup.config.yml`, copied `files/`, and `metadata.yml` in one bundle folder. Before overwriting an existing bundle, backup moves current bundle files into `history/YYYYMMDDTHHMMSSZ/`. `ignore` and `unignore` update the selected source in place and regenerate the readable files for local and iCloud snapshots.
+The iCloud endpoint stores `mac-setup.backup.yml`, `backup-list.md`, `README.md`, optional `mac-setup.config.yml`, copied `files/`, and `metadata.yml` in one bundle folder. Before overwriting an existing bundle, backup moves current bundle files into `history/YYYYMMDDTHHMMSSZ/`. `ignore` and `unignore` update the selected source in place and regenerate the readable files for local and iCloud snapshots.
 
 If iCloud Drive is missing or inaccessible, interactive commands offer local/GitHub fallback where possible. Non-interactive commands fail clearly unless a non-iCloud endpoint is explicit.
 
@@ -334,7 +334,7 @@ Download setup snapshot and config files from a GitHub Gist.
 
 ```bash
 mac-setup gist pull -g abc123
-mac-setup gist pull --gist-id abc123 --inventory mac-setup.yml --config mac-setup.config.yml
+mac-setup gist pull --gist-id abc123 --inventory mac-setup.backup.yml --config mac-setup.config.yml
 mac-setup gist pull -g abc123 --github-login=interactive
 ```
 
@@ -369,7 +369,7 @@ Wizard config file path. Default: `mac-setup.wizard.yml`.
 
 `--inventory <path>`, `-i <path>`
 
-Setup snapshot file path. Default: `mac-setup.yml`.
+Setup snapshot file path. Default: `mac-setup.backup.yml`.
 
 `--output <path>`, `-o <path>`
 
@@ -669,7 +669,7 @@ Gist visibility. Default: `secret`.
 
 `--gist-file <name>`
 
-Setup snapshot filename inside the Gist. Default: `mac-setup.yml`.
+Setup snapshot filename inside the Gist. Default: `mac-setup.backup.yml`.
 
 `--gist-config-file <name>`
 
@@ -723,7 +723,7 @@ Value-taking short options must be standalone or last in a chain.
 Valid:
 
 ```bash
-mac-setup backup -i mac-setup.yml
+mac-setup backup -i mac-setup.backup.yml
 mac-setup backup -dqS brew
 mac-setup restore -t 10
 ```
@@ -865,6 +865,7 @@ wizard:
       prompts:
         dry_run: true
         storage: true
+        config: true
         sources: true
         manual_brew_match: true
       sources:
@@ -903,6 +904,7 @@ wizard:
       prompts:
         dry_run: true
         storage: true
+        use_config: true
         sources: true
         appstore_login: true
       sources:
@@ -914,17 +916,17 @@ wizard:
           default: true
 ```
 
-The wizard config is declarative and allowlisted. It can enable or disable the built-in backup/restore flows, relabel them, choose default local/iCloud/GitHub storage, show or hide known prompts, and reorder/relabel/default known sources. Unsupported flow IDs, source IDs, prompt IDs, and enum values are ignored with warnings. It cannot define arbitrary shell commands, hooks, custom restore steps, or executable behavior.
+The wizard config is declarative and allowlisted. It can enable or disable the built-in backup/restore flows, relabel them, choose default local/iCloud/GitHub storage, show or hide known prompts, including backup config handling and restore config use, and reorder/relabel/default known sources. Unsupported flow IDs, source IDs, prompt IDs, and enum values are ignored with warnings. It cannot define arbitrary shell commands, hooks, custom restore steps, or executable behavior.
 
 ## Setup Snapshot File
 
 Default path:
 
 ```text
-mac-setup.yml
+mac-setup.backup.yml
 ```
 
-For local and iCloud backups, `backup-list.md` is generated next to `mac-setup.yml` as a readable Markdown summary of the snapshot, and `README.md` is generated with restore instructions.
+For local and iCloud backups, `backup-list.md` is generated next to `mac-setup.backup.yml` as a readable Markdown summary of the snapshot, and `README.md` is generated with restore instructions.
 
 High-level sections:
 
@@ -1027,7 +1029,7 @@ By default, workflow commands print a friendly terminal summary:
 Mac Setup Snapshot summary
   restore completed in 12s.
   Mode: dry-run
-  Snapshot: mac-setup.yml
+  Snapshot: mac-setup.backup.yml
   Next step: Review the dry-run output. Run without --dry-run when you are ready to restore.
 ```
 
@@ -1044,7 +1046,7 @@ Backup summaries include an `Open folder` `file://` link for the folder that con
 
 ## Files
 
-- `mac-setup.yml`: default setup snapshot.
+- `mac-setup.backup.yml`: default setup snapshot.
 - `backup-list.md`: default human-readable Markdown summary generated from local and iCloud backups.
 - `README.md`: restore instructions generated into local and iCloud backup folders.
 - `mac-setup.config.yml`: default config.

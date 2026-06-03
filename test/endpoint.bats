@@ -16,7 +16,7 @@ make_icloud() {
   make_icloud
   run "$BIN" backup --dry-run --skip-report --interactive=false --icloud-root "$ICLOUD_ROOT" --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
-  [[ "$output" == *"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml"* ]]
+  [[ "$output" == *"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.backup.yml"* ]]
   [[ "$output" == *"dry-run: would use iCloud endpoint"* ]]
   [ ! -e "$ICLOUD_ROOT/Mac Setup Snapshot" ]
 }
@@ -26,7 +26,7 @@ make_icloud() {
   make_icloud
   run "$BIN" backup --skip-report --interactive=false --icloud-root "$ICLOUD_ROOT" --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
-  [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml" ]
+  [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.backup.yml" ]
   [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/backup-list.md" ]
   [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/README.md" ]
   [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/metadata.yml" ]
@@ -42,15 +42,15 @@ make_icloud() {
   command -v yq >/dev/null 2>&1 || skip "yq is required for markdown backup list rendering"
   make_icloud
   mkdir -p "$ICLOUD_ROOT/Mac Setup Snapshot/files"
-  echo old >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml"
+  echo old >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.backup.yml"
   echo old >"$ICLOUD_ROOT/Mac Setup Snapshot/metadata.yml"
   echo old >"$ICLOUD_ROOT/Mac Setup Snapshot/backup-list.md"
   echo old >"$ICLOUD_ROOT/Mac Setup Snapshot/README.md"
 
   run "$BIN" backup --skip-report --interactive=false --icloud-root "$ICLOUD_ROOT" --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
-  [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml" ]
-  history_count="$(find "$ICLOUD_ROOT/Mac Setup Snapshot/history" -name mac-setup.yml | wc -l | tr -d ' ')"
+  [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.backup.yml" ]
+  history_count="$(find "$ICLOUD_ROOT/Mac Setup Snapshot/history" -name mac-setup.backup.yml | wc -l | tr -d ' ')"
   [ "$history_count" -eq 1 ]
   history_list_count="$(find "$ICLOUD_ROOT/Mac Setup Snapshot/history" -name backup-list.md | wc -l | tr -d ' ')"
   [ "$history_list_count" -eq 1 ]
@@ -61,7 +61,7 @@ make_icloud() {
 @test "restore dry-run defaults to iCloud bundle when present" {
   make_icloud
   mkdir -p "$ICLOUD_ROOT/Mac Setup Snapshot"
-  cat >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml" <<'YAML'
+  cat >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.backup.yml" <<'YAML'
 version: 1
 apps: []
 YAML
@@ -74,7 +74,7 @@ YAML
 @test "list defaults to iCloud bundle when present" {
   make_icloud
   mkdir -p "$ICLOUD_ROOT/Mac Setup Snapshot"
-  cat >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml" <<'YAML'
+  cat >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.backup.yml" <<'YAML'
 version: 1
 apps: []
 brew: []
@@ -114,7 +114,7 @@ YAML
 @test "explicit inventory preserves local list behavior" {
   make_icloud
   mkdir -p "$ICLOUD_ROOT/Mac Setup Snapshot"
-  cat >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.yml" <<'YAML'
+  cat >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.backup.yml" <<'YAML'
 version: 1
 apps: []
 YAML

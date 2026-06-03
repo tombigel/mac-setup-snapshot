@@ -466,8 +466,8 @@ mi_inventory_backup_readme_content() {
       dry_restore_command="${MI_PROGRAM_NAME:-mac-setup} restore --dry-run --skip-prepare=true --source icloud --icloud-root \"$MI_ICLOUD_ROOT\""
       ;;
     *)
-      restore_command="${MI_PROGRAM_NAME:-mac-setup} restore --source local --inventory mac-setup.yml"
-      dry_restore_command="${MI_PROGRAM_NAME:-mac-setup} restore --dry-run --skip-prepare=true --source local --inventory mac-setup.yml"
+      restore_command="${MI_PROGRAM_NAME:-mac-setup} restore --source local --inventory mac-setup.backup.yml"
+      dry_restore_command="${MI_PROGRAM_NAME:-mac-setup} restore --dry-run --skip-prepare=true --source local --inventory mac-setup.backup.yml"
       ;;
   esac
 
@@ -479,7 +479,7 @@ Snapshot: $(basename "$source_inventory")
 
 ## Files
 
-- \`mac-setup.yml\`: machine-readable setup snapshot used by restore.
+- \`mac-setup.backup.yml\`: machine-readable setup snapshot used by restore.
 - \`backup-list.md\`: human-readable summary generated from the snapshot.
 - \`README.md\`: these restore notes.
 - \`metadata.yml\`: iCloud endpoint metadata, when this backup is stored in iCloud.
@@ -519,7 +519,7 @@ Restore is additive: it installs, copies, checks, and reports. It does not unins
 ## Useful Commands
 
 \`\`\`bash
-${MI_PROGRAM_NAME:-mac-setup} list --format md --source local --inventory mac-setup.yml
+${MI_PROGRAM_NAME:-mac-setup} list --format md --source local --inventory mac-setup.backup.yml
 ${MI_PROGRAM_NAME:-mac-setup} wizard
 ${MI_PROGRAM_NAME:-mac-setup} status
 ${MI_PROGRAM_NAME:-mac-setup} continue

@@ -68,6 +68,8 @@ setup() {
   grep -q "wizard:" generated-wizard.yml
   grep -q "default_target: icloud" generated-wizard.yml
   grep -q "default_source: icloud" generated-wizard.yml
+  grep -q "config: true" generated-wizard.yml
+  grep -q "use_config: true" generated-wizard.yml
   grep -q "manual_brew_match: true" generated-wizard.yml
   grep -q "appstore_login: true" generated-wizard.yml
 }
@@ -111,8 +113,8 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true
   [ "$status" -eq 0 ]
-  grep -q 'brew_cask_candidate: "config-app"' mac-setup.yml
-  grep -q 'selected_brew_cask: ""' mac-setup.yml
+  grep -q 'brew_cask_candidate: "config-app"' mac-setup.backup.yml
+  grep -q 'selected_brew_cask: ""' mac-setup.backup.yml
 }
 
 @test "backup applies generated config dotfile paths" {
@@ -132,8 +134,8 @@ YAML
 
   run env HOME="$test_home" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --manual-apps=false
   [ "$status" -eq 0 ]
-  grep -q 'path: "~/.config/testapp/config"' mac-setup.yml
-  ! grep -q 'path: "~/.config/testapp/missing"' mac-setup.yml
+  grep -q 'path: "~/.config/testapp/config"' mac-setup.backup.yml
+  ! grep -q 'path: "~/.config/testapp/missing"' mac-setup.backup.yml
   [ -f "files/.config/testapp/config" ]
   [ ! -e "files/.config/testapp/missing" ]
 }
@@ -148,12 +150,12 @@ YAML
 
   run env HOME="$test_home" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --manual-apps=false
   [ "$status" -eq 0 ]
-  grep -q 'path: "~/.editorconfig"' mac-setup.yml
-  grep -q 'path: "~/.config/starship.toml"' mac-setup.yml
-  grep -q 'path: "~/.config/nvim/init.lua"' mac-setup.yml
-  grep -q 'path: "~/.ssh/config"' mac-setup.yml
-  ! grep -q 'path: "~/.zprofile"' mac-setup.yml
-  ! grep -q 'exists: false' mac-setup.yml
+  grep -q 'path: "~/.editorconfig"' mac-setup.backup.yml
+  grep -q 'path: "~/.config/starship.toml"' mac-setup.backup.yml
+  grep -q 'path: "~/.config/nvim/init.lua"' mac-setup.backup.yml
+  grep -q 'path: "~/.ssh/config"' mac-setup.backup.yml
+  ! grep -q 'path: "~/.zprofile"' mac-setup.backup.yml
+  ! grep -q 'exists: false' mac-setup.backup.yml
   [ -f "files/.editorconfig" ]
   [ -f "files/.config/starship.toml" ]
   [ -f "files/.config/nvim/init.lua" ]
@@ -169,15 +171,15 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --apps=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
-  grep -q 'ref: "brew_tap:homebrew/core"' mac-setup.yml
-  grep -q 'name: "git"' mac-setup.yml
-  grep -q 'ref: "brew_formula:git"' mac-setup.yml
-  grep -q 'name: "visual-studio-code"' mac-setup.yml
-  grep -q 'display_name: "Visual Studio Code"' mac-setup.yml
-  grep -q "path: \"$app_root/Visual Studio Code.app\"" mac-setup.yml
-  grep -q 'app_version: "1.2.3"' mac-setup.yml
-  grep -q 'name: "typescript"' mac-setup.yml
-  grep -q 'ref: "npm:typescript"' mac-setup.yml
+  grep -q 'ref: "brew_tap:homebrew/core"' mac-setup.backup.yml
+  grep -q 'name: "git"' mac-setup.backup.yml
+  grep -q 'ref: "brew_formula:git"' mac-setup.backup.yml
+  grep -q 'name: "visual-studio-code"' mac-setup.backup.yml
+  grep -q 'display_name: "Visual Studio Code"' mac-setup.backup.yml
+  grep -q "path: \"$app_root/Visual Studio Code.app\"" mac-setup.backup.yml
+  grep -q 'app_version: "1.2.3"' mac-setup.backup.yml
+  grep -q 'name: "typescript"' mac-setup.backup.yml
+  grep -q 'ref: "npm:typescript"' mac-setup.backup.yml
   grep -q '| git | 2.0 | false | brew_formula:git |' backup-list.md
   grep -q '| visual-studio-code | Visual Studio Code | '"$app_root"'/Visual Studio Code.app | 1.0 | false | brew_cask:visual-studio-code |' backup-list.md
 }
@@ -251,12 +253,12 @@ YAML
 
   run "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
-  [ -f mac-setup.yml ]
+  [ -f mac-setup.backup.yml ]
   [ -f backup-list.md ]
   [ -f README.md ]
   grep -q '# Mac Setup Snapshot' backup-list.md
   grep -q '# Mac Setup Snapshot Backup' README.md
-  grep -q 'mac-setup restore --source local --inventory mac-setup.yml' README.md
+  grep -q 'mac-setup restore --source local --inventory mac-setup.backup.yml' README.md
   grep -q 'mac-setup wizard' README.md
 }
 
@@ -287,11 +289,11 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=true --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
-  grep -q 'id: "100"' mac-setup.yml
-  grep -q 'ref: "appstore:100"' mac-setup.yml
-  grep -q "path: \"$app_root/Current App.app\"" mac-setup.yml
-  ! grep -q 'id: "200"' mac-setup.yml
-  [ "$(grep -c 'id: "100"' mac-setup.yml)" -eq 1 ]
+  grep -q 'id: "100"' mac-setup.backup.yml
+  grep -q 'ref: "appstore:100"' mac-setup.backup.yml
+  grep -q "path: \"$app_root/Current App.app\"" mac-setup.backup.yml
+  ! grep -q 'id: "200"' mac-setup.backup.yml
+  [ "$(grep -c 'id: "100"' mac-setup.backup.yml)" -eq 1 ]
   grep -q '| 100 | Current App | '"$app_root"'/Current App.app | 1.2.3 | false | appstore:100 |' backup-list.md
 }
 
@@ -305,12 +307,12 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=true --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
-  grep -q 'name: "Keynote Creator Studio"' mac-setup.yml
-  grep -q "path: \"$app_root/Keynote Creator Studio.app\"" mac-setup.yml
-  grep -q 'version: "15.2.1"' mac-setup.yml
-  grep -q 'name: "Keynote"' mac-setup.yml
-  grep -q "path: \"$app_root/Keynote.app\"" mac-setup.yml
-  grep -q 'version: "14.5"' mac-setup.yml
+  grep -q 'name: "Keynote Creator Studio"' mac-setup.backup.yml
+  grep -q "path: \"$app_root/Keynote Creator Studio.app\"" mac-setup.backup.yml
+  grep -q 'version: "15.2.1"' mac-setup.backup.yml
+  grep -q 'name: "Keynote"' mac-setup.backup.yml
+  grep -q "path: \"$app_root/Keynote.app\"" mac-setup.backup.yml
+  grep -q 'version: "14.5"' mac-setup.backup.yml
   grep -q '| 361285480 | Keynote Creator Studio | '"$app_root"'/Keynote Creator Studio.app | 15.2.1 | false | appstore:361285480 |' backup-list.md
   grep -q '| 409183694 | Keynote | '"$app_root"'/Keynote.app | 14.5 | false | appstore:409183694 |' backup-list.md
 }
@@ -327,8 +329,8 @@ YAML
   [ "$status" -eq 0 ]
   [ "$(printf '%s\n' "$output" | grep -c 'apps: building installed app index')" -eq 1 ]
   [[ "$output" == *"apps: reusing installed app index"* ]]
-  grep -q 'id: "101"' mac-setup.yml
-  grep -q 'id: "102"' mac-setup.yml
+  grep -q 'id: "101"' mac-setup.backup.yml
+  grep -q 'id: "102"' mac-setup.backup.yml
 }
 
 @test "manual apps skip appstore and installed cask duplicates" {
@@ -344,12 +346,12 @@ YAML
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=never
   [ "$status" -eq 0 ]
   [[ "$output" == *"backup: manual_apps checking"* ]]
-  ! grep -q 'Store App' mac-setup.yml
-  ! grep -q 'Installed App' mac-setup.yml
-  ! grep -q 'VLC' mac-setup.yml
-  ! grep -q 'Firefox Nightly' mac-setup.yml
-  grep -q 'Standalone App' mac-setup.yml
-  grep -q 'brew_cask_candidate: "standalone-app"' mac-setup.yml
+  ! grep -q 'Store App' mac-setup.backup.yml
+  ! grep -q 'Installed App' mac-setup.backup.yml
+  ! grep -q 'VLC' mac-setup.backup.yml
+  ! grep -q 'Firefox Nightly' mac-setup.backup.yml
+  grep -q 'Standalone App' mac-setup.backup.yml
+  grep -q 'brew_cask_candidate: "standalone-app"' mac-setup.backup.yml
 }
 
 @test "manual apps search per app when cask catalog is unavailable" {
@@ -360,8 +362,8 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=never
   [ "$status" -eq 0 ]
-  grep -q 'Standalone App' mac-setup.yml
-  grep -q 'brew_cask_candidate: "standalone-app"' mac-setup.yml
+  grep -q 'Standalone App' mac-setup.backup.yml
+  grep -q 'brew_cask_candidate: "standalone-app"' mac-setup.backup.yml
 }
 
 @test "manual apps record non-installed cask candidates as replacements" {
@@ -372,10 +374,10 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=never
   [ "$status" -eq 0 ]
-  grep -q 'name: "Candidate App"' mac-setup.yml
-  grep -q 'ref: "manual:com.example.candidate"' mac-setup.yml
-  grep -q 'brew_cask_candidate: "candidate-app"' mac-setup.yml
-  grep -q 'selected_brew_cask: ""' mac-setup.yml
+  grep -q 'name: "Candidate App"' mac-setup.backup.yml
+  grep -q 'ref: "manual:com.example.candidate"' mac-setup.backup.yml
+  grep -q 'brew_cask_candidate: "candidate-app"' mac-setup.backup.yml
+  grep -q 'selected_brew_cask: ""' mac-setup.backup.yml
   grep -q '| Candidate App | '"$app_root"'/Candidate App.app | 5.0 | candidate-app | false | manual:com.example.candidate |' backup-list.md
 }
 
@@ -387,8 +389,8 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=never
   [ "$status" -eq 0 ]
-  grep -q 'name: "No Bundle App"' mac-setup.yml
-  grep -q 'ref: "manual:no-bundle-app-' mac-setup.yml
+  grep -q 'name: "No Bundle App"' mac-setup.backup.yml
+  grep -q 'ref: "manual:no-bundle-app-' mac-setup.backup.yml
 }
 
 @test "manual apps skip cask candidates that brew info cannot resolve" {
@@ -399,8 +401,8 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=never
   [ "$status" -eq 0 ]
-  grep -q 'name: "Falcon"' mac-setup.yml
-  grep -q 'brew_cask_candidate: ""' mac-setup.yml
+  grep -q 'name: "Falcon"' mac-setup.backup.yml
+  grep -q 'brew_cask_candidate: ""' mac-setup.backup.yml
   grep -q '| Falcon | '"$app_root"'/Falcon.app | 1.0 |  | false | manual:com.example.falcon |' backup-list.md
 }
 
@@ -413,8 +415,8 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=never
   [ "$status" -eq 0 ]
-  grep -q 'name: "Retired App"' mac-setup.yml
-  grep -q 'brew_cask_candidate: ""' mac-setup.yml
+  grep -q 'name: "Retired App"' mac-setup.backup.yml
+  grep -q 'brew_cask_candidate: ""' mac-setup.backup.yml
 }
 
 @test "manual app accepted cask migration is added to brew casks" {
@@ -425,13 +427,13 @@ YAML
 
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --yes --apps=false --brew=true --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=ask
   [ "$status" -eq 0 ]
-  ! grep -q 'Migrate App' mac-setup.yml
-  grep -q 'name: "migrate-app"' mac-setup.yml
-  grep -q 'ref: "brew_cask:migrate-app"' mac-setup.yml
-  grep -q 'version: "matched-manual-app"' mac-setup.yml
-  grep -q 'display_name: "Migrate App"' mac-setup.yml
-  grep -q "path: \"$app_root/Migrate App.app\"" mac-setup.yml
-  grep -q 'app_version: "4.0"' mac-setup.yml
+  ! grep -q 'Migrate App' mac-setup.backup.yml
+  grep -q 'name: "migrate-app"' mac-setup.backup.yml
+  grep -q 'ref: "brew_cask:migrate-app"' mac-setup.backup.yml
+  grep -q 'version: "matched-manual-app"' mac-setup.backup.yml
+  grep -q 'display_name: "Migrate App"' mac-setup.backup.yml
+  grep -q "path: \"$app_root/Migrate App.app\"" mac-setup.backup.yml
+  grep -q 'app_version: "4.0"' mac-setup.backup.yml
 }
 
 @test "command timeout fails slow mas inventory with warning" {
@@ -446,7 +448,7 @@ YAML
   mock_command mas 'case "$1" in list) exit 1 ;; *) echo "unexpected mas $*" >&2; exit 1 ;; esac'
   run "$BIN" backup --target local --appstore-login=skip --apps=true --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
-  grep -q 'status: "skipped_mas_list_failed"' mac-setup.yml
+  grep -q 'status: "skipped_mas_list_failed"' mac-setup.backup.yml
 }
 
 @test "ignore marks appstore ref and unignore clears it" {

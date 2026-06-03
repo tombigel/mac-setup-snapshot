@@ -27,6 +27,8 @@
 
 ### Changed
 
+- Changed the default setup snapshot filename from `mac-setup.yml` to `mac-setup.backup.yml`.
+- Changed the guided backup wizard to offer config handling with generate, skip, and use-existing choices; restore now offers to use an existing config when found.
 - Renamed user-facing docs, defaults, generated filenames, Gist filenames, reports, and runtime state paths to Mac Setup Snapshot / `mac-setup`.
 - Moved the README manual and usage documentation links near the top of the file.
 - Updated common usage docs to show iCloud-first backup and restore, with GitHub/Gist as an explicit developer option.
@@ -118,7 +120,7 @@
 - Preserved command failure exit codes from `backup`, `restore`, `list`, `doctor`, `config generate`, and Gist commands instead of masking failures at the end of the CLI entrypoint.
 - Fixed literal `~` expansion for dotfile paths so `~/.zshrc`, `~/.gitconfig`, `~/.gitignore_global`, and `~/.ssh/config` resolve under `$HOME`.
 - Replaced invalid `brew leaves --versions` usage with `brew leaves` plus `brew list --versions <formula>` for compatibility with the installed Homebrew CLI.
-- Ignored interrupted backup temp files via `mac-setup.yml.tmp.*`.
+- Ignored interrupted backup temp files via `mac-setup.backup.yml.tmp.*`.
 
 ## 0.1.0 - 2026-06-01
 

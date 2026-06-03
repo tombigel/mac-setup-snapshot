@@ -48,11 +48,34 @@ setup() {
     ! mi_wizard_valid_flow shell
     mi_wizard_valid_source brew
     ! mi_wizard_valid_source command
+    mi_wizard_valid_prompt backup config
     mi_wizard_valid_prompt backup manual_brew_match
+    mi_wizard_valid_prompt restore use_config
     mi_wizard_valid_prompt restore appstore_login
     ! mi_wizard_valid_prompt restore manual_brew_match
   '
   [ "$status" -eq 0 ]
+}
+
+@test "wizard backup config path follows selected backup directory" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+    . "$PROJECT_ROOT/lib/common.sh"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/endpoint.sh"
+    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/wizard.sh"
+    mi_args_init
+    MI_TARGET=local
+    MI_INVENTORY=backups/mac-setup.backup.yml
+    local_path="$(mi_wizard_backup_config_path)"
+    MI_TARGET=icloud
+    MI_ICLOUD_ROOT=/tmp/icloud-root
+    MI_ICLOUD_FOLDER_NAME="Mac Setup Snapshot"
+    icloud_path="$(mi_wizard_backup_config_path)"
+    printf "%s|%s\n" "$local_path" "$icloud_path"
+  '
+  [ "$status" -eq 0 ]
+  [ "$output" = "backups/mac-setup.config.yml|/tmp/icloud-root/Mac Setup Snapshot/mac-setup.config.yml" ]
 }
 
 @test "wizard source args reflect current source booleans" {

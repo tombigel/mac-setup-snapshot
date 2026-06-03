@@ -166,14 +166,14 @@ mi_endpoint_resolve() {
       bundle="$(mi_endpoint_iCloud_bundle)"
       MI_ENDPOINT_BUNDLE="$bundle"
       MI_EFFECTIVE_TARGET="icloud"
-      [ "$MI_INVENTORY_EXPLICIT" = "true" ] || MI_INVENTORY="$bundle/mac-setup.yml"
+      [ "$MI_INVENTORY_EXPLICIT" = "true" ] || MI_INVENTORY="$bundle/mac-setup.backup.yml"
       [ "$MI_CONFIG_EXPLICIT" = "true" ] || MI_CONFIG="$bundle/mac-setup.config.yml"
       ;;
     source:icloud)
       bundle="$(mi_endpoint_iCloud_bundle)"
       MI_ENDPOINT_BUNDLE="$bundle"
       MI_EFFECTIVE_SOURCE="icloud"
-      [ "$MI_INVENTORY_EXPLICIT" = "true" ] || MI_INVENTORY="$bundle/mac-setup.yml"
+      [ "$MI_INVENTORY_EXPLICIT" = "true" ] || MI_INVENTORY="$bundle/mac-setup.backup.yml"
       [ "$MI_CONFIG_EXPLICIT" = "true" ] || MI_CONFIG="$bundle/mac-setup.config.yml"
       if [ ! -f "$MI_INVENTORY" ]; then
         mi_error "setup snapshot not found in iCloud endpoint: $MI_INVENTORY"
@@ -216,7 +216,7 @@ mi_endpoint_prepare_backup() {
 
   if [ "$MI_DRY_RUN" = "true" ]; then
     mi_info "dry-run: would use iCloud endpoint $MI_ENDPOINT_BUNDLE"
-    for item in "$MI_ENDPOINT_BUNDLE/mac-setup.yml" "$MI_ENDPOINT_BUNDLE/mac-setup.config.yml" "$MI_ENDPOINT_BUNDLE/files" "$MI_ENDPOINT_BUNDLE/metadata.yml" "$MI_ENDPOINT_BUNDLE/backup-list.md" "$MI_ENDPOINT_BUNDLE/README.md"; do
+    for item in "$MI_ENDPOINT_BUNDLE/mac-setup.backup.yml" "$MI_ENDPOINT_BUNDLE/mac-setup.config.yml" "$MI_ENDPOINT_BUNDLE/files" "$MI_ENDPOINT_BUNDLE/metadata.yml" "$MI_ENDPOINT_BUNDLE/backup-list.md" "$MI_ENDPOINT_BUNDLE/README.md"; do
       [ -e "$item" ] && mi_info "dry-run: would move existing $(basename "$item") to iCloud history"
     done
     return 0
@@ -232,7 +232,7 @@ mi_endpoint_prepare_backup() {
   moved="false"
   stamp="$(mi_endpoint_history_stamp)"
   history_dir="$MI_ENDPOINT_BUNDLE/history/$stamp"
-  for item in "$MI_ENDPOINT_BUNDLE/mac-setup.yml" "$MI_ENDPOINT_BUNDLE/mac-setup.config.yml" "$MI_ENDPOINT_BUNDLE/files" "$MI_ENDPOINT_BUNDLE/metadata.yml" "$MI_ENDPOINT_BUNDLE/backup-list.md" "$MI_ENDPOINT_BUNDLE/README.md"; do
+  for item in "$MI_ENDPOINT_BUNDLE/mac-setup.backup.yml" "$MI_ENDPOINT_BUNDLE/mac-setup.config.yml" "$MI_ENDPOINT_BUNDLE/files" "$MI_ENDPOINT_BUNDLE/metadata.yml" "$MI_ENDPOINT_BUNDLE/backup-list.md" "$MI_ENDPOINT_BUNDLE/README.md"; do
     [ -e "$item" ] || continue
     [ "$moved" = "true" ] || { mkdir -p "$history_dir" || return 1; moved="true"; }
     base="$(basename "$item")"
@@ -258,7 +258,7 @@ mi_endpoint_write_metadata() {
     printf 'version: 1\n'
     printf 'updated_at: %s\n' "$(mi_yaml_scalar "$(mi_timestamp)")"
     printf 'endpoint: icloud\n'
-    printf 'snapshot: mac-setup.yml\n'
+    printf 'snapshot: mac-setup.backup.yml\n'
     printf 'backup_list: backup-list.md\n'
     printf 'readme: README.md\n'
     printf 'config: mac-setup.config.yml\n'

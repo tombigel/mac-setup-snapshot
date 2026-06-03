@@ -48,7 +48,7 @@ mac-setup wizard
 
 In an interactive terminal, running `mac-setup` with no arguments opens the same wizard. In scripts and other non-interactive contexts, no arguments still print help.
 
-The wizard asks for backup or restore, dry-run mode, storage endpoint, enabled sources, and key restore policy choices. It then runs the equivalent `backup` or `restore` command with normal safety rules.
+The wizard asks for backup or restore, dry-run mode, storage endpoint, config handling, enabled sources, and key restore policy choices. It then runs the equivalent `backup` or `restore` command with normal safety rules.
 
 Create or update the setup bundle in iCloud Drive:
 
@@ -138,7 +138,7 @@ Wizard menus are controlled by built-in defaults or an editable `mac-setup.wizar
 mac-setup wizard config generate -o mac-setup.wizard.yml
 ```
 
-The wizard config can reorder, hide, relabel, and set defaults for known backup/restore sources and prompts. It cannot define shell commands, hooks, arbitrary steps, or executable restore behavior.
+The wizard config can reorder, hide, relabel, and set defaults for known backup/restore sources and prompts, including backup config handling and restore config use. It cannot define shell commands, hooks, arbitrary steps, or executable restore behavior.
 
 Useful wizard commands:
 
@@ -212,7 +212,7 @@ mac-setup restore --dry-run --yes --quiet
 Value-taking short options must be standalone or last in a chain:
 
 ```bash
-mac-setup backup -i mac-setup.yml
+mac-setup backup -i mac-setup.backup.yml
 mac-setup backup -B=false
 ```
 

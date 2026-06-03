@@ -201,7 +201,7 @@ prepare:
 
 gist:
   visibility: secret
-  inventory_file: mac-setup.yml
+  inventory_file: mac-setup.backup.yml
   config_file: mac-setup.config.yml
 
 reports:
