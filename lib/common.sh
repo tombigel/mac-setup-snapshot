@@ -130,7 +130,7 @@ mi_prompt_yes_no() {
   if [ "${MI_NO:-false}" = "true" ]; then
     return 1
   fi
-  if [ "${MI_INTERACTIVE:-true}" != "true" ] || [ ! -t 0 ]; then
+  if ! mi_prompt_available; then
     [ "$default" = "yes" ]
     return $?
   fi
@@ -140,13 +140,25 @@ mi_prompt_yes_no() {
     suffix="[Y/n]"
   fi
   mi_live_finish
-  printf '%s %s ' "$prompt" "$suffix" >&2
-  read -r answer
+  if [ -t 0 ]; then
+    printf '%s %s ' "$prompt" "$suffix" >&2
+    IFS= read -r answer
+  else
+    printf '%s %s ' "$prompt" "$suffix" >/dev/tty
+    IFS= read -r answer </dev/tty
+  fi
   case "$answer" in
     y|Y|yes|YES) return 0 ;;
     n|N|no|NO) return 1 ;;
     *) [ "$default" = "yes" ] ;;
   esac
+}
+
+mi_prompt_available() {
+  [ "${MI_INTERACTIVE:-true}" = "true" ] || return 1
+  [ -t 0 ] && return 0
+  [ -e /dev/tty ] || return 1
+  { : </dev/tty; } >/dev/tty 2>/dev/null
 }
 
 mi_expand_path() {
