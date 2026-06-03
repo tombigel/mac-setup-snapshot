@@ -62,8 +62,6 @@ mi_emphasize_dry_run() {
   local text="$*"
   if mi_color_enabled; then
     text="${text//dry-run/$(mi_dry_run_text "dry-run")}"
-    text="${text//Dry run/$(mi_dry_run_text "Dry run")}"
-    text="${text//Dry-run/$(mi_dry_run_text "Dry-run")}"
   fi
   printf '%s' "$text"
 }

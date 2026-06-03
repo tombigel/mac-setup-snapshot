@@ -115,7 +115,7 @@ Backup and restore print a welcome message, the next step, progress for enabled 
 
 For local and iCloud backups, backup also writes `backup-list.md` and `README.md` next to `mac-setup.yml`. The list is generated from the completed snapshot using the same renderer as `mac-setup list --format md`; it does not include copied dotfile contents or raw command output. The README contains restore instructions and a file map for the backup folder.
 
-Use `--dry-run` to print the snapshot that would be generated without writing it. Dry-run reports where `backup-list.md` and `README.md` would be written but does not create them.
+Use `--dry-run` to print the snapshot that would be generated without writing it. In dry-run mode, the command reports where `backup-list.md` and `README.md` would be written but does not create them.
 
 ### `restore`
 
@@ -157,7 +157,7 @@ Ignored entries remain visible in `mac-setup.yml`, `backup-list.md`, and `list -
 
 The command first matches exact `ref` values, then exact or normalized app names, IDs, bundle IDs, cask names, and app path basenames. If no entry matches, it exits `1`. If multiple entries match, it exits `2`, prints the candidate refs, and changes nothing.
 
-Dry-run prints the entry and files that would be changed without writing the snapshot, config, backup-list, README, or Gist.
+In dry-run mode, the command prints the entry and files that would be changed without writing the snapshot, config, backup-list, README, or Gist.
 
 ### `unignore`
 
@@ -296,7 +296,7 @@ mac-setup wizard config generate --wizard-config ./wizard.yml
 mac-setup wizard config generate --dry-run
 ```
 
-If no output path is provided, the default is `mac-setup.wizard.yml`. If the target file already exists, interactive mode prompts before overwriting. Non-interactive mode fails conservatively unless `--yes` allows the write. Dry-run reports the target path without writing the file.
+If no output path is provided, the default is `mac-setup.wizard.yml`. If the target file already exists, interactive mode prompts before overwriting. Non-interactive mode fails conservatively unless `--yes` allows the write. In dry-run mode, the command reports the target path without writing the file.
 
 ## Endpoint Options
 
@@ -1026,7 +1026,7 @@ By default, workflow commands print a friendly terminal summary:
 ```text
 Mac Setup Snapshot summary
   restore completed in 12s.
-  Dry run: true
+  Mode: dry-run
   Snapshot: mac-setup.yml
   Next step: Review the dry-run output. Run without --dry-run when you are ready to restore.
 ```

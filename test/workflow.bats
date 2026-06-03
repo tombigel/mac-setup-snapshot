@@ -40,8 +40,7 @@ YAML
 
   run "$BIN" restore --dry-run --skip-prepare=true --apps=false --brew=true --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false --inventory "$BATS_TEST_TMPDIR/inventory.yml"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Dry-run Restore starting"* ]]
-  [[ "$output" == *"Restore starting"* ]]
+  [[ "$output" == *"dry-run restore starting"* ]]
   [[ "$output" == *"Next step: Homebrew"* ]]
   [[ "$output" == *"restore: brew..."* ]]
   [[ "$output" == *"[############] 1/1"* ]]

@@ -134,7 +134,7 @@ mi_backup_welcome() {
   mi_ux_line ""
   mi_ux_line "$(mi_heading "Mac Setup Snapshot $MI_VERSION")"
   if [ "$MI_DRY_RUN" = "true" ]; then
-    mi_ux_line "$(mi_dry_run_text "Dry-run") Backup starting"
+    mi_ux_line "$(mi_dry_run_text "dry-run") backup starting"
   else
     mi_ux_line "$(mi_success_text "Backup starting")"
   fi
@@ -166,7 +166,7 @@ mi_restore_welcome() {
   mi_ux_line ""
   mi_ux_line "$(mi_heading "Mac Setup Snapshot $MI_VERSION")"
   if [ "$MI_DRY_RUN" = "true" ]; then
-    mi_ux_line "$(mi_dry_run_text "Dry-run") Restore starting"
+    mi_ux_line "$(mi_dry_run_text "dry-run") restore starting"
   else
     mi_ux_line "$(mi_success_text "Restore starting")"
   fi
@@ -281,7 +281,7 @@ mi_inventory_progress_start() {
   label="$(mi_section_display_name "$section")"
   if mi_live_enabled; then
     if [ "$MI_DRY_RUN" = "true" ]; then
-      mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Backup) $bar $label"
+      mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Backup) $bar $label"
     else
       mi_live_line "$(mi_heading Backup) $bar $label"
     fi
@@ -310,7 +310,7 @@ mi_inventory_progress_done() {
   if [ -n "$count" ]; then
     if mi_live_enabled; then
       if [ "$MI_DRY_RUN" = "true" ]; then
-        mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") ($count items, ${elapsed}s)"
+        mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") ($count items, ${elapsed}s)"
       else
         mi_live_line "$(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") ($count items, ${elapsed}s)"
       fi
@@ -321,7 +321,7 @@ mi_inventory_progress_done() {
   else
     if mi_live_enabled; then
       if [ "$MI_DRY_RUN" = "true" ]; then
-        mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") (${elapsed}s)"
+        mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") (${elapsed}s)"
       else
         mi_live_line "$(mi_heading Backup) $bar $(mi_success_text done) $(mi_section_display_name "$section") (${elapsed}s)"
       fi
@@ -346,7 +346,7 @@ mi_inventory_progress_detail() {
   [ "${MI_QUIET:-false}" = "true" ] && return 0
   if mi_live_enabled; then
     if [ "$MI_DRY_RUN" = "true" ]; then
-      mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Backup) $(mi_muted "$(mi_section_display_name "$section") $message")"
+      mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Backup) $(mi_muted "$(mi_section_display_name "$section") $message")"
     else
       mi_live_line "$(mi_heading Backup) $(mi_muted "$(mi_section_display_name "$section") $message")"
     fi
@@ -737,7 +737,7 @@ mi_restore_progress_start() {
   label="$(mi_section_display_name "$section")"
   if mi_live_enabled; then
     if [ "$MI_DRY_RUN" = "true" ]; then
-      mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Restore) $bar $label"
+      mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Restore) $bar $label"
     else
       mi_live_line "$(mi_heading Restore) $bar $label"
     fi
@@ -767,13 +767,13 @@ mi_restore_progress_done() {
   if mi_live_enabled; then
     if [ "$rc" -eq 0 ]; then
       if [ "$MI_DRY_RUN" = "true" ]; then
-        mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Restore) $bar $(mi_success_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+        mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Restore) $bar $(mi_success_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
       else
         mi_live_line "$(mi_heading Restore) $bar $(mi_success_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
       fi
     else
       if [ "$MI_DRY_RUN" = "true" ]; then
-        mi_live_line "$(mi_dry_run_text "Dry-run") $(mi_heading Restore) $bar $(mi_alert_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+        mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Restore) $bar $(mi_alert_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
       else
         mi_live_line "$(mi_heading Restore) $bar $(mi_alert_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
       fi

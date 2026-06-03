@@ -215,9 +215,9 @@ mi_report_render_default_summary() {
     fi
   fi
   if [ "$MI_DRY_RUN" = "true" ]; then
-    printf '  %s %s\n' "$(mi_dry_run_text "Dry run:")" "$(mi_dry_run_text "$MI_DRY_RUN")"
+    printf '  Mode: %s\n' "$(mi_dry_run_text "dry-run")"
   else
-    printf '  Dry run: %s\n' "$MI_DRY_RUN"
+    printf '  Mode: real run\n'
   fi
   mi_report_default_summary_artifacts
   mi_report_default_summary_events
@@ -239,7 +239,11 @@ mi_report_render_md() {
   printf "# Mac Setup Snapshot Process Report\n\n"
   printf "%s \`%s\`\n" "- Command:" "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}"
   printf "%s \`%s\`\n" "- Status:" "$status"
-  printf "%s \`%s\`\n" "- Dry run:" "$MI_DRY_RUN"
+  if [ "$MI_DRY_RUN" = "true" ]; then
+    printf "%s \`%s\`\n" "- Mode:" "dry-run"
+  else
+    printf "%s \`%s\`\n" "- Mode:" "real run"
+  fi
   printf "%s \`%s\`\n" "- Setup snapshot:" "$MI_INVENTORY"
   printf "%s \`%s\`\n" "- Started:" "$MI_REPORT_STARTED_AT"
   printf "%s \`%s\`\n" "- Finished:" "$(mi_timestamp)"

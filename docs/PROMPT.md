@@ -19,7 +19,7 @@ It should support:
 - Interactive and non-interactive modes.
 - Version tracking and optional version restore.
 - Inventory update mode.
-- Dry-run and listing modes.
+- dry-run and listing modes.
 - Tests.
 
 ## Tweaks Added During Planning

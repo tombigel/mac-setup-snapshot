@@ -271,7 +271,7 @@ YAML
 @test "backup dry-run reports markdown list path without writing it" {
   run "$BIN" backup --target local --dry-run --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Dry-run Backup starting"* ]]
+  [[ "$output" == *"dry-run backup starting"* ]]
   [[ "$output" == *"dry-run: would write backup list to ./backup-list.md"* ]]
   [[ "$output" == *"dry-run: would write backup README to ./README.md"* ]]
   [ ! -f backup-list.md ]

@@ -26,7 +26,7 @@ Use `--report`, `--report-format`, and `--skip-report` when validating process-r
 - No unbounded package-manager calls.
 - No direct `curl | sh`.
 - No secrets in logs, docs, tests, setup snapshot examples, or resume files.
-- Dry-run must not mutate user state.
+- dry-run mode must not mutate user state.
 - Resume files must contain only workflow metadata.
 
 ## Testing Guidance
