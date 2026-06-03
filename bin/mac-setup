@@ -26,6 +26,8 @@ PROJECT_DIR="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
 . "$PROJECT_DIR/lib/gist.sh"
 # shellcheck source=../lib/workflow.sh
 . "$PROJECT_DIR/lib/workflow.sh"
+# shellcheck source=../lib/wizard.sh
+. "$PROJECT_DIR/lib/wizard.sh"
 
 for source_file in "$PROJECT_DIR"/lib/sources/*.sh; do
   # shellcheck source=/dev/null
@@ -102,6 +104,23 @@ main() {
           mi_error "unknown config command: ${MI_SUBCOMMAND:-<missing>}"
           rc=2
         fi
+        ;;
+      wizard)
+        case "$MI_SUBCOMMAND" in
+          config)
+            if [ "$MI_WIZARD_SUBCOMMAND" = "generate" ]; then
+              mi_wizard_config_generate
+              rc=$?
+            else
+              mi_error "unknown wizard config command: ${MI_WIZARD_SUBCOMMAND:-<missing>}"
+              rc=2
+            fi
+            ;;
+          *)
+            mi_error "unknown wizard command: ${MI_SUBCOMMAND:-<missing>}"
+            rc=2
+            ;;
+        esac
         ;;
       gist)
         case "$MI_SUBCOMMAND" in

@@ -5,8 +5,10 @@ mi_args_init() {
   MI_PROGRAM_NAME="${MI_PROGRAM_NAME:-$(basename "$0")}"
   MI_COMMAND=""
   MI_SUBCOMMAND=""
+  MI_WIZARD_SUBCOMMAND=""
   MI_HELP="false"
   MI_CONFIG="mac-setup.config.yml"
+  MI_WIZARD_CONFIG="mac-setup.wizard.yml"
   MI_INVENTORY="mac-setup.yml"
   MI_CONFIG_EXPLICIT="false"
   MI_INVENTORY_EXPLICIT="false"
@@ -119,8 +121,12 @@ mi_set_command_token() {
     MI_COMMAND="$token"
     return 0
   fi
-  if { [ "$MI_COMMAND" = "config" ] || [ "$MI_COMMAND" = "gist" ]; } && [ -z "$MI_SUBCOMMAND" ]; then
+  if { [ "$MI_COMMAND" = "config" ] || [ "$MI_COMMAND" = "gist" ] || [ "$MI_COMMAND" = "wizard" ]; } && [ -z "$MI_SUBCOMMAND" ]; then
     MI_SUBCOMMAND="$token"
+    return 0
+  fi
+  if [ "$MI_COMMAND" = "wizard" ] && [ "$MI_SUBCOMMAND" = "config" ] && [ -z "$MI_WIZARD_SUBCOMMAND" ]; then
+    MI_WIZARD_SUBCOMMAND="$token"
     return 0
   fi
   if { [ "$MI_COMMAND" = "ignore" ] || [ "$MI_COMMAND" = "unignore" ]; } && [ -z "$MI_IGNORE_TOKEN" ]; then
@@ -133,7 +139,7 @@ mi_set_command_token() {
 
 mi_long_option_needs_value() {
   case "$1" in
-    --config|--inventory|--target|--source|--icloud-folder|--icloud-root|--skip-prepare|--pause-after-prepare|--caffeinate|--resume-file|--check-only|--apps|--brew|--npm|--pip|--pipx|--oh-my-zsh|--xcode|--dotfiles|--manual-apps|--interactive|--check-manual-brew|--manual-brew-match|--versions|--dotfiles-path|--output|--skip-existing|--overwrite|--use-versions|--install-missing-tools|--login-check|--appstore-login|--section|--format|--gist-id|--gist-create|--gist-visibility|--gist-file|--gist-config-file|--github-login|--github-token|--github-token-env|--command-timeout|--report|--report-format)
+    --config|--wizard-config|--inventory|--target|--source|--icloud-folder|--icloud-root|--skip-prepare|--pause-after-prepare|--caffeinate|--resume-file|--check-only|--apps|--brew|--npm|--pip|--pipx|--oh-my-zsh|--xcode|--dotfiles|--manual-apps|--interactive|--check-manual-brew|--manual-brew-match|--versions|--dotfiles-path|--output|--skip-existing|--overwrite|--use-versions|--install-missing-tools|--login-check|--appstore-login|--section|--format|--gist-id|--gist-create|--gist-visibility|--gist-file|--gist-config-file|--github-login|--github-token|--github-token-env|--command-timeout|--report|--report-format)
       return 0
       ;;
     *)
@@ -154,6 +160,7 @@ mi_set_long_option() {
   value="$2"
   case "$name" in
     --config) MI_CONFIG="$value"; MI_CONFIG_EXPLICIT="true" ;;
+    --wizard-config) MI_WIZARD_CONFIG="$value" ;;
     --inventory) MI_INVENTORY="$value"; MI_INVENTORY_EXPLICIT="true" ;;
     --target)
       case "$value" in icloud|local|github) MI_TARGET="$value"; MI_TARGET_EXPLICIT="true" ;; *) mi_error "--target expects icloud, local, or github"; return 2 ;; esac

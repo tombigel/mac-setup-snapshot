@@ -2,6 +2,7 @@
 mac-setup.yml
 mac-setup.yml.tmp.*
 mac-setup.config.yml
+mac-setup.wizard.yml
 mac-inventory.yml
 mac-inventory.yml.tmp.*
 mac-inventory.config.yml
