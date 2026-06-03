@@ -11,6 +11,7 @@ setup() {
   run "$BIN"
   [ "$status" -eq 0 ]
   [[ "$output" == *"Usage:"* ]]
+  [[ "$output" == *"wizard"* ]]
 }
 
 @test "shows help with chained short help flag" {
@@ -52,6 +53,44 @@ setup() {
   grep -q "~/.editorconfig" generated.yml
   grep -q "~/.config/nvim/init.lua" generated.yml
   grep -q "~/.config/lazygit/config.yml" generated.yml
+}
+
+@test "wizard requires an interactive terminal" {
+  run "$BIN" wizard
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"wizard requires an interactive terminal"* ]]
+}
+
+@test "generates wizard config file" {
+  run "$BIN" wizard config generate -o generated-wizard.yml
+  [ "$status" -eq 0 ]
+  [ -f generated-wizard.yml ]
+  grep -q "wizard:" generated-wizard.yml
+  grep -q "default_target: icloud" generated-wizard.yml
+  grep -q "default_source: icloud" generated-wizard.yml
+  grep -q "manual_brew_match: true" generated-wizard.yml
+  grep -q "appstore_login: true" generated-wizard.yml
+}
+
+@test "wizard config dry-run does not write" {
+  run "$BIN" wizard config generate --dry-run -o generated-wizard.yml
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"dry-run: would write wizard config to generated-wizard.yml"* ]]
+  [ ! -f generated-wizard.yml ]
+}
+
+@test "wizard config generator refuses existing file without yes" {
+  printf 'existing\n' >existing-wizard.yml
+  run "$BIN" wizard config generate -o existing-wizard.yml --interactive=false
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"wizard config not written"* ]]
+  [ "$(cat existing-wizard.yml)" = "existing" ]
+}
+
+@test "non-tty output does not include ansi styling" {
+  run "$BIN" backup --target local --dry-run --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
+  [ "$status" -eq 0 ]
+  [[ "$output" != *$'\033['* ]]
 }
 
 @test "backup applies generated config defaults for manual brew matching" {
