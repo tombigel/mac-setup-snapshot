@@ -254,3 +254,71 @@ YAML
   [ "$status" -eq 0 ]
   [ "$output" = $'warning: wizard config source backup.unsupported is unsupported; ignoring\nbrew|Packages|false\napps|Store|true' ]
 }
+
+@test "wizard backup flow dispatches selected answers as cli args" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" ANSWERS="$BATS_TEST_TMPDIR/answers" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" bash -c '
+    . "$PROJECT_ROOT/lib/common.sh"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/endpoint.sh"
+    . "$PROJECT_ROOT/lib/config.sh"
+    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/wizard.sh"
+    mkdir -p "$BACKUP_DIR"
+    printf "%s\n" 1 n 2 "2,9" 1 >"$ANSWERS"
+    mi_wizard_interactive() { return 0; }
+    mi_wizard_read() {
+      local answer
+      IFS= read -r answer <"$ANSWERS" || answer=""
+      sed "1d" "$ANSWERS" >"$ANSWERS.next"
+      mv "$ANSWERS.next" "$ANSWERS"
+      printf "%s\n" "$answer"
+    }
+    mi_wizard_dispatch() {
+      mi_wizard_args_for_flow "$1" | paste -sd " " -
+    }
+    mi_args_init
+    MI_INVENTORY="$BACKUP_DIR/mac-setup.backup.yml"
+    MI_WIZARD_CONFIG="$PROJECT_ROOT/mac-setup.wizard.yml"
+    mi_wizard_run
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"backup --target local"* ]]
+  [[ "$output" == *"--config $BATS_TEST_TMPDIR/backup/mac-setup.config.yml"* ]]
+  [[ "$output" == *"--brew=true"* ]]
+  [[ "$output" == *"--manual-apps=true"* ]]
+  [[ "$output" == *"--manual-brew-match ask"* ]]
+  [[ "$output" != *"--dry-run"* ]]
+}
+
+@test "wizard restore flow dispatches dry-run and selected config args" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" ANSWERS="$BATS_TEST_TMPDIR/answers" bash -c '
+    . "$PROJECT_ROOT/lib/common.sh"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/endpoint.sh"
+    . "$PROJECT_ROOT/lib/config.sh"
+    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/wizard.sh"
+    printf "version: 1\n" >mac-setup.config.yml
+    printf "%s\n" 2 "" 2 y "1,2" 1 >"$ANSWERS"
+    mi_wizard_interactive() { return 0; }
+    mi_wizard_read() {
+      local answer
+      IFS= read -r answer <"$ANSWERS" || answer=""
+      sed "1d" "$ANSWERS" >"$ANSWERS.next"
+      mv "$ANSWERS.next" "$ANSWERS"
+      printf "%s\n" "$answer"
+    }
+    mi_wizard_dispatch() {
+      mi_wizard_args_for_flow "$1" | paste -sd " " -
+    }
+    mi_args_init
+    MI_WIZARD_CONFIG="$PROJECT_ROOT/mac-setup.wizard.yml"
+    mi_wizard_run
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"restore --dry-run --source local"* ]]
+  [[ "$output" == *"--config mac-setup.config.yml"* ]]
+  [[ "$output" == *"--appstore-login skip"* ]]
+  [[ "$output" == *"--apps=true"* ]]
+  [[ "$output" == *"--brew=true"* ]]
+}

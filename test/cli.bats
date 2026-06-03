@@ -61,6 +61,13 @@ setup() {
   grep -q "~/.config/lazygit/config.yml" generated.yml
 }
 
+@test "config generate dry-run does not write config file" {
+  run "$BIN" config generate -o generated.yml --dry-run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"dry-run: would write config to generated.yml"* ]]
+  [ ! -f generated.yml ]
+}
+
 @test "wizard requires an interactive terminal" {
   run "$BIN" wizard
   [ "$status" -eq 2 ]
@@ -281,6 +288,9 @@ YAML
   [ -f README.md ]
   grep -q 'For a guided restore' README.md
   grep -q 'mac-setup wizard' README.md
+  grep -q 'Restore is additive' README.md
+  grep -q 'It does not uninstall apps, remove packages, or clean up existing files' README.md
+  grep -q 'The wizard asks for dry-run mode, storage endpoint, enabled sources, and App Store login policy' README.md
 }
 
 @test "backup dry-run reports markdown list path without writing it" {
@@ -419,6 +429,18 @@ YAML
   grep -q '| Falcon | '"$app_root"'/Falcon.app | 1.0 |  | false | manual:com.example.falcon |' backup-list.md
 }
 
+@test "manual apps skip invalid cask candidate tokens" {
+  app_root="$BATS_TEST_TMPDIR/Applications"
+  mkdir -p "$app_root"
+  make_test_app "$app_root" "Unsafe App" "com.example.unsafe" "1.0" false
+  mock_command brew 'while [ "$1" = "env" ] || [ "${1#HOMEBREW_}" != "$1" ]; do shift; done; case "$1 $2 $3" in "list --cask ") : ;; "search --casks /.*/") echo "unsafe app" ;; *) exit 0 ;; esac'
+
+  run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=never
+  [ "$status" -eq 0 ]
+  grep -q 'name: "Unsafe App"' mac-setup.backup.yml
+  grep -q 'brew_cask_candidate: ""' mac-setup.backup.yml
+}
+
 @test "manual apps skip deprecated cask candidates" {
   command -v yq >/dev/null 2>&1 || skip "yq is required for brew cask json parsing"
   app_root="$BATS_TEST_TMPDIR/Applications"
@@ -429,6 +451,19 @@ YAML
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=never
   [ "$status" -eq 0 ]
   grep -q 'name: "Retired App"' mac-setup.backup.yml
+  grep -q 'brew_cask_candidate: ""' mac-setup.backup.yml
+}
+
+@test "manual apps skip disabled cask candidates" {
+  command -v yq >/dev/null 2>&1 || skip "yq is required for brew cask json parsing"
+  app_root="$BATS_TEST_TMPDIR/Applications"
+  mkdir -p "$app_root"
+  make_test_app "$app_root" "Disabled App" "com.example.disabled" "1.0" false
+  mock_command brew 'while [ "$1" = "env" ] || [ "${1#HOMEBREW_}" != "$1" ]; do shift; done; case "$1 $2 $3" in "list --cask ") : ;; "search --casks /.*/") echo disabled-app ;; "info --json=v2 --cask") printf "%s\n" "{\"casks\":[{\"deprecated\":false,\"disabled\":true}]}" ;; *) exit 0 ;; esac'
+
+  run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=never
+  [ "$status" -eq 0 ]
+  grep -q 'name: "Disabled App"' mac-setup.backup.yml
   grep -q 'brew_cask_candidate: ""' mac-setup.backup.yml
 }
 
@@ -447,6 +482,19 @@ YAML
   grep -q 'display_name: "Migrate App"' mac-setup.backup.yml
   grep -q "path: \"$app_root/Migrate App.app\"" mac-setup.backup.yml
   grep -q 'app_version: "4.0"' mac-setup.backup.yml
+}
+
+@test "manual app all mode accepts cask migration without yes flag" {
+  app_root="$BATS_TEST_TMPDIR/Applications"
+  mkdir -p "$app_root"
+  make_test_app "$app_root" "All Mode App" "com.example.allmode" "4.0" false
+  mock_command brew 'while [ "$1" = "env" ] || [ "${1#HOMEBREW_}" != "$1" ]; do shift; done; case "$1 $2 $3" in "tap  ") echo homebrew/core ;; "leaves  ") : ;; "list --cask ") : ;; "list --cask --versions") : ;; "search --casks /.*/") echo all-mode-app ;; *) exit 0 ;; esac'
+
+  run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --skip-report --apps=false --brew=true --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true --manual-brew-match=all
+  [ "$status" -eq 0 ]
+  ! grep -q 'ref: "manual:com.example.allmode"' mac-setup.backup.yml
+  grep -q 'name: "all-mode-app"' mac-setup.backup.yml
+  grep -q 'ref: "brew_cask:all-mode-app"' mac-setup.backup.yml
 }
 
 @test "command timeout fails slow mas inventory with warning" {
