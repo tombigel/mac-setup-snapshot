@@ -57,7 +57,7 @@ mi_report_counts_line() {
     printf 'not_written_during_dry_run\n'
     return 0
   fi
-  apps="$(mi_report_inventory_count '([.apps[]? | select((type == "!!map") and has("id"))] + [(.apps | select(type == "!!map") | .items[]?) | select((type == "!!map") and has("id"))]) | length')"
+  apps="$(mi_report_inventory_count '(.apps.items // []) | length')"
   formulae="$(mi_report_inventory_count '.brew.formulae // [] | length')"
   casks="$(mi_report_inventory_count '.brew.casks // [] | length')"
   npm="$(mi_report_inventory_count '.npm.globals // [] | length')"

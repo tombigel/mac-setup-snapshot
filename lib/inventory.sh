@@ -556,7 +556,7 @@ mi_inventory_list_md() {
 
   mi_inventory_md_section_selected apps && mi_inventory_md_table "App Store Apps" "| ID | Name | Path | Version | Ignored | Ref |
 | --- | --- | --- | --- | --- | --- |" '
-    (.apps.items // .apps // [])[]? |
+    (.apps.items // [])[]? |
     "| " + (.id // "" | tostring) + " | " + (.name // "" | tostring) + " | " + (.path // "" | tostring) + " | " + (.version // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
   '
 
@@ -564,11 +564,7 @@ mi_inventory_list_md() {
     mi_inventory_md_table "Homebrew Taps" "| Name | Ignored | Ref |
 | --- | --- | --- |" '
       (.brew.taps // [])[]? |
-      select(type == "!!map") |
-      "| " + (.name // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |",
-      (.brew.taps // [])[]? |
-      select(type != "!!map") |
-      "| " + (. // "" | tostring) + " | false |  |"
+      "| " + (.name // "" | tostring) + " | " + (.ignored // false | tostring) + " | " + (.ref // "" | tostring) + " |"
     '
     mi_inventory_md_table "Homebrew Formulae" "| Name | Version | Ignored | Ref |
 | --- | --- | --- | --- |" '

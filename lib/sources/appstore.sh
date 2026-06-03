@@ -230,7 +230,7 @@ appstore_restore() {
     return 1
   fi
   rows="$(yq e -r '
-    ([.apps[]? | select((type == "!!map") and has("id"))] + [(.apps | select(type == "!!map") | .items[]?) | select((type == "!!map") and has("id"))])[]? |
+    (.apps.items // [])[]? |
     (.id // "" | tostring) + "|" +
     (.ref // "" | tostring) + "|" +
     (.name // "" | tostring) + "|" +

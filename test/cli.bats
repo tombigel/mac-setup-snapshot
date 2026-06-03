@@ -427,34 +427,34 @@ YAML
   ! grep -q 'ref: appstore:100' config.yml
 }
 
-@test "ignore by legacy manual token adds ref and future backup reapplies config" {
+@test "ignore by manual token adds ref and future backup reapplies config" {
   command -v yq >/dev/null 2>&1 || skip "yq is required for ignore edits"
   cat >snapshot.yml <<'YAML'
 version: 1
 manual_apps:
   apps:
-    - name: "Legacy App"
-      path: "/Applications/Legacy App.app"
-      bundle_id: "com.example.legacy"
+    - name: "Token App"
+      path: "/Applications/Token App.app"
+      bundle_id: "com.example.token"
       version: "1.0"
       brew_cask_candidate: ""
       selected_brew_cask: ""
 YAML
 
-  run "$BIN" ignore "Legacy App" --source local --inventory snapshot.yml --config config.yml --skip-report
+  run "$BIN" ignore "Token App" --source local --inventory snapshot.yml --config config.yml --skip-report
   [ "$status" -eq 0 ]
-  grep -q 'ref: manual:com.example.legacy' snapshot.yml
+  grep -q 'ref: manual:com.example.token' snapshot.yml
   grep -q 'ignored: true' snapshot.yml
   grep -q 'ignored_items:' config.yml
-  grep -q 'ref: manual:com.example.legacy' config.yml
+  grep -q 'ref: manual:com.example.token' config.yml
 
   app_root="$BATS_TEST_TMPDIR/Applications"
   mkdir -p "$app_root"
-  make_test_app "$app_root" "Legacy App" "com.example.legacy" "2.0" false
+  make_test_app "$app_root" "Token App" "com.example.token" "2.0" false
   mock_command brew 'while [ "$1" = "env" ] || [ "${1#HOMEBREW_}" != "$1" ]; do shift; done; case "$1 $2 $3" in "list --cask ") : ;; "search --casks /.*/") : ;; *) exit 0 ;; esac'
   run env MI_APP_DIRS="$app_root" "$BIN" backup --target local --inventory new.yml --config config.yml --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=true
   [ "$status" -eq 0 ]
-  grep -q 'ref: "manual:com.example.legacy"' new.yml
+  grep -q 'ref: "manual:com.example.token"' new.yml
   grep -q 'ignored: true' new.yml
 }
 

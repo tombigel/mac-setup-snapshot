@@ -166,22 +166,9 @@ mi_ignore_inventory_rows() {
       (.value.path // "" | tostring) + "|" + "" + "|" + ""
   ' "$inventory" 2>/dev/null
   yq e -r '
-    (.apps | select(type == "!!seq") // []) | to_entries[]? |
-      "appstore" + "|" + ".apps[" + (.key | tostring) + "]" + "|" +
-      (.value.ref // "" | tostring) + "|" + (.value.id // "" | tostring) + "|" + (.value.name // "" | tostring) + "|" +
-      (.value.path // "" | tostring) + "|" + "" + "|" + ""
-  ' "$inventory" 2>/dev/null
-  yq e -r '
     (.brew.taps // []) | to_entries[]? |
-      select(.value | type == "!!map") |
       "brew_tap" + "|" + ".brew.taps[" + (.key | tostring) + "]" + "|" +
       (.value.ref // "" | tostring) + "|" + (.value.name // "" | tostring) + "|" + (.value.name // "" | tostring) + "|" + "" + "|" + "" + "|"
-  ' "$inventory" 2>/dev/null
-  yq e -r '
-    (.brew.taps // []) | to_entries[]? |
-      select(.value | type != "!!map") |
-      "brew_tap" + "|" + ".brew.taps[" + (.key | tostring) + "]" + "|" +
-      "" + "|" + (.value // "" | tostring) + "|" + (.value // "" | tostring) + "|" + "" + "|" + "" + "|"
   ' "$inventory" 2>/dev/null
   yq e -r '
     (.brew.formulae // []) | to_entries[]? |
@@ -265,23 +252,13 @@ mi_ignore_write_inventory() {
   local tmp stamp
   stamp="$(mi_timestamp)"
   tmp="$(mktemp "${inventory}.tmp.XXXXXX")" || return 1
-  case "$type:$action" in
-    brew_tap:ignore)
-      MI_IGNORE_REF="$ref" MI_IGNORE_AT="$stamp" MI_IGNORE_ID="$id" yq e \
-        "($path_expr) = ((($path_expr | select(type == \"!!map\")) // {\"name\": strenv(MI_IGNORE_ID)}) * {\"ref\": strenv(MI_IGNORE_REF), \"ignored\": true, \"ignored_at\": strenv(MI_IGNORE_AT)}) | .updated_at = strenv(MI_IGNORE_AT)" \
-        "$inventory" >"$tmp" || { rm -f "$tmp"; return 1; }
-      ;;
-    brew_tap:unignore)
-      MI_IGNORE_REF="$ref" MI_IGNORE_AT="$stamp" MI_IGNORE_ID="$id" yq e \
-        "($path_expr) = ((($path_expr | select(type == \"!!map\")) // {\"name\": strenv(MI_IGNORE_ID)}) * {\"ref\": strenv(MI_IGNORE_REF), \"ignored\": false}) | del($path_expr.ignored_at) | .updated_at = strenv(MI_IGNORE_AT)" \
-        "$inventory" >"$tmp" || { rm -f "$tmp"; return 1; }
-      ;;
-    *:ignore)
+  case "$action" in
+    ignore)
       MI_IGNORE_REF="$ref" MI_IGNORE_AT="$stamp" yq e \
         "($path_expr.ref) = strenv(MI_IGNORE_REF) | ($path_expr.ignored) = true | ($path_expr.ignored_at) = strenv(MI_IGNORE_AT) | .updated_at = strenv(MI_IGNORE_AT)" \
         "$inventory" >"$tmp" || { rm -f "$tmp"; return 1; }
       ;;
-    *:unignore)
+    unignore)
       MI_IGNORE_REF="$ref" MI_IGNORE_AT="$stamp" yq e \
         "($path_expr.ref) = strenv(MI_IGNORE_REF) | ($path_expr.ignored) = false | del($path_expr.ignored_at) | .updated_at = strenv(MI_IGNORE_AT)" \
         "$inventory" >"$tmp" || { rm -f "$tmp"; return 1; }
@@ -310,13 +287,11 @@ mi_ignore_update_config() {
   if [ "$action" = "ignore" ]; then
     MI_IGNORE_REF="$ref" MI_IGNORE_NAME="$name" yq e '
       .version = (.version // 1) |
-      .restore.ignored_items = (((.restore.ignored_items // []) | map(select(.ref != strenv(MI_IGNORE_REF)))) + [{"ref": strenv(MI_IGNORE_REF), "name": strenv(MI_IGNORE_NAME)}]) |
-      .restore.ignored_apps = ((.restore.ignored_apps // []) | map(select(.ref != strenv(MI_IGNORE_REF))))
+      .restore.ignored_items = (((.restore.ignored_items // []) | map(select(.ref != strenv(MI_IGNORE_REF)))) + [{"ref": strenv(MI_IGNORE_REF), "name": strenv(MI_IGNORE_NAME)}])
     ' "$MI_CONFIG" >"$tmp" || { rm -f "$tmp"; return 1; }
   else
     MI_IGNORE_REF="$ref" yq e '
-      .restore.ignored_items = ((.restore.ignored_items // []) | map(select(.ref != strenv(MI_IGNORE_REF)))) |
-      .restore.ignored_apps = ((.restore.ignored_apps // []) | map(select(.ref != strenv(MI_IGNORE_REF))))
+      .restore.ignored_items = ((.restore.ignored_items // []) | map(select(.ref != strenv(MI_IGNORE_REF))))
     ' "$MI_CONFIG" >"$tmp" || { rm -f "$tmp"; return 1; }
   fi
   mv "$tmp" "$MI_CONFIG"
@@ -327,7 +302,7 @@ mi_ignore_apply_config_to_inventory() {
   local refs ref tmp stamp
   [ -f "$MI_CONFIG" ] || return 0
   mi_has yq || return 0
-  refs="$(yq e -r '(.restore.ignored_items[]?.ref, .restore.ignored_apps[]?.ref) // ""' "$MI_CONFIG" 2>/dev/null | sed '/^$/d' | sort -u || true)"
+  refs="$(yq e -r '.restore.ignored_items[]?.ref // ""' "$MI_CONFIG" 2>/dev/null | sed '/^$/d' | sort -u || true)"
   [ -n "$refs" ] || return 0
   stamp="$(mi_timestamp)"
   while IFS= read -r ref; do
@@ -336,8 +311,8 @@ mi_ignore_apply_config_to_inventory() {
     MI_IGNORE_REF="$ref" MI_IGNORE_AT="$stamp" yq e '
       (.apps.items[]? | select(.ref == strenv(MI_IGNORE_REF)) | .ignored) = true |
       (.apps.items[]? | select(.ref == strenv(MI_IGNORE_REF)) | .ignored_at) = strenv(MI_IGNORE_AT) |
-      (.brew.taps[]? | select((type == "!!map") and .ref == strenv(MI_IGNORE_REF)) | .ignored) = true |
-      (.brew.taps[]? | select((type == "!!map") and .ref == strenv(MI_IGNORE_REF)) | .ignored_at) = strenv(MI_IGNORE_AT) |
+      (.brew.taps[]? | select(.ref == strenv(MI_IGNORE_REF)) | .ignored) = true |
+      (.brew.taps[]? | select(.ref == strenv(MI_IGNORE_REF)) | .ignored_at) = strenv(MI_IGNORE_AT) |
       (.brew.formulae[]? | select(.ref == strenv(MI_IGNORE_REF)) | .ignored) = true |
       (.brew.formulae[]? | select(.ref == strenv(MI_IGNORE_REF)) | .ignored_at) = strenv(MI_IGNORE_AT) |
       (.brew.casks[]? | select(.ref == strenv(MI_IGNORE_REF)) | .ignored) = true |

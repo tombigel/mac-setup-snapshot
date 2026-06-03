@@ -480,7 +480,7 @@ Manual app backup automatically omits apps already represented by App Store rece
 
 Homebrew cask snapshot rows include the installable cask token in `name`. When a matching `.app` bundle is found, backup also records `display_name`, `path`, and `app_version` so Markdown reports can show the real app name and location without changing restore behavior.
 
-During restore, manual apps with a recorded `brew_cask_candidate` are offered as Homebrew cask installs instead of being treated as plain manual-only items. Restore verifies each candidate with `brew info --cask` before prompting or installing, so stale or invalid candidates from older snapshots are skipped with a warning. Interactive restore prompts per valid candidate. `--yes` installs valid candidate casks automatically, `--no` skips them, and non-interactive restore reports the candidate with instructions to rerun interactively or pass `--yes`. Manual apps without candidates still produce manual restore warnings.
+During restore, manual apps with a recorded `brew_cask_candidate` are offered as Homebrew cask installs instead of being treated as plain manual-only items. Restore verifies each candidate with `brew info --cask` before prompting or installing, so stale or invalid candidates are skipped with a warning. Interactive restore prompts per valid candidate. `--yes` installs valid candidate casks automatically, `--no` skips them, and non-interactive restore reports the candidate with instructions to rerun interactively or pass `--yes`. Manual apps without candidates still produce manual restore warnings.
 
 `--versions true|false`, `-V true|false`
 
@@ -802,7 +802,7 @@ reports:
   skip: false
 ```
 
-CLI flags override config defaults for the current run. `ignore` adds refs to `restore.ignored_items`; backup reapplies those refs to matching rows so future snapshots keep the same restore exclusions visible. Older `restore.ignored_apps` config entries are still read for compatibility.
+CLI flags override config defaults for the current run. `ignore` adds refs to `restore.ignored_items`; backup reapplies those refs to matching rows so future snapshots keep the same restore exclusions visible.
 
 ## Setup Snapshot File
 

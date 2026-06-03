@@ -81,11 +81,7 @@ brew_restore() {
   mi_brew_capture installed_taps tap || installed_taps=""
   tap_rows="$(yq e -r '
     (.brew.taps // [])[]? |
-    select(type == "!!map") |
-    (.name // "" | tostring) + "|" + (.ref // "" | tostring) + "|" + (.ignored // false | tostring),
-    (.brew.taps // [])[]? |
-    select(type != "!!map") |
-    (. // "" | tostring) + "||false"
+    (.name // "" | tostring) + "|" + (.ref // "" | tostring) + "|" + (.ignored // false | tostring)
   ' "$MI_INVENTORY" 2>/dev/null || true)"
   printf '%s\n' "$tap_rows" | while IFS="|" read -r tap tap_ref tap_ignored; do
     [ -n "$tap" ] && [ "$tap" != "null" ] || continue
