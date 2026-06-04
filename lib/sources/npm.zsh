@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 npm_backup() {
   local npm_globals package_path name version npm_version

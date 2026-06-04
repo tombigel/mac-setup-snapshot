@@ -1,5 +1,4 @@
 #!/bin/zsh -f
-# shellcheck disable=SC1091
 
 emulate -R zsh
 setopt no_unset no_nomatch sh_word_split
@@ -8,31 +7,19 @@ MI_SCRIPT_PATH="${0:A}"
 SCRIPT_DIR="${MI_SCRIPT_PATH:h}"
 PROJECT_DIR="${SCRIPT_DIR:h}"
 
-# shellcheck source=../lib/common.sh
-. "$PROJECT_DIR/lib/common.sh"
-# shellcheck source=../lib/args.sh
-. "$PROJECT_DIR/lib/args.sh"
-# shellcheck source=../lib/endpoint.sh
-. "$PROJECT_DIR/lib/endpoint.sh"
-# shellcheck source=../lib/config.sh
-. "$PROJECT_DIR/lib/config.sh"
-# shellcheck source=../lib/safety.sh
-. "$PROJECT_DIR/lib/safety.sh"
-# shellcheck source=../lib/report.sh
-. "$PROJECT_DIR/lib/report.sh"
-# shellcheck source=../lib/inventory.sh
-. "$PROJECT_DIR/lib/inventory.sh"
-# shellcheck source=../lib/ignore.sh
-. "$PROJECT_DIR/lib/ignore.sh"
-# shellcheck source=../lib/gist.sh
-. "$PROJECT_DIR/lib/gist.sh"
-# shellcheck source=../lib/workflow.sh
-. "$PROJECT_DIR/lib/workflow.sh"
-# shellcheck source=../lib/wizard.sh
-. "$PROJECT_DIR/lib/wizard.sh"
+. "$PROJECT_DIR/lib/common.zsh"
+. "$PROJECT_DIR/lib/args.zsh"
+. "$PROJECT_DIR/lib/endpoint.zsh"
+. "$PROJECT_DIR/lib/config.zsh"
+. "$PROJECT_DIR/lib/safety.zsh"
+. "$PROJECT_DIR/lib/report.zsh"
+. "$PROJECT_DIR/lib/inventory.zsh"
+. "$PROJECT_DIR/lib/ignore.zsh"
+. "$PROJECT_DIR/lib/gist.zsh"
+. "$PROJECT_DIR/lib/workflow.zsh"
+. "$PROJECT_DIR/lib/wizard.zsh"
 
-for source_file in "$PROJECT_DIR"/lib/sources/*.sh; do
-  # shellcheck source=/dev/null
+for source_file in "$PROJECT_DIR"/lib/sources/*.zsh; do
   . "$source_file"
 done
 

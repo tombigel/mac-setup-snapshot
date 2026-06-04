@@ -1,6 +1,6 @@
 # Agent Instructions
 
-This repo contains Mac Setup Snapshot, a Bash-first macOS setup snapshot and additive restore CLI.
+This repo contains Mac Setup Snapshot, a zsh-first macOS setup snapshot and additive restore CLI.
 
 ## Safety Rules
 
@@ -28,18 +28,17 @@ Runtime resume state defaults to `~/.mac-setup/resume.yml`.
 Run when available:
 
 ```bash
-find bin lib -type f \( -name '*.sh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 bash -n
-PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" shellcheck bin/mac-setup lib/*.sh lib/sources/*.sh
+find bin lib -type f \( -name '*.zsh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 zsh -n
 PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" /opt/homebrew/bin/bats test
 ```
 
-Sandboxed agent shells may not load the user's interactive shell PATH. Before reporting `shellcheck`, `bats`, or `yq` missing, check standard Homebrew paths such as `/opt/homebrew/bin` and `/usr/local/bin`.
+Sandboxed agent shells may not load the user's interactive shell PATH. Before reporting `bats` or `yq` missing, check standard Homebrew paths such as `/opt/homebrew/bin` and `/usr/local/bin`.
 
 Do not add Bats tests that run real slow commands or sleepers to prove timeout behavior. Stub timeout outcomes or use direct helper-level tests that return immediately.
 
 ## Adding A Source Module
 
-- Add a `lib/sources/<name>.sh` file.
+- Add a `lib/sources/<name>.zsh` file.
 - Provide `<name>_backup`, `<name>_restore`, and optional `<name>_doctor`.
 - Validate identifiers before package-manager commands.
 - Use `mi_run`, `mi_command_capture`, or source-specific wrappers so dry-run and timeouts work.

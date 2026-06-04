@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-# shellcheck disable=SC2034
+#!/usr/bin/env zsh
 
 MI_WORKFLOW_STEPS=""
 MI_WORKFLOW_TOTAL=0

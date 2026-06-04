@@ -32,7 +32,7 @@ Calling `mac-setup` without arguments opens the guided wizard in an interactive 
 
 ## Description
 
-`mac-setup` is a Bash CLI for preparing a Mac rebuild. It creates a YAML setup snapshot of installed software and selected user configuration, then uses that snapshot to run an additive restore.
+`mac-setup` is a zsh CLI for preparing a Mac rebuild. It creates a YAML setup snapshot of installed software and selected user configuration, then uses that snapshot to run an additive restore.
 
 Restore is additive-only in v1. It installs, copies, checks, and reports. It does not uninstall packages, delete applications, clean directories, or remove software that is not in the snapshot.
 

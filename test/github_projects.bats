@@ -139,11 +139,11 @@ YAML
 
 @test "wizard github projects folder prompt uses absolute home default" {
   run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_args_init
     MI_GITHUB_PROJECTS=true
     mi_wizard_read() { printf "\n"; }
@@ -156,11 +156,11 @@ YAML
 
 @test "wizard github projects folder prompt requests editable default" {
   run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_args_init
     MI_GITHUB_PROJECTS=true
     mi_wizard_read_editable_default() {
@@ -178,11 +178,11 @@ YAML
 
 @test "wizard github projects folder prompt rejects relative paths" {
   run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" ANSWERS="$BATS_TEST_TMPDIR/answers" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     printf "%s\n" Projects /Users/test/Projects >"$ANSWERS"
     mi_args_init
     MI_GITHUB_PROJECTS=true

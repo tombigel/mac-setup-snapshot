@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 mi_app_ref_key() {
   printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/\.app$//; s/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//'

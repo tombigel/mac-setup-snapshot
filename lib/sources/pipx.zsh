@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 pipx_backup() {
   printf 'pipx:\n'

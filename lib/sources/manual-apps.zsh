@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 manual_apps_backup() {
   local app_index installed_casks cask_catalog app_count app_number app name bundle_id version adam_id receipt query cask cask_catalog_ready selected installed_cask search_matches

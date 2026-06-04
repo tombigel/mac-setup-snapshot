@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 oh_my_zsh_path() {
   if [ -n "${ZSH:-}" ]; then
@@ -25,7 +25,6 @@ oh_my_zsh_backup() {
     plugins="$(sed -n 's/^plugins=(\(.*\)).*/\1/p' "$zshrc" | head -n 1)"
     printf '  theme: %s\n' "$(mi_yaml_scalar "$theme")"
     printf '  plugins: %s\n' "$(mi_yaml_scalar "$plugins")"
-    # shellcheck disable=SC2088
     printf '  zshrc: %s\n' "$(mi_yaml_scalar "~/.zshrc")"
   else
     printf '  theme: ""\n'

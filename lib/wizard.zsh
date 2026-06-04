@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 MI_WIZARD_DEFAULT_BACKUP_SOURCES="apps|App Store apps|true
 brew|Homebrew|true
@@ -394,10 +394,8 @@ never|Record candidates but keep apps manual
 all|Accept all Homebrew cask candidates"
   choice="$(mi_wizard_choice "Manual App Matching" "$options" 3)"
   MI_MANUAL_BREW_MATCH="$choice"
-  # shellcheck disable=SC2034
   MI_MANUAL_BREW_MATCH_EXPLICIT="true"
   MI_CHECK_MANUAL_BREW="true"
-  # shellcheck disable=SC2034
   MI_CHECK_MANUAL_BREW_EXPLICIT="true"
 }
 
@@ -699,12 +697,10 @@ mi_wizard_run() {
   case "$flow" in
     backup)
       MI_TARGET="$(mi_wizard_default_endpoint backup)"
-      # shellcheck disable=SC2034
       MI_TARGET_EXPLICIT="true"
       ;;
     restore)
       MI_SOURCE="$(mi_wizard_default_endpoint restore)"
-      # shellcheck disable=SC2034
       MI_SOURCE_EXPLICIT="true"
       ;;
   esac

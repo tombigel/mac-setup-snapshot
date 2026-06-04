@@ -1,10 +1,9 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 dotfiles_default_paths() {
   if [ -n "$MI_DOTFILES_PATHS" ]; then
     printf '%s\n' "$MI_DOTFILES_PATHS"
   else
-    # shellcheck disable=SC2088
     printf '%s\n' \
       "~/.zshrc" \
       "~/.zprofile" \

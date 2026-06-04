@@ -53,10 +53,10 @@ YAML
 @test "restore pause mode can skip selected sections" {
   command -v yq >/dev/null 2>&1 || skip "yq is required for restore"
   run env PROJECT_ROOT="$PROJECT_ROOT" LOG="$BATS_TEST_TMPDIR/restore.log" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/safety.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/safety.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
     mi_args_init
     MI_INVENTORY="$PWD/inventory.yml"
     MI_APPS=false

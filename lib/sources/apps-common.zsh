@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 mi_app_dirs() {
   if [ -n "${MI_APP_DIRS:-}" ]; then

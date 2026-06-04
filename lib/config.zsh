@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 mi_config_apply() {
   if [ -f "$MI_CONFIG" ] && mi_has yq; then

@@ -2,15 +2,15 @@
 
 ## Summary
 
-Create a public GitHub repo at `tombigel/mac-setup-snapshot` containing a Bash-first macOS setup snapshot and additive restore CLI.
+Create a public GitHub repo at `tombigel/mac-setup-snapshot` containing a zsh-first macOS setup snapshot and additive restore CLI.
 
 Defaults:
 
-- Runtime: Bash.
+- Runtime: zsh.
 - Config/snapshot format: YAML.
 - YAML parser: `yq` v4.
 - Test framework: `bats-core`.
-- Static check: `shellcheck`.
+- Static check: `zsh -n`.
 - Remote sync: default iCloud Drive endpoint, with optional GitHub Gist input/output.
 - Restore policy: additive-only by default; no uninstall/delete behavior in v1.
 
@@ -167,15 +167,15 @@ Create:
 
 ```text
 bin/mac-setup
-lib/args.sh
-lib/common.sh
-lib/config.sh
-lib/inventory.sh
-lib/gist.sh
-lib/safety.sh
-lib/workflow.sh
-lib/wizard.sh
-lib/sources/*.sh
+lib/args.zsh
+lib/common.zsh
+lib/config.zsh
+lib/inventory.zsh
+lib/gist.zsh
+lib/safety.zsh
+lib/workflow.zsh
+lib/wizard.zsh
+lib/sources/*.zsh
 test/
 docs/PLAN.md
 docs/PROMPT.md
@@ -223,7 +223,7 @@ Required coverage:
 Acceptance commands:
 
 ```bash
-shellcheck bin/mac-setup lib/**/*.sh
+find bin lib -type f \( -name '*.zsh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 zsh -n
 bats test
 ```
 

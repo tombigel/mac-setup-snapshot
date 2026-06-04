@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-# shellcheck disable=SC2034
+#!/usr/bin/env zsh
 
 mi_args_init() {
   MI_PROGRAM_NAME="${MI_PROGRAM_NAME:-$(basename -- "${MI_SCRIPT_PATH:-$0}")}"

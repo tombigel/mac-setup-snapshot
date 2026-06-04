@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-# shellcheck disable=SC2016
+#!/usr/bin/env zsh
 
 mi_source_enabled() {
   case "$1" in

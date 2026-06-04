@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 github_projects_roots() {
   [ -n "${MI_GITHUB_PROJECTS_ROOTS:-}" ] && { printf '%s\n' "$MI_GITHUB_PROJECTS_ROOTS"; return 0; }

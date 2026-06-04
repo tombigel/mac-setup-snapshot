@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 mi_github_token_value() {
   if [ -n "$MI_GITHUB_TOKEN" ]; then
@@ -99,7 +99,6 @@ mi_gist_push() {
   [ -f "$MI_CONFIG" ] && files_to_scan="${files_to_scan}${files_to_scan:+
 }$MI_CONFIG"
   if [ -n "$files_to_scan" ]; then
-    # shellcheck disable=SC2086
     mi_secret_scan_paths $files_to_scan || {
       mi_prompt_yes_no "Possible secrets detected. Continue with Gist upload?" "no" || return 1
     }
@@ -129,13 +128,11 @@ mi_gist_push_with_gh() {
   [ -n "$files" ] || { mi_error "nothing to upload"; return 1; }
 
   if [ -n "$MI_GIST_ID" ]; then
-    # shellcheck disable=SC2086
     gh gist edit "$MI_GIST_ID" $files
   else
     [ "$MI_GIST_CREATE" = "true" ] || { mi_error "--gist-create=true or --gist-id is required"; return 2; }
     public_flag=""
     [ "$MI_GIST_VISIBILITY" = "public" ] && public_flag="--public"
-    # shellcheck disable=SC2086
     gh gist create $public_flag $files
   fi
 }

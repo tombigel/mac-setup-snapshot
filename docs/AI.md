@@ -40,7 +40,7 @@ Use Bats and mocked commands. Do not call real package managers in tests.
 Managed/sandboxed agent shells may not load the user's interactive shell profile, so Homebrew tools can be installed but missing from `PATH`. On Apple Silicon Macs, run validation with Homebrew paths injected explicitly:
 
 ```bash
-PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" shellcheck bin/mac-setup lib/*.sh lib/sources/*.sh
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" zsh -n bin/mac-setup lib/*.zsh lib/sources/*.zsh
 PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" /opt/homebrew/bin/bats test
 ```
 

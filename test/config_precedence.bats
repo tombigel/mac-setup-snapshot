@@ -41,9 +41,9 @@ esac'
 @test "config applies matrix defaults when cli leaves values unset" {
   mock_matrix_yq
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/config.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/config.zsh"
     mi_args_init
     mi_parse_args backup >/dev/null
     mi_config_apply
@@ -59,9 +59,9 @@ esac'
 @test "explicit cli options override config matrix defaults" {
   mock_matrix_yq
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/config.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/config.zsh"
     mi_args_init
     mi_parse_args backup \
       --apps=false --brew=false --npm=true --pip=true --pipx=true \

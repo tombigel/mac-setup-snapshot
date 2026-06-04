@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-# shellcheck disable=SC2034
+#!/usr/bin/env zsh
 
 mi_endpoint_init_defaults() {
   MI_TARGET="${MI_TARGET:-}"

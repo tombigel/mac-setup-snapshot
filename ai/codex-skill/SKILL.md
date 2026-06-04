@@ -10,10 +10,10 @@ Use this skill when working on the `mac-setup-snapshot` repository.
 4. For code changes, run:
 
 ```bash
-find bin lib -type f \( -name '*.sh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 bash -n
+find bin lib -type f \( -name '*.zsh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 zsh -n
 ```
 
-5. Run `shellcheck` and `bats test` when installed.
+5. Run `zsh -n` and `bats test` when installed.
 
 ## Safety Defaults
 

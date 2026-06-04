@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 MI_REPORT_EVENTS_FILE=""
 MI_REPORT_STARTED_AT=""

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 brew_backup() {
   local brew_taps brew_formulae brew_casks name version formula_version line cask display_name cask_path app_version

@@ -9,11 +9,11 @@ setup() {
 
 @test "wizard selection parser supports all none ranges and comma pieces" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     all="$(mi_wizard_parse_selection_token all 3 | paste -sd "," -)"
     range="$(mi_wizard_parse_selection_token 2-4 5 | paste -sd "," -)"
     one="$(mi_wizard_parse_selection_token 3 5)"
@@ -26,11 +26,11 @@ setup() {
 
 @test "wizard rejects invalid selection parser tokens" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_wizard_parse_selection_token 4-2 5
   '
   [ "$status" -ne 0 ]
@@ -38,11 +38,11 @@ setup() {
 
 @test "wizard validates allowlisted flows sources and prompts" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_wizard_valid_flow backup
     mi_wizard_valid_flow restore
     ! mi_wizard_valid_flow shell
@@ -61,8 +61,8 @@ setup() {
 
 @test "wizard direct workflow aliases parse to forced wizard subcommands" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
     mi_args_init
     mi_parse_args wizard restore
     printf "%s|%s\n" "$MI_COMMAND" "$MI_SUBCOMMAND"
@@ -79,11 +79,11 @@ setup() {
 
 @test "wizard dry-run defaults are backup no and restore yes" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     printf "%s|%s\n" "$(mi_wizard_dry_run_default backup)" "$(mi_wizard_dry_run_default restore)"
   '
   [ "$status" -eq 0 ]
@@ -92,11 +92,11 @@ setup() {
 
 @test "wizard backup config path follows selected backup directory" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_args_init
     MI_TARGET=local
     MI_INVENTORY=backups/mac-setup.backup.yml
@@ -113,11 +113,11 @@ setup() {
 
 @test "wizard choice highlights the default menu option" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_wizard_read() { printf "%s\n" ""; }
     mi_wizard_choice "Storage" "icloud|iCloud Drive
 local|Local files
@@ -132,11 +132,11 @@ github|GitHub Gist" 2
 
 @test "wizard choice applies ansi style to default menu option when color is enabled" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_color_enabled() { return 0; }
     mi_wizard_read() { printf "%s\n" ""; }
     mi_wizard_choice "Storage" "icloud|iCloud Drive
@@ -149,12 +149,12 @@ github|GitHub Gist" 2
 
 @test "wizard backup config step generates missing user config in backup folder" {
   run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/config.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/config.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_args_init
     MI_TARGET=local
     MI_INVENTORY="$BACKUP_DIR/mac-setup.backup.yml"
@@ -170,12 +170,12 @@ github|GitHub Gist" 2
 
 @test "wizard backup config step can create new config beside existing one" {
   run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/config.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/config.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mkdir -p "$BACKUP_DIR"
     printf "existing\n" >"$BACKUP_DIR/mac-setup.config.yml"
     mi_wizard_choice() { printf "%s\n" new; }
@@ -192,12 +192,12 @@ github|GitHub Gist" 2
 
 @test "wizard backup config step defaults to existing config" {
   run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/config.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/config.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mkdir -p "$BACKUP_DIR"
     printf "existing\n" >"$BACKUP_DIR/mac-setup.config.yml"
     mi_wizard_read() { printf "\n"; }
@@ -215,11 +215,11 @@ github|GitHub Gist" 2
 
 @test "wizard source args reflect current source booleans" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     MI_APPS=false
     MI_BREW=true
     MI_NPM=false
@@ -241,11 +241,11 @@ github|GitHub Gist" 2
 
 @test "wizard manual app matching choice is dispatched as explicit cask matching" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_args_init
     MI_MANUAL_BREW_MATCH=ask
     MI_MANUAL_BREW_MATCH_EXPLICIT=true
@@ -269,11 +269,11 @@ github|GitHub Gist" 2
 
 @test "wizard manual app matching default accepts all cask candidates" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_args_init
     mi_wizard_read() { printf "\n"; }
     mi_wizard_backup_options
@@ -285,11 +285,11 @@ github|GitHub Gist" 2
 
 @test "wizard restore preflight prompt can skip prepare before restore" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_args_init
     mi_wizard_restore_missing_requirements() { printf "%s\n" "yq v4"; }
     mi_wizard_choice() { printf "%s\n" skip; }
@@ -302,11 +302,11 @@ github|GitHub Gist" 2
 
 @test "wizard restore step mode prompt dispatches pause mode" {
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_args_init
     MI_SOURCE=local
     MI_APPS=false
@@ -346,11 +346,11 @@ wizard:
 YAML
 
   run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     MI_WIZARD_CONFIG=custom-wizard.yml
     mi_wizard_load_config
     mi_wizard_sources backup
@@ -363,12 +363,12 @@ YAML
 
 @test "wizard backup flow dispatches selected answers as cli args" {
   run env PROJECT_ROOT="$PROJECT_ROOT" ANSWERS="$BATS_TEST_TMPDIR/answers" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/config.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/config.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     mkdir -p "$BACKUP_DIR"
     printf "%s\n" 1 n 2 "2,9" 1 >"$ANSWERS"
     mi_wizard_interactive() { return 0; }
@@ -398,12 +398,12 @@ YAML
 
 @test "wizard restore flow dispatches dry-run and selected config args" {
   run env PROJECT_ROOT="$PROJECT_ROOT" ANSWERS="$BATS_TEST_TMPDIR/answers" zsh -f -c '
-    . "$PROJECT_ROOT/lib/common.sh"
-    . "$PROJECT_ROOT/lib/args.sh"
-    . "$PROJECT_ROOT/lib/endpoint.sh"
-    . "$PROJECT_ROOT/lib/config.sh"
-    . "$PROJECT_ROOT/lib/inventory.sh"
-    . "$PROJECT_ROOT/lib/wizard.sh"
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/config.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
     printf "version: 1\n" >mac-setup.config.yml
     printf "%s\n" 2 "" 2 y "1,2" 1 1 >"$ANSWERS"
     mi_wizard_interactive() { return 0; }
