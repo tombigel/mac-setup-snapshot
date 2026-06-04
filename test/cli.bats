@@ -22,7 +22,7 @@ setup() {
 }
 
 @test "no args with captured output prints help instead of opening wizard" {
-  run bash -c '"$1" | sed -n "1,8p"' _ "$BIN"
+  run zsh -f -c '"$1" | sed -n "1,8p"' _ "$BIN"
   [ "$status" -eq 0 ]
   [[ "$output" == *"Usage:"* ]]
 }

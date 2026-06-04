@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 brew_backup() {
-  local brew_taps brew_formulae brew_casks name version formula_version line cask display_name path app_version
+  local brew_taps brew_formulae brew_casks name version formula_version line cask display_name cask_path app_version
   printf 'brew:\n'
   printf '  taps:\n'
   if mi_has brew; then
@@ -35,9 +35,9 @@ brew_backup() {
       brew_emit_cask_item "$name" "$version" "" "" ""
     done
     if [ -n "${MI_MATCHED_CASKS_FILE:-}" ] && [ -s "$MI_MATCHED_CASKS_FILE" ]; then
-      sort -u "$MI_MATCHED_CASKS_FILE" | while IFS="|" read -r cask display_name path app_version; do
+      sort -u "$MI_MATCHED_CASKS_FILE" | while IFS="|" read -r cask display_name cask_path app_version; do
         [ -n "$cask" ] || continue
-        brew_emit_cask_item "$cask" "matched-manual-app" "$display_name" "$path" "$app_version"
+        brew_emit_cask_item "$cask" "matched-manual-app" "$display_name" "$cask_path" "$app_version"
       done
     fi
   else
@@ -50,7 +50,7 @@ brew_emit_cask_item() {
   local name="$1"
   local version="$2"
   local display_name="${3:-}"
-  local path="${4:-}"
+  local cask_path="${4:-}"
   local app_version="${5:-}"
   local match app_path app_name app_bundle_id matched_version
   match="$(mi_app_index_match_cask_row "$name" || true)"
@@ -59,11 +59,11 @@ brew_emit_cask_item() {
 $match
 EOF
     [ -n "$display_name" ] || display_name="$app_name"
-    [ -n "$path" ] || path="$app_path"
+    [ -n "$cask_path" ] || cask_path="$app_path"
     [ -n "$app_version" ] || app_version="$matched_version"
-    mi_verbose "brew: matched cask $name to app ${display_name:-unknown} path=${path:-unknown} bundle_id=${app_bundle_id:-unknown}"
-  elif [ -n "$display_name" ] || [ -n "$path" ]; then
-    mi_verbose "brew: using manual app metadata for cask $name path=${path:-unknown}"
+    mi_verbose "brew: matched cask $name to app ${display_name:-unknown} path=${cask_path:-unknown} bundle_id=${app_bundle_id:-unknown}"
+  elif [ -n "$display_name" ] || [ -n "$cask_path" ]; then
+    mi_verbose "brew: using manual app metadata for cask $name path=${cask_path:-unknown}"
   else
     mi_verbose "brew: no installed app match for cask $name"
   fi
@@ -71,7 +71,7 @@ EOF
   printf '      ref: %s\n' "$(mi_yaml_scalar "$(mi_brew_cask_ref "$name")")"
   printf '      version: %s\n' "$(mi_yaml_scalar "$version")"
   printf '      display_name: %s\n' "$(mi_yaml_scalar "$display_name")"
-  printf '      path: %s\n' "$(mi_yaml_scalar "$path")"
+  printf '      path: %s\n' "$(mi_yaml_scalar "$cask_path")"
   printf '      app_version: %s\n' "$(mi_yaml_scalar "$app_version")"
 }
 

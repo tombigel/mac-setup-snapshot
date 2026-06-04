@@ -179,7 +179,7 @@ manual_apps_cask_info_status() {
 }
 
 manual_apps_restore() {
-  local rows name path candidate ref ignored rc
+  local rows name app_path candidate ref ignored rc
   rows="$(yq e -r '
     (.manual_apps.apps // [])[]? |
     (.name // "" | tostring) + "|" +
@@ -189,7 +189,7 @@ manual_apps_restore() {
     (.ignored // false | tostring)
   ' "$MI_INVENTORY" 2>/dev/null || true)"
   rc=0
-  while IFS="|" read -r name path candidate ref ignored; do
+  while IFS="|" read -r name app_path candidate ref ignored; do
     [ -n "$name" ] || continue
     if [ "$ignored" = "true" ]; then
       mi_info "manual app: ignored ${ref:-$name} ($name); skipping"
@@ -198,8 +198,8 @@ manual_apps_restore() {
     if [ -n "$candidate" ]; then
       manual_apps_restore_cask_candidate "$name" "$candidate" || rc=$?
     else
-      if [ -n "$path" ]; then
-        mi_warn "manual app requires manual restore: $name ($path)"
+      if [ -n "$app_path" ]; then
+        mi_warn "manual app requires manual restore: $name ($app_path)"
       else
         mi_warn "manual app requires manual restore: $name"
       fi

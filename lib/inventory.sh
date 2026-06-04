@@ -219,7 +219,7 @@ mi_inventory_backup_preflight() {
   while IFS= read -r section; do
     [ -n "$section" ] || continue
     fn="${section}_backup_preflight"
-    if declare -F "$fn" >/dev/null 2>&1; then
+    if (( $+functions[$fn] )); then
       "$fn" || return 1
     fi
   done <<EOF
@@ -848,7 +848,7 @@ mi_restore_progress_done() {
   local section="$1"
   local start_epoch="$2"
   local rc="$3"
-  local sections total index bar next now elapsed status
+  local sections total index bar next now elapsed restore_status
   [ "${MI_QUIET:-false}" = "true" ] && return 0
   now="$(date '+%s' 2>/dev/null || printf '0')"
   if [ "$start_epoch" -gt 0 ] 2>/dev/null && [ "$now" -ge "$start_epoch" ] 2>/dev/null; then
@@ -856,8 +856,8 @@ mi_restore_progress_done() {
   else
     elapsed="unknown"
   fi
-  status="done"
-  [ "$rc" -eq 0 ] || status="failed"
+  restore_status="done"
+  [ "$rc" -eq 0 ] || restore_status="failed"
   sections="$(mi_sections_for_restore)"
   total="$(printf '%s\n' "$sections" | mi_sections_count)"
   index="$(printf '%s\n' "$sections" | mi_section_index "$section")"
@@ -865,20 +865,20 @@ mi_restore_progress_done() {
   if mi_live_enabled; then
     if [ "$rc" -eq 0 ]; then
       if [ "$MI_DRY_RUN" = "true" ]; then
-        mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Restore) $bar $(mi_success_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+        mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Restore) $bar $(mi_success_text "$restore_status") $(mi_section_display_name "$section") (${elapsed}s)"
       else
-        mi_live_line "$(mi_heading Restore) $bar $(mi_success_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+        mi_live_line "$(mi_heading Restore) $bar $(mi_success_text "$restore_status") $(mi_section_display_name "$section") (${elapsed}s)"
       fi
     else
       if [ "$MI_DRY_RUN" = "true" ]; then
-        mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Restore) $bar $(mi_alert_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+        mi_live_line "$(mi_dry_run_text "dry-run") $(mi_heading Restore) $bar $(mi_alert_text "$restore_status") $(mi_section_display_name "$section") (${elapsed}s)"
       else
-        mi_live_line "$(mi_heading Restore) $bar $(mi_alert_text "$status") $(mi_section_display_name "$section") (${elapsed}s)"
+        mi_live_line "$(mi_heading Restore) $bar $(mi_alert_text "$restore_status") $(mi_section_display_name "$section") (${elapsed}s)"
       fi
     fi
     mi_live_finish
   else
-    printf 'restore: %s %s (%ss) %s\n' "$section" "$status" "$elapsed" "$bar" >&2
+    printf 'restore: %s %s (%ss) %s\n' "$section" "$restore_status" "$elapsed" "$bar" >&2
   fi
   if [ "$rc" -eq 0 ] && ! mi_live_enabled; then
     next="$(printf '%s\n' "$sections" | mi_next_section_after "$section")"

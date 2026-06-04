@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [ -n "${ZSH_VERSION:-}" ]; then
+  emulate -R zsh
+  setopt no_unset no_nomatch sh_word_split
+fi
+
 MI_VERSION="0.8.0"
 MI_LIVE_LINE_ACTIVE="false"
 

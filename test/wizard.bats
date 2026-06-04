@@ -8,7 +8,7 @@ setup() {
 }
 
 @test "wizard selection parser supports all none ranges and comma pieces" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -25,7 +25,7 @@ setup() {
 }
 
 @test "wizard rejects invalid selection parser tokens" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -37,7 +37,7 @@ setup() {
 }
 
 @test "wizard validates allowlisted flows sources and prompts" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -60,7 +60,7 @@ setup() {
 }
 
 @test "wizard direct workflow aliases parse to forced wizard subcommands" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     mi_args_init
@@ -78,7 +78,7 @@ setup() {
 }
 
 @test "wizard dry-run defaults are backup no and restore yes" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -91,7 +91,7 @@ setup() {
 }
 
 @test "wizard backup config path follows selected backup directory" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -112,7 +112,7 @@ setup() {
 }
 
 @test "wizard choice highlights the default menu option" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -131,7 +131,7 @@ github|GitHub Gist" 2
 }
 
 @test "wizard choice applies ansi style to default menu option when color is enabled" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -148,7 +148,7 @@ github|GitHub Gist" 2
 }
 
 @test "wizard backup config step generates missing user config in backup folder" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -169,7 +169,7 @@ github|GitHub Gist" 2
 }
 
 @test "wizard backup config step can create new config beside existing one" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -191,7 +191,7 @@ github|GitHub Gist" 2
 }
 
 @test "wizard backup config step defaults to existing config" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -214,7 +214,7 @@ github|GitHub Gist" 2
 }
 
 @test "wizard source args reflect current source booleans" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -229,6 +229,8 @@ github|GitHub Gist" 2
     MI_XCODE=false
     MI_DOTFILES=false
     MI_MANUAL_APPS=true
+    MI_GITHUB_PROJECTS=false
+    MI_GITHUB_PROJECTS_ROOTS=""
     mi_wizard_args_for_sources
   '
   [ "$status" -eq 0 ]
@@ -238,7 +240,7 @@ github|GitHub Gist" 2
 }
 
 @test "wizard manual app matching choice is dispatched as explicit cask matching" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -266,7 +268,7 @@ github|GitHub Gist" 2
 }
 
 @test "wizard manual app matching default accepts all cask candidates" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -282,7 +284,7 @@ github|GitHub Gist" 2
 }
 
 @test "wizard restore preflight prompt can skip prepare before restore" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -299,7 +301,7 @@ github|GitHub Gist" 2
 }
 
 @test "wizard restore step mode prompt dispatches pause mode" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -343,7 +345,7 @@ wizard:
           default: true
 YAML
 
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -360,7 +362,7 @@ YAML
 }
 
 @test "wizard backup flow dispatches selected answers as cli args" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" ANSWERS="$BATS_TEST_TMPDIR/answers" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" ANSWERS="$BATS_TEST_TMPDIR/answers" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -395,7 +397,7 @@ YAML
 }
 
 @test "wizard restore flow dispatches dry-run and selected config args" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" ANSWERS="$BATS_TEST_TMPDIR/answers" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" ANSWERS="$BATS_TEST_TMPDIR/answers" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"

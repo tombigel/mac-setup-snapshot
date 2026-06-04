@@ -84,13 +84,13 @@ mi_report_events_text() {
 
 mi_report_render_text() {
   local rc="$1"
-  local status="ok"
+  local report_status="ok"
   local duration
-  [ "$rc" -eq 0 ] || status="failed"
+  [ "$rc" -eq 0 ] || report_status="failed"
   duration="$(mi_report_duration_seconds)"
   printf 'Process report\n'
   printf '  command: %s%s\n' "$MI_COMMAND" "${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}"
-  printf '  status: %s\n' "$status"
+  printf '  status: %s\n' "$report_status"
   printf '  dry_run: %s\n' "$MI_DRY_RUN"
   printf '  setup_snapshot: %s\n' "$MI_INVENTORY"
   printf '  duration_seconds: %s\n' "$duration"
@@ -133,16 +133,16 @@ mi_report_default_summary_next_step() {
 }
 
 mi_report_file_url() {
-  local path="$1"
-  path="$(mi_expand_path "$path")"
-  case "$path" in
+  local report_path="$1"
+  report_path="$(mi_expand_path "$report_path")"
+  case "$report_path" in
     /*) ;;
-    .) path="$(pwd)" ;;
-    ./*) path="$(pwd)/${path#./}" ;;
-    *) path="$(pwd)/$path" ;;
+    .) report_path="$(pwd)" ;;
+    ./*) report_path="$(pwd)/${report_path#./}" ;;
+    *) report_path="$(pwd)/$report_path" ;;
   esac
-  path="$(printf '%s\n' "$path" | sed 's/%/%25/g; s/ /%20/g; s/#/%23/g; s/?/%3F/g')"
-  printf 'file://%s\n' "$path"
+  report_path="$(printf '%s\n' "$report_path" | sed 's/%/%25/g; s/ /%20/g; s/#/%23/g; s/?/%3F/g')"
+  printf 'file://%s\n' "$report_path"
 }
 
 mi_report_folder_link() {
@@ -197,22 +197,22 @@ mi_report_default_summary_events() {
 
 mi_report_render_default_summary() {
   local rc="$1"
-  local status="completed"
+  local report_status="completed"
   local run_label
-  [ "$rc" -eq 0 ] || status="stopped with errors"
+  [ "$rc" -eq 0 ] || report_status="stopped with errors"
   run_label="${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}"
   printf '\n%s\n' "$(mi_heading "Mac Setup Snapshot summary")"
   if [ "$rc" -eq 0 ]; then
     if [ "$MI_DRY_RUN" = "true" ]; then
-      printf '  %s %s (%s) in %ss.\n' "$run_label" "$(mi_success_text "$status")" "$(mi_dry_run_text "dry-run")" "$(mi_report_duration_seconds)"
+      printf '  %s %s (%s) in %ss.\n' "$run_label" "$(mi_success_text "$report_status")" "$(mi_dry_run_text "dry-run")" "$(mi_report_duration_seconds)"
     else
-      printf '  %s %s in %ss.\n' "$run_label" "$(mi_success_text "$status")" "$(mi_report_duration_seconds)"
+      printf '  %s %s in %ss.\n' "$run_label" "$(mi_success_text "$report_status")" "$(mi_report_duration_seconds)"
     fi
   else
     if [ "$MI_DRY_RUN" = "true" ]; then
-      printf '  %s %s (%s) in %ss.\n' "$run_label" "$(mi_alert_text "$status")" "$(mi_dry_run_text "dry-run")" "$(mi_report_duration_seconds)"
+      printf '  %s %s (%s) in %ss.\n' "$run_label" "$(mi_alert_text "$report_status")" "$(mi_dry_run_text "dry-run")" "$(mi_report_duration_seconds)"
     else
-      printf '  %s %s in %ss.\n' "$run_label" "$(mi_alert_text "$status")" "$(mi_report_duration_seconds)"
+      printf '  %s %s in %ss.\n' "$run_label" "$(mi_alert_text "$report_status")" "$(mi_report_duration_seconds)"
     fi
   fi
   if [ "$MI_DRY_RUN" = "true" ]; then
@@ -234,12 +234,12 @@ mi_report_render_default_summary() {
 
 mi_report_render_md() {
   local rc="$1"
-  local status="ok"
+  local report_status="ok"
   local severity section code message
-  [ "$rc" -eq 0 ] || status="failed"
+  [ "$rc" -eq 0 ] || report_status="failed"
   printf "# Mac Setup Snapshot Process Report\n\n"
   printf "%s \`%s\`\n" "- Command:" "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}"
-  printf "%s \`%s\`\n" "- Status:" "$status"
+  printf "%s \`%s\`\n" "- Status:" "$report_status"
   if [ "$MI_DRY_RUN" = "true" ]; then
     printf "%s \`%s\`\n" "- Mode:" "dry-run"
   else
@@ -270,11 +270,11 @@ mi_report_json_escape() {
 
 mi_report_render_yaml() {
   local rc="$1"
-  local status="ok"
+  local report_status="ok"
   local severity section code message
-  [ "$rc" -eq 0 ] || status="failed"
+  [ "$rc" -eq 0 ] || report_status="failed"
   printf 'command: %s\n' "$(mi_yaml_scalar "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}")"
-  printf 'status: %s\n' "$(mi_yaml_scalar "$status")"
+  printf 'status: %s\n' "$(mi_yaml_scalar "$report_status")"
   printf 'dry_run: %s\n' "$(mi_yaml_scalar "$MI_DRY_RUN")"
   printf 'setup_snapshot: %s\n' "$(mi_yaml_scalar "$MI_INVENTORY")"
   printf 'started_at: %s\n' "$(mi_yaml_scalar "$MI_REPORT_STARTED_AT")"
@@ -294,12 +294,12 @@ mi_report_render_yaml() {
 
 mi_report_render_json() {
   local rc="$1"
-  local status="ok"
+  local report_status="ok"
   local first severity section code message
-  [ "$rc" -eq 0 ] || status="failed"
+  [ "$rc" -eq 0 ] || report_status="failed"
   printf '{\n'
   printf '  "command": "%s",\n' "$(mi_report_json_escape "${MI_COMMAND}${MI_SUBCOMMAND:+ $MI_SUBCOMMAND}")"
-  printf '  "status": "%s",\n' "$status"
+  printf '  "status": "%s",\n' "$report_status"
   printf '  "dry_run": "%s",\n' "$MI_DRY_RUN"
   printf '  "setup_snapshot": "%s",\n' "$(mi_report_json_escape "$MI_INVENTORY")"
   printf '  "started_at": "%s",\n' "$MI_REPORT_STARTED_AT"

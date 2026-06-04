@@ -406,13 +406,13 @@ mi_wizard_default_github_projects_root() {
 }
 
 mi_wizard_validate_absolute_path() {
-  local path="$1"
-  [ -n "$path" ] || return 1
-  case "$path" in
+  local candidate_path="$1"
+  [ -n "$candidate_path" ] || return 1
+  case "$candidate_path" in
     /*) ;;
     *) return 1 ;;
   esac
-  case "$path" in
+  case "$candidate_path" in
     *"/../"*|*"/.."|"../"*|"..") return 1 ;;
   esac
 }
@@ -631,9 +631,9 @@ EOF
   mi_ux_line ""
   mi_ux_line "$(mi_muted "Running: ${MI_PROGRAM_NAME:-mac-setup} ${args[*]}")"
   if [ -r /dev/tty ]; then
-    "$0" "${args[@]}" </dev/tty
+    "$MI_SCRIPT_PATH" "${args[@]}" </dev/tty
   else
-    "$0" "${args[@]}"
+    "$MI_SCRIPT_PATH" "${args[@]}"
   fi
 }
 

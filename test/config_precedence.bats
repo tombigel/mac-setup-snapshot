@@ -40,7 +40,7 @@ esac'
 
 @test "config applies matrix defaults when cli leaves values unset" {
   mock_matrix_yq
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/config.sh"
@@ -58,7 +58,7 @@ esac'
 
 @test "explicit cli options override config matrix defaults" {
   mock_matrix_yq
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/config.sh"

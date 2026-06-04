@@ -49,10 +49,10 @@ mi_file_has_secret() {
 
 mi_secret_scan_paths() {
   found="false"
-  for path in "$@"; do
-    [ -f "$path" ] || continue
-    if mi_file_has_secret "$path"; then
-      mi_warn "possible secret detected in $path"
+  for scan_path in "$@"; do
+    [ -f "$scan_path" ] || continue
+    if mi_file_has_secret "$scan_path"; then
+      mi_warn "possible secret detected in $scan_path"
       found="true"
     fi
   done

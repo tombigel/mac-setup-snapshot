@@ -52,7 +52,7 @@ YAML
 
 @test "restore pause mode can skip selected sections" {
   command -v yq >/dev/null 2>&1 || skip "yq is required for restore"
-  run env PROJECT_ROOT="$PROJECT_ROOT" LOG="$BATS_TEST_TMPDIR/restore.log" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" LOG="$BATS_TEST_TMPDIR/restore.log" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/safety.sh"

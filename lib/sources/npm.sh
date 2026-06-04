@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 npm_backup() {
-  local npm_globals path name version npm_version
+  local npm_globals package_path name version npm_version
   printf 'npm:\n'
   printf '  globals:\n'
   if ! mi_has npm; then
     return 0
   fi
   mi_npm_capture npm_globals list -g --depth=0 --parseable || return 0
-  printf '%s\n' "$npm_globals" | tail -n +2 | while IFS= read -r path; do
-    name="$(basename "$path")"
+  printf '%s\n' "$npm_globals" | tail -n +2 | while IFS= read -r package_path; do
+    name="$(basename "$package_path")"
     [ -n "$name" ] || continue
     version=""
     if [ "$MI_RECORD_VERSIONS" = "true" ]; then

@@ -138,7 +138,7 @@ YAML
 }
 
 @test "wizard github projects folder prompt uses absolute home default" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -155,7 +155,7 @@ YAML
 }
 
 @test "wizard github projects folder prompt requests editable default" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"
@@ -177,7 +177,7 @@ YAML
 }
 
 @test "wizard github projects folder prompt rejects relative paths" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" ANSWERS="$BATS_TEST_TMPDIR/answers" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" ANSWERS="$BATS_TEST_TMPDIR/answers" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/endpoint.sh"

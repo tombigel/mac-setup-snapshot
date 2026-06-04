@@ -8,7 +8,7 @@ setup() {
 }
 
 @test "command capture returns success output" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     MI_COMMAND_TIMEOUT=1
     out="$BATS_TEST_TMPDIR/out"
@@ -22,7 +22,7 @@ setup() {
 }
 
 @test "command capture returns nonzero command status" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     MI_COMMAND_TIMEOUT=1
     out="$BATS_TEST_TMPDIR/out"
@@ -37,7 +37,7 @@ setup() {
 
 @test "command capture reports timeout status from timeout wrapper" {
   mock_command perl 'exit 124'
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     MI_COMMAND_TIMEOUT=1
     out="$BATS_TEST_TMPDIR/out"
@@ -52,7 +52,7 @@ setup() {
 }
 
 @test "appstore backup treats mas timeout as unavailable without running timeout process" {
-  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.sh"
     . "$PROJECT_ROOT/lib/args.sh"
     . "$PROJECT_ROOT/lib/report.sh"

@@ -2,7 +2,7 @@
 # shellcheck disable=SC2034
 
 mi_args_init() {
-  MI_PROGRAM_NAME="${MI_PROGRAM_NAME:-$(basename "$0")}"
+  MI_PROGRAM_NAME="${MI_PROGRAM_NAME:-$(basename -- "${MI_SCRIPT_PATH:-$0}")}"
   MI_COMMAND=""
   MI_SUBCOMMAND=""
   MI_WIZARD_SUBCOMMAND=""

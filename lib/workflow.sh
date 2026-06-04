@@ -16,9 +16,9 @@ mi_resume_path() {
 
 mi_step_line() {
   id="$1"
-  status="$2"
+  step_status="$2"
   printf '  - id: %s\n' "$(mi_yaml_scalar "$id")"
-  printf '    status: %s\n' "$(mi_yaml_scalar "$status")"
+  printf '    status: %s\n' "$(mi_yaml_scalar "$step_status")"
 }
 
 mi_workflow_build_steps() {
@@ -148,11 +148,11 @@ mi_resume_step_status() {
 
 mi_resume_mark_step() {
   step="$1"
-  status="$2"
+  step_status="$2"
   resume="$(mi_resume_path)"
   [ -f "$resume" ] || return 0
   tmp="$(mktemp "${resume}.tmp.XXXXXX")" || return 1
-  awk -v step="$step" -v status="$status" -v now="$(mi_timestamp)" '
+  awk -v step="$step" -v status="$step_status" -v now="$(mi_timestamp)" '
     /^updated_at:/ { print "updated_at: \"" now "\""; next }
     /^current_step:/ { print "current_step: \"" step "\""; next }
     $0 ~ "id: \"" step "\"" { print; found=1; next }

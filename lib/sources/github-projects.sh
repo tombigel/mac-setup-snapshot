@@ -95,10 +95,10 @@ github_projects_upstream_branch() {
 
 github_projects_dirty_state() {
   local repo="$1"
-  local status="" dirty untracked line
+  local git_status="" dirty untracked line
   dirty="false"
   untracked="false"
-  if mi_command_capture status "git -C $repo status porcelain" git -C "$repo" status --porcelain; then
+  if mi_command_capture git_status "git -C $repo status porcelain" git -C "$repo" status --porcelain; then
     while IFS= read -r line; do
       [ -n "$line" ] || continue
       case "$line" in
@@ -106,7 +106,7 @@ github_projects_dirty_state() {
         *) dirty="true" ;;
       esac
     done <<EOF
-$status
+$git_status
 EOF
   fi
   printf '%s|%s\n' "$dirty" "$untracked"

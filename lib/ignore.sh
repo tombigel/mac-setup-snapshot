@@ -44,11 +44,11 @@ mi_pipx_ref() {
 }
 
 mi_dotfile_ref() {
-  local path="$1"
+  local item_path="$1"
   local key hash
-  key="$(mi_app_ref_key "$path")"
+  key="$(mi_app_ref_key "$item_path")"
   [ -n "$key" ] || key="file"
-  hash="$(mi_string_hash "$path")"
+  hash="$(mi_string_hash "$item_path")"
   printf 'dotfile:%s-%s\n' "$key" "$hash"
 }
 
@@ -63,7 +63,7 @@ mi_xcode_ref() {
 mi_manual_app_ref() {
   local bundle_id="$1"
   local name="$2"
-  local path="$3"
+  local item_path="$3"
   local key hash
   if [ -n "$bundle_id" ]; then
     printf 'manual:%s\n' "$bundle_id"
@@ -71,7 +71,7 @@ mi_manual_app_ref() {
   fi
   key="$(mi_app_ref_key "$name")"
   [ -n "$key" ] || key="app"
-  hash="$(mi_string_hash "$path|$name")"
+  hash="$(mi_string_hash "$item_path|$name")"
   printf 'manual:%s-%s\n' "$key" "$hash"
 }
 
@@ -96,7 +96,7 @@ mi_ignore_effective_ref() {
   local ref="$2"
   local id="$3"
   local name="$4"
-  local path="$5"
+  local item_path="$5"
   local token1="$6"
   [ -n "$ref" ] && [ "$ref" != "null" ] && { printf '%s\n' "$ref"; return 0; }
   case "$type" in
@@ -110,8 +110,8 @@ mi_ignore_effective_ref() {
     dotfile) mi_dotfile_ref "$id" ;;
     oh_my_zsh) mi_oh_my_zsh_ref ;;
     xcode) mi_xcode_ref ;;
-    github_project) mi_github_project_ref "$id" "$path" ;;
-    manual) mi_manual_app_ref "$id" "$name" "$path" ;;
+    github_project) mi_github_project_ref "$id" "$item_path" ;;
+    manual) mi_manual_app_ref "$id" "$name" "$item_path" ;;
   esac
 }
 
@@ -122,39 +122,39 @@ mi_ignore_row_matches() {
   local ref="$4"
   local id="$5"
   local name="$6"
-  local path="$7"
+  local item_path="$7"
   local token1="$8"
   local token2="$9"
   local value base value_norm
 
-  for value in "$ref" "$id" "$name" "$path" "$token1" "$token2"; do
+  for value in "$ref" "$id" "$name" "$item_path" "$token1" "$token2"; do
     [ -n "$value" ] && [ "$value" != "null" ] || continue
     [ "$token" = "$value" ] && return 0
   done
 
   case "$type" in
     appstore)
-      for value in "$name" "$(mi_ignore_basename_no_app "$path")"; do
+      for value in "$name" "$(mi_ignore_basename_no_app "$item_path")"; do
         value_norm="$(mi_ignore_normalize "$value")"
         [ -n "$value_norm" ] && [ "$token_norm" = "$value_norm" ] && return 0
       done
       ;;
     brew_cask)
-      base="$(mi_ignore_basename_no_app "$path")"
+      base="$(mi_ignore_basename_no_app "$item_path")"
       for value in "$id" "$name" "$base"; do
         value_norm="$(mi_ignore_normalize "$value")"
         [ -n "$value_norm" ] && [ "$token_norm" = "$value_norm" ] && return 0
       done
       ;;
     manual)
-      base="$(mi_ignore_basename_no_app "$path")"
+      base="$(mi_ignore_basename_no_app "$item_path")"
       for value in "$name" "$base" "$token1" "$token2"; do
         value_norm="$(mi_ignore_normalize "$value")"
         [ -n "$value_norm" ] && [ "$token_norm" = "$value_norm" ] && return 0
       done
       ;;
     *)
-      for value in "$id" "$name" "$(mi_ignore_basename_no_app "$path")"; do
+      for value in "$id" "$name" "$(mi_ignore_basename_no_app "$item_path")"; do
         value_norm="$(mi_ignore_normalize "$value")"
         [ -n "$value_norm" ] && [ "$token_norm" = "$value_norm" ] && return 0
       done

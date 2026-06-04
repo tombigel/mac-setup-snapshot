@@ -1,10 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/zsh -f
 # shellcheck disable=SC1091
 
-set -u
+emulate -R zsh
+setopt no_unset no_nomatch sh_word_split
 
-SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
-PROJECT_DIR="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
+MI_SCRIPT_PATH="${0:A}"
+SCRIPT_DIR="${MI_SCRIPT_PATH:h}"
+PROJECT_DIR="${SCRIPT_DIR:h}"
 
 # shellcheck source=../lib/common.sh
 . "$PROJECT_DIR/lib/common.sh"
