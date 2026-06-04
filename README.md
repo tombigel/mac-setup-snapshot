@@ -74,7 +74,7 @@ Create or update the setup bundle in iCloud Drive:
 mac-setup backup
 ```
 
-Backup prints per-section progress by default and writes the YAML snapshot, a human-readable Markdown list, and restore notes. In an interactive terminal, progress updates in place and uses terminal-palette ANSI styling for headings, muted details, success, and alerts. Non-TTY output, CI, `TERM=dumb`, `NO_COLOR`, `--quiet`, and `--verbose` use plain stable output. The Markdown list is named `backup-list.md` and is generated from the completed snapshot, so it does not contain copied dotfile contents. The restore notes are written to `README.md` in the backup folder.
+Backup prints per-section progress by default and writes the YAML snapshot, a human-readable Markdown list, and restore notes. In an interactive terminal, progress updates in place and uses terminal-palette ANSI styling for headings, muted details, success, and alerts. Live command spinners render below the current step line, with the cursor hidden while dynamic output is active. Non-TTY output, CI, `TERM=dumb`, `NO_COLOR`, `--quiet`, and `--verbose` use plain stable output. The Markdown list is named `backup-list.md` and is generated from the completed snapshot, so it does not contain copied dotfile contents. The restore notes are written to `README.md` in the backup folder.
 
 Manual app scanning prints the app currently being checked when Homebrew cask matching is enabled, and GitHub project scanning prints the current repo path while walking large project folders.
 

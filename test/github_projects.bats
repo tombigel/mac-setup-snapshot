@@ -163,16 +163,17 @@ YAML
     . "$PROJECT_ROOT/lib/wizard.zsh"
     mi_args_init
     MI_GITHUB_PROJECTS=true
-    mi_wizard_read_editable_default() {
-      printf "%s|%s\n" "$1" "$2" >prompt.txt
-      printf "%s\n" "$2"
+    mi_wizard_read_value_into() {
+      local __var="$1"
+      printf "%s|%s|%s\n" "$2" "$3" "$4" >prompt.txt
+      printf -v "$__var" "%s" "$3"
     }
     mi_wizard_github_projects_folder_prompt
     printf "%s\n" "$(cat prompt.txt)"
     printf "%s\n" "$MI_GITHUB_PROJECTS_ROOTS"
   '
   [ "$status" -eq 0 ]
-  [[ "$output" == *"GitHub projects folder absolute path:|$BATS_TEST_TMPDIR/home/Projects"* ]]
+  [[ "$output" == *"GitHub projects folder absolute path:|$BATS_TEST_TMPDIR/home/Projects|editable"* ]]
   [[ "$output" == *"$BATS_TEST_TMPDIR/home/Projects" ]]
 }
 

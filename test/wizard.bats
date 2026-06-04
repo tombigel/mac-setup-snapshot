@@ -147,6 +147,26 @@ github|GitHub Gist" 2
   [[ "$output" == *$'\033[1;32m    2. Local files\033[0m'* ]]
 }
 
+@test "wizard editable default falls back to bracketed prompt when editing is unavailable" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" zsh -f -c '
+    . "$PROJECT_ROOT/lib/common.zsh"
+    . "$PROJECT_ROOT/lib/args.zsh"
+    . "$PROJECT_ROOT/lib/endpoint.zsh"
+    . "$PROJECT_ROOT/lib/inventory.zsh"
+    . "$PROJECT_ROOT/lib/wizard.zsh"
+    mi_wizard_can_edit_default() { return 1; }
+    mi_wizard_read() {
+      printf "%s\n" "$1" >prompt.txt
+      printf "\n"
+    }
+    answer="$(mi_wizard_read_value "GitHub projects folder absolute path:" "/Users/test/Projects" editable)"
+    printf "%s\n" "$answer"
+    printf "%s\n" "$(cat prompt.txt)"
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" == *$'/Users/test/Projects\nGitHub projects folder absolute path: [/Users/test/Projects]:'* ]]
+}
+
 @test "wizard backup config step generates missing user config in backup folder" {
   run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" zsh -f -c '
     . "$PROJECT_ROOT/lib/common.zsh"

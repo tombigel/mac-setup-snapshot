@@ -46,6 +46,11 @@ main() {
     return 0
   fi
 
+  if { [ "$MI_COMMAND" = "ignore" ] || [ "$MI_COMMAND" = "unignore" ]; } && [ -z "$MI_IGNORE_TOKEN" ]; then
+    mi_error "$MI_COMMAND requires a ref or token"
+    return 2
+  fi
+
   if [ "$MI_COMMAND" = "wizard" ]; then
     case "$MI_SUBCOMMAND" in
       "")

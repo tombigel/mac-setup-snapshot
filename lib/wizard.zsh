@@ -212,23 +212,50 @@ mi_wizard_read() {
   printf '%s\n' "$answer"
 }
 
-mi_wizard_read_editable_default() {
-  local prompt="$1"
-  local default="$2"
-  local answer styled_prompt
-  styled_prompt="$(mi_emphasize_dry_run "$prompt")"
+mi_wizard_can_edit_default() {
+  [ "${MI_INTERACTIVE:-true}" = "true" ] || return 1
+  [ -t 0 ] && [ -t 2 ] || return 1
+  zmodload zsh/zle >/dev/null 2>&1 || true
+  whence -w vared >/dev/null 2>&1
+}
 
-  if mi_wizard_interactive && [ -r /dev/tty ] && [ -w /dev/tty ]; then
+mi_wizard_read_value() {
+  local answer
+  mi_wizard_read_value_into answer "$@"
+  printf '%s\n' "$answer"
+}
+
+mi_wizard_read_value_into() {
+  local __var="$1"
+  shift
+  local prompt="$1"
+  local default="${2:-}"
+  local mode="${3:-plain}"
+  local value
+
+  if [ "$mode" = "editable" ] && [ -n "$default" ] && mi_wizard_can_edit_default; then
     mi_live_finish
-    answer="$default"
-    if vared -p "$styled_prompt " answer </dev/tty >/dev/tty 2>/dev/tty; then
-      printf '%s\n' "$answer"
+    value="$default"
+    if vared -p "$prompt " value; then
+      printf -v "$__var" '%s' "$value"
       return 0
     fi
   fi
 
-  answer="$(mi_wizard_read "$prompt [$default]:")"
-  [ -n "$answer" ] || answer="$default"
+  if [ -n "$default" ]; then
+    value="$(mi_wizard_read "$prompt [$default]:")"
+    [ -n "$value" ] || value="$default"
+  else
+    value="$(mi_wizard_read "$prompt")"
+  fi
+  printf -v "$__var" '%s' "$value"
+}
+
+mi_wizard_read_editable_default() {
+  local prompt="$1"
+  local default="$2"
+  local answer
+  mi_wizard_read_value_into answer "$prompt" "$default" editable
   printf '%s\n' "$answer"
 }
 
@@ -272,8 +299,7 @@ mi_wizard_choice() {
     fi
   done
   while :; do
-    answer="$(mi_wizard_read "Choose [$default_index]:")"
-    [ -n "$answer" ] || answer="$default_index"
+    answer="$(mi_wizard_read_value "Choose" "$default_index")"
     case "$answer" in
       ''|*[!0-9]*) mi_warn "enter a number from 1 to $count"; continue ;;
     esac
@@ -425,7 +451,7 @@ mi_wizard_github_projects_folder_prompt() {
   mi_ux_line ""
   mi_ux_line "$(mi_heading "GitHub Projects")"
   while :; do
-    answer="$(mi_wizard_read_editable_default "GitHub projects folder absolute path:" "$default")"
+    mi_wizard_read_value_into answer "GitHub projects folder absolute path:" "$default" editable
     if mi_wizard_validate_absolute_path "$answer"; then
       MI_GITHUB_PROJECTS_ROOT_ITEMS=("$answer")
       MI_GITHUB_PROJECTS_ROOTS="$answer"

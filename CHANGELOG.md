@@ -14,11 +14,13 @@
 - Renamed runtime modules from `.sh` to `.zsh` and updated source loading, validation, docs, and agent guidance.
 - Refactored repeated internal state to zsh arrays for CLI args, selected sources, workflow steps, dotfile paths, and GitHub project roots.
 - Polished wizard interaction with native zsh editable defaults and cleaner aligned menu rendering.
+- Changed interactive command spinners to render below the current step line and hide the cursor for live dynamic output until cleanup restores it.
 - Changed the backup wizard Manual App Matching default to accept all Homebrew cask candidates.
 
 ### Fixed
 
 - Kept `mac-setup.config.yml` as the canonical current config in backup folders when the backup wizard or iCloud endpoint uses an alternate config path.
+- Fixed `ignore`/`unignore` with no token so argument validation fails before endpoint resolution.
 - Skipped generated/cache Git repos under GitHub project roots, including `node_modules`, `.cache`, and nested repos inside already-discovered project folders.
 
 ## 0.8.0 - 2026-06-04

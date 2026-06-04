@@ -39,6 +39,13 @@ Use `--report`, `--report-format`, and `--skip-report` when validating process-r
 
 Use Bats and mocked commands. Do not call real package managers in tests.
 
+For zsh migration or shell-behavior PRs, include this audit in the implementation notes:
+
+- Verify runtime entrypoints and modules under `bin` and `lib` are zsh files.
+- Scan runtime files for Bash-only syntax or Bash-specific assumptions.
+- Classify remaining Bash references as tests, manual scripts, docs, or external installers such as Homebrew.
+- Run the runtime zsh syntax check and the Bats suite before reporting completion.
+
 Managed/sandboxed agent shells may not load the user's interactive shell profile, so Homebrew tools can be installed but missing from `PATH`. On Apple Silicon Macs, run validation with Homebrew paths injected explicitly:
 
 ```bash

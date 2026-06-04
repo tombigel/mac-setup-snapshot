@@ -7,6 +7,8 @@ fi
 
 MI_VERSION="0.8.0"
 MI_LIVE_LINE_ACTIVE="false"
+MI_CURSOR_HIDDEN="false"
+MI_SPINNER_INTERVAL="${MI_SPINNER_INTERVAL:-0.2}"
 
 mi_print_lines() {
   local item
@@ -86,21 +88,48 @@ mi_emphasize_dry_run() {
 }
 
 mi_live_clear() {
-  [ "${MI_LIVE_LINE_ACTIVE:-false}" = "true" ] || return 0
-  printf '\r\033[2K' >&2
+  if [ "${MI_LIVE_LINE_ACTIVE:-false}" = "true" ]; then
+    printf '\r\033[2K' >&2
+  fi
   MI_LIVE_LINE_ACTIVE="false"
 }
 
 mi_live_line() {
   mi_live_enabled || return 1
+  mi_cursor_hide
   printf '\r\033[2K%s' "$*" >&2
   MI_LIVE_LINE_ACTIVE="true"
 }
 
 mi_live_finish() {
-  [ "${MI_LIVE_LINE_ACTIVE:-false}" = "true" ] || return 0
-  printf '\n' >&2
+  if [ "${MI_LIVE_LINE_ACTIVE:-false}" = "true" ]; then
+    printf '\n' >&2
+  fi
   MI_LIVE_LINE_ACTIVE="false"
+}
+
+mi_cursor_hide() {
+  [ "${MI_CURSOR_HIDDEN:-false}" != "true" ] || return 0
+  printf '\033[?25l' >&2
+  MI_CURSOR_HIDDEN="true"
+}
+
+mi_cursor_show() {
+  [ "${MI_CURSOR_HIDDEN:-false}" = "true" ] || return 0
+  printf '\033[?25h' >&2
+  MI_CURSOR_HIDDEN="false"
+}
+
+mi_spinner_frame() {
+  local frame_index="$1"
+  local frames=('-' '\' '|' '/')
+  printf '%s' "$frames[$(((frame_index % ${#frames[@]}) + 1))]"
+}
+
+mi_command_spinner_line() {
+  local label="$1"
+  local frame_index="$2"
+  mi_live_line "$(mi_muted "$(mi_spinner_frame "$frame_index")") $label"
 }
 
 mi_info() {
@@ -200,6 +229,7 @@ mi_mkdir_parent() {
 
 mi_cleanup_temp_files() {
   mi_live_finish
+  mi_cursor_show
   [ -n "${MI_REPORT_EVENTS_FILE:-}" ] && rm -f -- "$MI_REPORT_EVENTS_FILE"
   [ -n "${MI_MATCHED_CASKS_FILE:-}" ] && rm -f -- "$MI_MATCHED_CASKS_FILE"
   [ -n "${MI_APP_INDEX_FILE:-}" ] && rm -f -- "$MI_APP_INDEX_FILE"
@@ -287,6 +317,33 @@ mi_command_capture() {
 }
 
 mi_command_capture_files() {
+  local label="$1"
+  local out="$2"
+  local err="$3"
+  local worker_pid rc frame_index
+  shift 3
+
+  if mi_live_enabled; then
+    frame_index=0
+    mi_live_finish
+    mi_command_spinner_line "$label" "$frame_index"
+    mi_command_capture_files_core "$label" "$out" "$err" "$@" &
+    worker_pid=$!
+    while kill -0 "$worker_pid" 2>/dev/null; do
+      sleep "$MI_SPINNER_INTERVAL"
+      frame_index=$((frame_index + 1))
+      mi_command_spinner_line "$label" "$frame_index"
+    done
+    wait "$worker_pid"
+    rc=$?
+    mi_live_clear
+    return "$rc"
+  fi
+
+  mi_command_capture_files_core "$label" "$out" "$err" "$@"
+}
+
+mi_command_capture_files_core() {
   local label="$1"
   local out="$2"
   local err="$3"

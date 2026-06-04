@@ -224,7 +224,7 @@ mi_workflow_run() {
     fi
   fi
 
-  trap 'mi_caffeinate_stop; mi_warn "workflow interrupted; resume with: ${MI_PROGRAM_NAME:-mac-setup} continue"; exit 130' INT TERM
+  trap 'mi_caffeinate_stop; mi_warn "workflow interrupted; resume with: ${MI_PROGRAM_NAME:-mac-setup} continue"; mi_cursor_show; exit 130' INT TERM
   mi_caffeinate_start
   MI_WORKFLOW_INDEX=0
   workflow_rc=0
