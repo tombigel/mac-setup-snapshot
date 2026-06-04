@@ -7,13 +7,14 @@ Use this skill when working on the `mac-setup-snapshot` repository.
 1. Read `AGENTS.md` and `docs/MANUAL.md`.
 2. Check `git status --short --branch`.
 3. Keep generated user artifacts out of commits.
-4. For code changes, run:
+4. Keep runtime changes zsh-native; Bash compatibility is not supported outside Bats tests.
+5. For code changes, run:
 
 ```bash
 find bin lib -type f \( -name '*.zsh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 zsh -n
 ```
 
-5. Run `zsh -n` and `bats test` when installed.
+6. Run `zsh -n` and `bats test` when installed.
 
 ## Safety Defaults
 

@@ -4,6 +4,8 @@ Mac Setup Snapshot captures the parts of a Mac setup that are easy to lose befor
 
 Restore is intentionally additive: it installs, copies, checks, and reports. It does not uninstall packages, delete applications, or clean directories.
 
+The CLI is zsh-first for modern macOS and runs under the system `/bin/zsh`. Bash runtime compatibility is intentionally not supported after the zsh migration; Bats remains Bash-based only for tests.
+
 ## Usage Docs
 
 - Start with the [manual and full command reference](docs/MANUAL.md) for restore flows, endpoint behavior, config, and safety details.
@@ -247,6 +249,7 @@ AI coding agents should read `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instruct
 
 - See the [development plan](docs/PLAN.md) for design scope and roadmap.
 - See [AI agent change guidance](docs/AI.md) before changing behavior with a coding assistant.
+- Runtime modules live in `lib/*.zsh` and `lib/sources/*.zsh`; add new source modules as zsh files and keep public CLI flags, config YAML, snapshot YAML, dry-run behavior, and additive restore semantics stable.
 
 Expected checks:
 

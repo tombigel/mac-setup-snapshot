@@ -32,7 +32,9 @@ Calling `mac-setup` without arguments opens the guided wizard in an interactive 
 
 ## Description
 
-`mac-setup` is a zsh CLI for preparing a Mac rebuild. It creates a YAML setup snapshot of installed software and selected user configuration, then uses that snapshot to run an additive restore.
+`mac-setup` is a zsh CLI for preparing a Mac rebuild. It runs on modern macOS with the system `/bin/zsh`, creates a YAML setup snapshot of installed software and selected user configuration, then uses that snapshot to run an additive restore.
+
+Bash runtime compatibility is intentionally not supported. The runtime entrypoint and modules are zsh files; Bats remains Bash-based for tests.
 
 Restore is additive-only in v1. It installs, copies, checks, and reports. It does not uninstall packages, delete applications, clean directories, or remove software that is not in the snapshot.
 
@@ -1137,6 +1139,8 @@ AI coding agents should read the repo-local guidance before changing behavior:
 - `ai/codex-skill/SKILL.md`
 
 When implementing changes, keep restore additive-only, preserve `--dry-run` behavior, avoid `eval`, avoid direct `curl | sh`, quote variables, keep resume/report state free of secrets and copied file contents, and test package-manager flows with mocked commands rather than real installs.
+
+Runtime changes should stay zsh-native. Use `lib/*.zsh` and `lib/sources/*.zsh` modules, prefer zsh arrays for repeated internal state, and use explicit zsh splitting only where user-entered text requires it.
 
 ## Examples
 

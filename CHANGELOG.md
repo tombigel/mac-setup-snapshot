@@ -6,9 +6,14 @@
 
 - Added editable default input for the backup wizard GitHub projects folder prompt in capable interactive shells.
 - Added per-repo progress details while backing up GitHub project folders.
+- Added zsh-first architecture documentation and migration guidance for contributors and AI agents.
 
 ### Changed
 
+- Migrated the runtime from Bash-first shell code to zsh-first modules for modern macOS, without preserving Bash runtime compatibility.
+- Renamed runtime modules from `.sh` to `.zsh` and updated source loading, validation, docs, and agent guidance.
+- Refactored repeated internal state to zsh arrays for CLI args, selected sources, workflow steps, dotfile paths, and GitHub project roots.
+- Polished wizard interaction with native zsh editable defaults and cleaner aligned menu rendering.
 - Changed the backup wizard Manual App Matching default to accept all Homebrew cask candidates.
 
 ### Fixed

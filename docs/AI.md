@@ -6,6 +6,8 @@ Use this guide when an AI coding agent works in this repo.
 
 Mac Setup Snapshot helps rebuild a Mac by creating a YAML setup snapshot and performing an additive restore. It must be safe to run on a clean Mac and clear about every action it is about to take.
 
+The runtime is zsh-first for modern macOS and intentionally does not preserve Bash compatibility. Keep Bats helpers/tests Bash-based, but implement CLI behavior in `bin/mac-setup`, `lib/*.zsh`, and `lib/sources/*.zsh`.
+
 ## Key Workflows
 
 - `prepare`: check/install prerequisites.
@@ -40,7 +42,7 @@ Use Bats and mocked commands. Do not call real package managers in tests.
 Managed/sandboxed agent shells may not load the user's interactive shell profile, so Homebrew tools can be installed but missing from `PATH`. On Apple Silicon Macs, run validation with Homebrew paths injected explicitly:
 
 ```bash
-PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" zsh -n bin/mac-setup lib/*.zsh lib/sources/*.zsh
+find bin lib -type f \( -name '*.zsh' -o -name 'mac-setup' \) -print0 | xargs -0 -n1 zsh -n
 PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" /opt/homebrew/bin/bats test
 ```
 

@@ -1,6 +1,6 @@
 # Claude Instructions
 
-Follow [AGENTS.md](AGENTS.md). Keep changes conservative and zsh-native.
+Follow [AGENTS.md](AGENTS.md). Keep changes conservative and zsh-native. Do not preserve or reintroduce Bash runtime compatibility.
 
 Important context:
 

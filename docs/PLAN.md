@@ -7,6 +7,7 @@ Create a public GitHub repo at `tombigel/mac-setup-snapshot` containing a zsh-fi
 Defaults:
 
 - Runtime: zsh.
+- Runtime compatibility: Bash is intentionally unsupported after migration; Bats remains Bash-based for tests only.
 - Config/snapshot format: YAML.
 - YAML parser: `yq` v4.
 - Test framework: `bats-core`.
@@ -186,6 +187,7 @@ LICENSE
 Behavior:
 
 - Parse CLI flags first, merge config defaults second, then command defaults.
+- Keep runtime code zsh-native with zsh arrays for repeated internal state and explicit splitting only for user-entered input.
 - `config generate -o <path>` writes starter YAML config.
 - `wizard` uses numbered menus and allowlisted YAML customization from the committed `mac-setup.wizard.yml`, generates missing backup-folder user config by default, asks whether to create new/overwrite/use existing config when one exists, offers restore config use when available, supports direct `wizard backup`/`wizard restore` entry, prompts for restore preflight and step pacing, then dispatches to existing backup/restore flags.
 - `doctor` checks local package managers, Gist auth, App Store login, Oh My Zsh, and Xcode state.
@@ -232,7 +234,7 @@ bats test
 Use staged task commits:
 
 1. `docs: add project plan and prompt history`
-2. `chore: scaffold bash cli project`
+2. `chore: scaffold zsh cli project`
 3. `feat: add argument parsing and config generation`
 4. `feat: add safety helpers`
 5. `feat: add gist sync support`

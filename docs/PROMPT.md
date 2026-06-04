@@ -2,6 +2,8 @@
 
 This project was requested as a small open-source Bash CLI to inventory and restore a Mac after formatting.
 
+Current implementation note: the runtime has since migrated fully to zsh for modern macOS, and Bash runtime compatibility is intentionally not supported. This file preserves the original request history.
+
 ## Original Request
 
 The tool should inventory installed App Store apps, Homebrew formulae/casks, global npm packages, pip packages, manual installs, and important user settings such as `.zshrc`, global Git config, and global Git ignore.

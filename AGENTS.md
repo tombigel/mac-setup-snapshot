@@ -1,6 +1,6 @@
 # Agent Instructions
 
-This repo contains Mac Setup Snapshot, a zsh-first macOS setup snapshot and additive restore CLI.
+This repo contains Mac Setup Snapshot, a zsh-first macOS setup snapshot and additive restore CLI. Runtime Bash compatibility is intentionally unsupported; Bats remains Bash-based for tests.
 
 ## Safety Rules
 
