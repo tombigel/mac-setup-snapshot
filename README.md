@@ -6,9 +6,21 @@ Restore is intentionally additive: it installs, copies, checks, and reports. It 
 
 The CLI is zsh-first for modern macOS and runs under the system `/bin/zsh`. Bash runtime compatibility is intentionally not supported after the zsh migration; Bats remains Bash-based only for tests.
 
-## Usage Docs
+## Captured Setup State
 
-- Start with the [manual and full command reference](docs/MANUAL.md) for restore flows, endpoint behavior, config, and safety details.
+By default, `backup` captures:
+
+- Mac App Store apps through `mas`.
+- Homebrew taps, top-level formulae from `brew leaves`, and casks. Cask snapshot rows include the cask token plus matched installed app name and path when an app bundle can be found.
+- Global npm packages.
+- pip and pipx packages.
+- Oh My Zsh install state, theme, plugins, and `.zshrc` reference.
+- Xcode Command Line Tools and Xcode.app state.
+- Explicitly allowlisted dotfiles and config files that exist at backup time. Defaults include common shell, Git, editor, terminal, and low-risk CLI config files; see `docs/MANUAL.md` for the full list.
+- Manual apps from `/Applications` and `~/Applications`, excluding apps already represented by App Store receipts or installed Homebrew casks. Other standalone apps are checked for not-yet-installed Homebrew cask replacement candidates and record the candidate only when `brew info --cask` confirms it is installable, unless the migration policy accepts it into the Homebrew cask list.
+- Opt-in GitHub project metadata, including repository metadata and sanitized clone URLs, not repository contents.
+
+For the full file format, restore refs, and source-selection options, see [Captured Setup State](docs/MANUAL.md#setup-snapshot-file) in the manual.
 
 ## Install
 
@@ -23,6 +35,22 @@ cd mac-setup-snapshot
 For convenience, add `bin/` to your `PATH`.
 
 ## Common Usage
+
+For a guided backup or restore, run the wizard:
+
+```bash
+mac-setup wizard
+mac-setup wizard backup
+mac-setup wizard restore
+```
+
+In an interactive terminal, running `mac-setup` with no arguments opens the same wizard. In scripts and other non-interactive contexts, no arguments still print help.
+
+The wizard asks for backup or restore, dry-run mode, storage endpoint, config handling, enabled sources, and key restore policy choices. Direct `wizard backup` and `wizard restore` forms skip the first workflow picker. Restore wizard mode checks core requirements early and can pause before each restore section for `next`, `skip`, or `abort`. It then runs the equivalent `backup` or `restore` command with normal safety rules.
+
+## More Involved Usage
+
+Start with the [manual and full command reference](docs/MANUAL.md) for restore flows, endpoint behavior, config, and safety details.
 
 ### Before Formatting: Save This Mac To iCloud Drive
 
@@ -39,18 +67,6 @@ Generate a starter config if you want to choose exactly what setup state is capt
 ```bash
 mac-setup config generate -o mac-setup.config.yml
 ```
-
-For a guided flow, run:
-
-```bash
-mac-setup wizard
-mac-setup wizard backup
-mac-setup wizard restore
-```
-
-In an interactive terminal, running `mac-setup` with no arguments opens the same wizard. In scripts and other non-interactive contexts, no arguments still print help.
-
-The wizard asks for backup or restore, dry-run mode, storage endpoint, config handling, enabled sources, and key restore policy choices. Direct `wizard backup` and `wizard restore` forms skip the first workflow picker. Restore wizard mode checks core requirements early and can pause before each restore section for `next`, `skip`, or `abort`. It then runs the equivalent `backup` or `restore` command with normal safety rules.
 
 Create or update the setup bundle in iCloud Drive:
 
@@ -149,19 +165,6 @@ mac-setup backup wizard
 mac-setup restore wizard
 mac-setup --wizard-config ./mac-setup.wizard.yml wizard
 ```
-
-## Captured Setup State
-
-By default, `backup` captures:
-
-- Mac App Store apps through `mas`.
-- Homebrew taps, top-level formulae from `brew leaves`, and casks. Cask snapshot rows include the cask token plus matched installed app name and path when an app bundle can be found.
-- Global npm packages.
-- pip and pipx packages.
-- Oh My Zsh install state, theme, plugins, and `.zshrc` reference.
-- Xcode Command Line Tools and Xcode.app state.
-- Explicitly allowlisted dotfiles and config files that exist at backup time. Defaults include common shell, Git, editor, terminal, and low-risk CLI config files; see `docs/MANUAL.md` for the full list.
-- Manual apps from `/Applications` and `~/Applications`, excluding apps already represented by App Store receipts or installed Homebrew casks. Other standalone apps are checked for not-yet-installed Homebrew cask replacement candidates and record the candidate only when `brew info --cask` confirms it is installable, unless the migration policy accepts it into the Homebrew cask list.
 
 GitHub project folders are opt-in and disabled by default. Enable them with `--github-projects=true --github-projects-root /Users/you/Projects` or through the backup wizard. In capable interactive shells, the wizard opens the default projects path as editable input. Backup records repository metadata and sanitized clone URLs, not repository contents. Generated/cache folders such as `node_modules` and `.cache`, plus nested repos inside already-discovered projects, are skipped.
 
