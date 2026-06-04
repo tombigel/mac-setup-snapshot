@@ -86,6 +86,7 @@ YAML
   [[ "$output" == *"dry-run: would create $root/client"* ]]
   [[ "$output" == *"dry-run: would clone git@github.com:example/example.git to $root/client/example"* ]]
   [ ! -e "$root" ]
+  [ ! -e "$root/client" ]
 }
 
 @test "restore clones missing GitHub repos and skips existing repos" {

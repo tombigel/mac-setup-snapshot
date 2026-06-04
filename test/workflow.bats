@@ -189,6 +189,24 @@ YAML
   [[ "$output" == *"install_yq"* ]]
 }
 
+@test "status can write a structured report" {
+  cat >"$BATS_TEST_TMPDIR/resume.yml" <<'YAML'
+version: 1
+workflow: "prepare"
+created_at: "2026-06-01T00:00:00Z"
+updated_at: "2026-06-01T00:00:00Z"
+inventory: "mac-setup.backup.yml"
+current_step: "install_yq"
+steps:
+  - id: "install_yq"
+    status: "failed"
+YAML
+  run "$BIN" status --resume-file "$BATS_TEST_TMPDIR/resume.yml" --report "$BATS_TEST_TMPDIR/status-report.yml" --report-format yaml
+  [ "$status" -eq 0 ]
+  grep -q 'command: "status"' "$BATS_TEST_TMPDIR/status-report.yml"
+  grep -q 'status: "ok"' "$BATS_TEST_TMPDIR/status-report.yml"
+}
+
 @test "continue dry-run resumes saved workflow steps" {
   cat >"$BATS_TEST_TMPDIR/resume.yml" <<'YAML'
 version: 1

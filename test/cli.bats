@@ -14,6 +14,13 @@ setup() {
   [[ "$output" == *"wizard"* ]]
 }
 
+@test "help uses the cli program name" {
+  run "$BIN" --help
+  [ "$status" -eq 0 ]
+  [[ "$output" == mac-setup\ * ]]
+  [[ "$output" != mi_args_init\ * ]]
+}
+
 @test "no args with captured output prints help instead of opening wizard" {
   run bash -c '"$1" | sed -n "1,8p"' _ "$BIN"
   [ "$status" -eq 0 ]
