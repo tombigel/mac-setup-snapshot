@@ -1,14 +1,17 @@
 #!/usr/bin/env zsh
 
 pipx_backup() {
+  local fields line name version
   printf 'pipx:\n'
   printf '  packages:\n'
   if ! mi_has pipx; then
     return 0
   fi
   pipx list --short 2>/dev/null | while IFS= read -r line; do
-    name="$(printf '%s\n' "$line" | awk '{print $1}')"
-    version="$(printf '%s\n' "$line" | awk '{print $2}')"
+    [ -n "$line" ] || continue
+    fields=("${(@s: :)line}")
+    name="${fields[1]}"
+    version="${fields[2]:-}"
     [ -n "$name" ] || continue
     printf '    - name: %s\n' "$(mi_yaml_scalar "$name")"
     printf '      ref: %s\n' "$(mi_yaml_scalar "$(mi_pipx_ref "$name")")"

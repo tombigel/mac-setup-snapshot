@@ -43,7 +43,7 @@ mi_app_bundle_display_name() {
   local app="$1"
   mi_app_bundle_plist_value "$app" CFBundleDisplayName ||
     mi_app_bundle_plist_value "$app" CFBundleName ||
-    basename "$app" .app
+    printf '%s\n' "${app:t:r}"
 }
 
 mi_app_bundle_id() {

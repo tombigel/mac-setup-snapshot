@@ -46,10 +46,10 @@ dotfiles_default_paths() {
 }
 
 dotfiles_backup() {
-  local base_dir raw safe_path rel backup_path sha
+  local base_dir raw safe_path rel backup_path backup_target sha
   printf 'dotfiles:\n'
   printf '  files:\n'
-  base_dir="$(dirname "$MI_INVENTORY")/files"
+  base_dir="${MI_INVENTORY:h}/files"
   dotfiles_default_paths | while IFS= read -r raw; do
     [ -n "$raw" ] || continue
     if ! safe_path="$(mi_safe_home_path "$raw")"; then
@@ -58,14 +58,15 @@ dotfiles_backup() {
     fi
     rel="${safe_path#"$HOME"/}"
     backup_path="files/$rel"
+    backup_target="$base_dir/$rel"
     if [ ! -f "$safe_path" ]; then
       mi_verbose "dotfiles: skipped missing $raw"
       continue
     fi
     mi_file_has_secret "$safe_path" && mi_warn "dotfiles: possible secret in $raw"
     if [ "$MI_DRY_RUN" != "true" ]; then
-      mkdir -p "$(dirname "$base_dir/$rel")"
-      cp -p "$safe_path" "$base_dir/$rel"
+      mkdir -p "${backup_target:h}"
+      cp -p "$safe_path" "$backup_target"
     fi
     sha="$(mi_sha256 "$safe_path")"
     printf '    - path: %s\n' "$(mi_yaml_scalar "$raw")"
@@ -90,7 +91,7 @@ dotfiles_restore() {
     fi
     safe_path="$(mi_safe_home_path "$raw")" || { mi_warn "dotfiles: unsafe restore path skipped: $raw"; continue; }
     rel="${safe_path#"$HOME"/}"
-    source_path="$(dirname "$MI_INVENTORY")/files/$rel"
+    source_path="${MI_INVENTORY:h}/files/$rel"
     [ -f "$source_path" ] || { mi_warn "dotfiles: backup missing for $raw"; continue; }
     if [ -e "$safe_path" ] && [ "$MI_OVERWRITE" != "true" ]; then
       mi_info "dotfiles: $raw exists; skipping"
@@ -103,7 +104,7 @@ dotfiles_restore() {
       mi_info "dry-run: would restore $raw"
       continue
     fi
-    mkdir -p "$(dirname "$safe_path")"
+    mkdir -p "${safe_path:h}"
     cp -p "$source_path" "$safe_path"
     mi_info "dotfiles: restored $raw"
   done

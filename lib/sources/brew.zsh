@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 brew_backup() {
-  local brew_taps brew_formulae brew_casks name version formula_version line cask display_name cask_path app_version
+  local brew_taps brew_formulae brew_casks name version formula_version line cask display_name cask_path app_version fields
   printf 'brew:\n'
   printf '  taps:\n'
   if mi_has brew; then
@@ -17,7 +17,8 @@ brew_backup() {
       [ -n "$name" ] || continue
       version=""
       if [ "$MI_RECORD_VERSIONS" = "true" ] && mi_brew_capture formula_version list --versions "$name"; then
-        version="$(printf '%s\n' "$formula_version" | cut -d' ' -f2-)"
+        fields=("${(@s: :)formula_version}")
+        version="${(j: :)fields[2,-1]}"
       fi
       printf '    - name: %s\n' "$(mi_yaml_scalar "$name")"
       printf '      ref: %s\n' "$(mi_yaml_scalar "$(mi_brew_formula_ref "$name")")"
@@ -30,8 +31,9 @@ brew_backup() {
     fi
     printf '%s\n' "$brew_casks" | while IFS= read -r line; do
       [ -n "$line" ] || continue
-      name="$(printf '%s\n' "$line" | awk '{print $1}')"
-      version="$(printf '%s\n' "$line" | cut -d' ' -f2-)"
+      fields=("${(@s: :)line}")
+      name="${fields[1]}"
+      version="${(j: :)fields[2,-1]}"
       brew_emit_cask_item "$name" "$version" "" "" ""
     done
     if [ -n "${MI_MATCHED_CASKS_FILE:-}" ] && [ -s "$MI_MATCHED_CASKS_FILE" ]; then

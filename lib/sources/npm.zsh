@@ -9,7 +9,7 @@ npm_backup() {
   fi
   mi_npm_capture npm_globals list -g --depth=0 --parseable || return 0
   printf '%s\n' "$npm_globals" | tail -n +2 | while IFS= read -r package_path; do
-    name="$(basename "$package_path")"
+    name="${package_path:t}"
     [ -n "$name" ] || continue
     version=""
     if [ "$MI_RECORD_VERSIONS" = "true" ]; then

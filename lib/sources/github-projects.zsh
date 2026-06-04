@@ -138,8 +138,8 @@ github_projects_discover_repos() {
   local found_dir
   find "$root" -type d \( -name .cache -o -name .git -o -name .hg -o -name .svn -o -name node_modules \) -prune -print0 2>/dev/null |
     while IFS= read -r -d '' found_dir; do
-      if [ "$(basename -- "$found_dir")" = ".git" ]; then
-        printf '%s\0' "$(dirname -- "$found_dir")"
+      if [ "${found_dir:t}" = ".git" ]; then
+        printf '%s\0' "${found_dir:h}"
       fi
     done
 }
@@ -148,12 +148,12 @@ github_projects_has_parent_git_repo() {
   local root="$1"
   local repo="$2"
   local parent
-  parent="$(dirname -- "$repo")"
+  parent="${repo:h}"
   while [ "$parent" != "$root" ] && [ "$parent" != "/" ] && [ -n "$parent" ]; do
     if [ -d "$parent/.git" ] || [ -f "$parent/.git" ]; then
       return 0
     fi
-    parent="$(dirname -- "$parent")"
+    parent="${parent:h}"
   done
   return 1
 }
@@ -164,7 +164,7 @@ github_projects_emit_repo() {
   local rel origin_url upstream_url upstream_pair upstream_remote upstream_branch clone_url owner_repo name
   local current_branch="" head_sha="" dirty_pair dirty untracked ahead_pair ahead behind superproject=""
   rel="${repo#"$root"/}"
-  [ "$rel" != "$repo" ] || rel="$(basename -- "$repo")"
+  [ "$rel" != "$repo" ] || rel="${repo:t}"
 
   if github_projects_has_parent_git_repo "$root" "$repo"; then
     mi_verbose "github_projects: skipped nested repo $repo"
@@ -240,7 +240,7 @@ EOF
     while IFS= read -r -d '' repo; do
       root_count=$((root_count + 1))
       rel="${repo#"$root"/}"
-      [ "$rel" != "$repo" ] || rel="$(basename -- "$repo")"
+      [ "$rel" != "$repo" ] || rel="${repo:t}"
       mi_inventory_progress_detail github_projects "checking $root_count/$root_total $rel"
       github_projects_emit_repo "$root" "$repo"
       count=$((count + 1))
@@ -302,7 +302,7 @@ github_projects_restore() {
       mi_warn "github_projects: $dest exists but is not a Git repo; skipping"
       continue
     fi
-    parent="$(dirname -- "$dest")"
+    parent="${dest:h}"
     if [ "$MI_DRY_RUN" = "true" ]; then
       mi_info "dry-run: would create $parent"
       mi_info "dry-run: would clone $clone_url to $dest"
