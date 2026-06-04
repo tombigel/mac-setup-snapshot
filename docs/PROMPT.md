@@ -34,7 +34,7 @@ It should support:
 - Create a public GitHub repository at `tombigel/mac-setup-snapshot`.
 - Commit and push in task/stage commits.
 - Add a safety model.
-- Manual app to Homebrew cask matching defaults to interactive `ask`, with `never` and `all` modes.
+- Manual app to Homebrew cask matching supports interactive `ask`, `never`, and `all` modes; the backup wizard defaults to `all`.
 - Add GitHub Gist input/output for config and inventory, with interactive `gh` login or token/env credentials.
 - Use parallel subagents when implementation can be safely split, while keeping integration in the main thread.
 - Add a clean-Mac bootstrap flow with prerequisite installation, resume/continue support, optional caffeinate, clean verbose UX, and AI-agent repo guidance.

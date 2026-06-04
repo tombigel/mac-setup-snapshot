@@ -58,6 +58,26 @@ make_icloud() {
   [ "$history_readme_count" -eq 1 ]
 }
 
+@test "backup to iCloud keeps canonical config when explicit config differs" {
+  command -v yq >/dev/null 2>&1 || skip "yq is required for markdown backup list rendering"
+  make_icloud
+  mkdir -p "$ICLOUD_ROOT/Mac Setup Snapshot"
+  printf "old canonical\n" >"$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.config.yml"
+  cat >custom.config.yml <<'YAML'
+version: 1
+sources:
+  apps: false
+YAML
+
+  run "$BIN" backup --skip-report --interactive=false --icloud-root "$ICLOUD_ROOT" --config custom.config.yml --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false
+  [ "$status" -eq 0 ]
+  [ -f "$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.config.yml" ]
+  grep -q 'version: 1' "$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.config.yml"
+  ! grep -q 'old canonical' "$ICLOUD_ROOT/Mac Setup Snapshot/mac-setup.config.yml"
+  history_config_count="$(find "$ICLOUD_ROOT/Mac Setup Snapshot/history" -name mac-setup.config.yml | wc -l | tr -d ' ')"
+  [ "$history_config_count" -eq 1 ]
+}
+
 @test "restore dry-run defaults to iCloud bundle when present" {
   make_icloud
   mkdir -p "$ICLOUD_ROOT/Mac Setup Snapshot"

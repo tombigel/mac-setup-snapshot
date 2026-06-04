@@ -33,6 +33,7 @@ make_repo() {
 
   run "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false --github-projects=true --github-projects-root "$projects"
   [ "$status" -eq 0 ]
+  [[ "$output" == *"backup: github_projects checking"* ]]
   grep -q '^github_projects:' mac-setup.backup.yml
   grep -q 'path: "'"$projects"'"' mac-setup.backup.yml
   grep -q 'name: "example"' mac-setup.backup.yml
@@ -43,6 +44,21 @@ make_repo() {
   grep -q 'current_branch: "main"' mac-setup.backup.yml
   ! grep -q 'token:secret' mac-setup.backup.yml
   ! grep -q 'other' mac-setup.backup.yml
+}
+
+@test "backup skips generated cache repos and nested repos inside a project" {
+  command -v git >/dev/null 2>&1 || skip "git is required"
+  projects="$BATS_TEST_TMPDIR/Projects"
+  make_repo "$projects/form-to-url-to-form" "git@github.com:tombigel/form-to-url-to-form.git"
+  make_repo "$projects/form-to-url-to-form/node_modules/.cache/gh-pages/https!github.com!tombigel!form-to-url-to-form.git" "git@github.com:tombigel/form-to-url-to-form.git"
+  make_repo "$projects/form-to-url-to-form/packages/nested-tool" "git@github.com:tombigel/nested-tool.git"
+
+  run "$BIN" backup --target local --skip-report --apps=false --brew=false --npm=false --pip=false --pipx=false --oh-my-zsh=false --xcode=false --dotfiles=false --manual-apps=false --github-projects=true --github-projects-root "$projects"
+  [ "$status" -eq 0 ]
+  grep -q 'relative_path: "form-to-url-to-form"' mac-setup.backup.yml
+  ! grep -q 'node_modules' mac-setup.backup.yml
+  ! grep -q 'gh-pages' mac-setup.backup.yml
+  ! grep -q 'nested-tool' mac-setup.backup.yml
 }
 
 @test "github projects backup rejects relative roots" {
@@ -134,6 +150,28 @@ YAML
     printf "%s\n" "$MI_GITHUB_PROJECTS_ROOTS"
   '
   [ "$status" -eq 0 ]
+  [[ "$output" == *"$BATS_TEST_TMPDIR/home/Projects" ]]
+}
+
+@test "wizard github projects folder prompt requests editable default" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" HOME="$BATS_TEST_TMPDIR/home" bash -c '
+    . "$PROJECT_ROOT/lib/common.sh"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/endpoint.sh"
+    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/wizard.sh"
+    mi_args_init
+    MI_GITHUB_PROJECTS=true
+    mi_wizard_read_editable_default() {
+      printf "%s|%s\n" "$1" "$2" >prompt.txt
+      printf "%s\n" "$2"
+    }
+    mi_wizard_github_projects_folder_prompt
+    printf "%s\n" "$(cat prompt.txt)"
+    printf "%s\n" "$MI_GITHUB_PROJECTS_ROOTS"
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"GitHub projects folder absolute path:|$BATS_TEST_TMPDIR/home/Projects"* ]]
   [[ "$output" == *"$BATS_TEST_TMPDIR/home/Projects" ]]
 }
 

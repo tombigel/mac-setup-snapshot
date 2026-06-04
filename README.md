@@ -58,7 +58,7 @@ mac-setup backup
 
 Backup prints per-section progress by default and writes the YAML snapshot, a human-readable Markdown list, and restore notes. In an interactive terminal, progress updates in place and uses terminal-palette ANSI styling for headings, muted details, success, and alerts. Non-TTY output, CI, `TERM=dumb`, `NO_COLOR`, `--quiet`, and `--verbose` use plain stable output. The Markdown list is named `backup-list.md` and is generated from the completed snapshot, so it does not contain copied dotfile contents. The restore notes are written to `README.md` in the backup folder.
 
-Manual app scanning also prints the app currently being checked when Homebrew cask matching is enabled.
+Manual app scanning prints the app currently being checked when Homebrew cask matching is enabled, and GitHub project scanning prints the current repo path while walking large project folders.
 
 Use `--verbose` during backup to show command start/status lines, captured output counts, app indexing details, App Store parsing decisions, and manual app matching decisions.
 
@@ -133,7 +133,7 @@ mac-setup backup --report reports/backup.yml --report-format yaml
 
 Wizard menus are controlled by the tracked repo file `mac-setup.wizard.yml`. Edit that file to reorder, hide, relabel, and set defaults for known backup/restore sources and prompts, including backup config handling, restore preflight, restore step pacing, and restore config use. It cannot define shell commands, hooks, arbitrary steps, or executable restore behavior.
 
-The user config is separate: backup wizard mode keeps `mac-setup.config.yml` in the selected backup folder. If it is missing, the wizard generates it by default. If it already exists, the wizard asks whether to create a new timestamped config, overwrite the existing one, or use the existing one.
+The user config is separate: backup wizard mode keeps `mac-setup.config.yml` in the selected backup folder. If it is missing, the wizard generates it by default. If it already exists, the wizard defaults to using it and also offers to overwrite it or create a timestamped config.
 
 Wizard dry-run defaults are intentionally different by workflow: backup defaults to a real run, while restore defaults to dry-run preview.
 
@@ -161,7 +161,7 @@ By default, `backup` captures:
 - Explicitly allowlisted dotfiles and config files that exist at backup time. Defaults include common shell, Git, editor, terminal, and low-risk CLI config files; see `docs/MANUAL.md` for the full list.
 - Manual apps from `/Applications` and `~/Applications`, excluding apps already represented by App Store receipts or installed Homebrew casks. Other standalone apps are checked for not-yet-installed Homebrew cask replacement candidates and record the candidate only when `brew info --cask` confirms it is installable, unless the migration policy accepts it into the Homebrew cask list.
 
-GitHub project folders are opt-in and disabled by default. Enable them with `--github-projects=true --github-projects-root /Users/you/Projects` or through the backup wizard. Backup records repository metadata and sanitized clone URLs, not repository contents.
+GitHub project folders are opt-in and disabled by default. Enable them with `--github-projects=true --github-projects-root /Users/you/Projects` or through the backup wizard. In capable interactive shells, the wizard opens the default projects path as editable input. Backup records repository metadata and sanitized clone URLs, not repository contents. Generated/cache folders such as `node_modules` and `.cache`, plus nested repos inside already-discovered projects, are skipped.
 
 Disable categories with flags such as `--apps=false`, `--brew=false`, or `--dotfiles=false`.
 

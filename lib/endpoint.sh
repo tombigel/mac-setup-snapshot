@@ -248,6 +248,22 @@ mi_endpoint_prepare_backup() {
   return 0
 }
 
+mi_endpoint_sync_config() {
+  local canonical
+  [ "${MI_EFFECTIVE_TARGET:-}" = "icloud" ] || return 0
+  [ -n "$MI_CONFIG" ] || return 0
+  [ -f "$MI_CONFIG" ] || return 0
+  [ -n "$MI_ENDPOINT_BUNDLE" ] || MI_ENDPOINT_BUNDLE="$(mi_endpoint_iCloud_bundle)"
+  canonical="$MI_ENDPOINT_BUNDLE/mac-setup.config.yml"
+  if [ -e "$canonical" ] && [ "$MI_CONFIG" -ef "$canonical" ] 2>/dev/null; then
+    return 0
+  fi
+  if [ "$MI_CONFIG" = "$canonical" ]; then
+    return 0
+  fi
+  cp "$MI_CONFIG" "$canonical" || return 1
+}
+
 mi_endpoint_write_metadata() {
   local metadata
   [ "${MI_EFFECTIVE_TARGET:-}" = "icloud" ] || return 0
@@ -257,6 +273,7 @@ mi_endpoint_write_metadata() {
     mi_info "dry-run: would write iCloud endpoint metadata to $metadata"
     return 0
   fi
+  mi_endpoint_sync_config || return 1
   {
     printf 'version: 1\n'
     printf 'updated_at: %s\n' "$(mi_yaml_scalar "$(mi_timestamp)")"

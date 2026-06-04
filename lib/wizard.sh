@@ -212,6 +212,31 @@ mi_wizard_read() {
   printf '%s\n' "$answer"
 }
 
+mi_wizard_read_editable_default() {
+  local prompt="$1"
+  local default="$2"
+  local answer styled_prompt
+  styled_prompt="$(mi_emphasize_dry_run "$prompt")"
+
+  if mi_wizard_interactive && mi_has zsh; then
+    if answer="$(zsh -f -c 'answer=$1; prompt=$2; vared -p "$prompt " answer >/dev/tty 2>/dev/tty || exit $?; printf "%s\n" "$answer"' _ "$default" "$prompt" </dev/tty)"; then
+      printf '%s\n' "$answer"
+      return 0
+    fi
+  fi
+
+  if mi_wizard_interactive && help read 2>/dev/null | grep -q -- '-i'; then
+    mi_live_finish
+    IFS= read -e -i "$default" -r -p "$styled_prompt " answer
+    printf '%s\n' "$answer"
+    return 0
+  fi
+
+  answer="$(mi_wizard_read "$prompt [$default]:")"
+  [ -n "$answer" ] || answer="$default"
+  printf '%s\n' "$answer"
+}
+
 mi_wizard_yes_no_value() {
   local prompt="$1"
   local default="$2"
@@ -367,7 +392,7 @@ mi_wizard_backup_options() {
   options="ask|Ask before converting manual app candidates to Homebrew casks
 never|Record candidates but keep apps manual
 all|Accept all Homebrew cask candidates"
-  choice="$(mi_wizard_choice "Manual App Matching" "$options" 1)"
+  choice="$(mi_wizard_choice "Manual App Matching" "$options" 3)"
   MI_MANUAL_BREW_MATCH="$choice"
   # shellcheck disable=SC2034
   MI_MANUAL_BREW_MATCH_EXPLICIT="true"
@@ -400,8 +425,7 @@ mi_wizard_github_projects_folder_prompt() {
   mi_ux_line ""
   mi_ux_line "$(mi_heading "GitHub Projects")"
   while :; do
-    answer="$(mi_wizard_read "GitHub projects folder absolute path [$default]:")"
-    [ -n "$answer" ] || answer="$default"
+    answer="$(mi_wizard_read_editable_default "GitHub projects folder absolute path:" "$default")"
     if mi_wizard_validate_absolute_path "$answer"; then
       MI_GITHUB_PROJECTS_ROOTS="$answer"
       return 0
@@ -553,9 +577,9 @@ mi_wizard_generate_configs() {
   fi
 
   new_config_path="$(mi_wizard_backup_config_new_path "$config_path")"
-  options="new|Create new config file
+  options="existing|Use existing config
 overwrite|Overwrite existing config
-existing|Use existing config"
+new|Create timestamped config file"
   choice="$(mi_wizard_choice "Config" "$options" 1)"
   case "$choice" in
     new)

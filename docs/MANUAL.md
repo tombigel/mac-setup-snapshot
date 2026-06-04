@@ -110,7 +110,7 @@ mac-setup backup --gist-create=true --gist-push
 
 By default, backup includes App Store apps, Homebrew, npm globals, pip, pipx, Oh My Zsh, Xcode, dotfiles, and manual apps. GitHub projects are available as an opt-in source and are disabled by default.
 
-Backup and restore print a welcome message, the next step, progress for enabled sections, and a friendly terminal summary by default. In an interactive terminal, progress updates in place and uses terminal-palette ANSI styling: bold headings, dim secondary text, green success, red alerts, and yellow dry-run markers. Manual app scanning also updates the current app being checked when Homebrew cask matching is enabled. Non-TTY output, CI, `TERM=dumb`, `NO_COLOR`, `--quiet`, and `--verbose` use plain stable output. Use `--quiet` to suppress the welcome, progress, and default summary. Use `--verbose` for command start/status lines, captured output counts, app indexing details, App Store parsing decisions, manual app matching decisions, and raw summary counts.
+Backup and restore print a welcome message, the next step, progress for enabled sections, and a friendly terminal summary by default. In an interactive terminal, progress updates in place and uses terminal-palette ANSI styling: bold headings, dim secondary text, green success, red alerts, and yellow dry-run markers. Manual app scanning updates the current app being checked when Homebrew cask matching is enabled, and GitHub project scanning updates the current repo path while walking large project folders. Non-TTY output, CI, `TERM=dumb`, `NO_COLOR`, `--quiet`, and `--verbose` use plain stable output. Use `--quiet` to suppress the welcome, progress, and default summary. Use `--verbose` for command start/status lines, captured output counts, app indexing details, App Store parsing decisions, manual app matching decisions, and raw summary counts.
 
 For local and iCloud backups, backup also writes `backup-list.md` and `README.md` next to `mac-setup.backup.yml`. The list is generated from the completed snapshot using the same renderer as `mac-setup list --format md`; it does not include copied dotfile contents or raw command output. The README contains restore instructions and a file map for the backup folder.
 
@@ -287,7 +287,7 @@ mac-setup --wizard-config ./mac-setup.wizard.yml wizard
 
 The `wizard backup`, `wizard restore`, `backup wizard`, and `restore wizard` forms skip the first workflow picker and open the requested guided flow directly.
 
-The wizard uses numbered menus and comma/range source selection such as `1,3-5`, `all`, or `none`. Backup keeps the user config in the selected backup folder. If `mac-setup.config.yml` is missing there, the wizard generates it by default. If it already exists, the wizard asks whether to create a new timestamped config, overwrite the existing config, or use the existing config. Restore checks core requirements before the later restore prompts; when tools are missing, it asks whether to run prepare preflight, skip preflight, or abort. Restore can also enable step pacing, which prompts before each selected restore section with `next`, `skip`, or `abort`. Restore offers to use an existing config when one is found, and choosing no runs that restore without config. It compiles choices into the existing `backup` or `restore` flags and then runs that command, preserving additive restore, dry-run, endpoint, skip-existing, and prompt safety behavior.
+The wizard uses numbered menus and comma/range source selection such as `1,3-5`, `all`, or `none`. Backup keeps the user config in the selected backup folder. If `mac-setup.config.yml` is missing there, the wizard generates it by default. If it already exists, the wizard defaults to using it and also offers to overwrite it or create a timestamped config. Restore checks core requirements before the later restore prompts; when tools are missing, it asks whether to run prepare preflight, skip preflight, or abort. Restore can also enable step pacing, which prompts before each selected restore section with `next`, `skip`, or `abort`. Restore offers to use an existing config when one is found, and choosing no runs that restore without config. It compiles choices into the existing `backup` or `restore` flags and then runs that command, preserving additive restore, dry-run, endpoint, skip-existing, and prompt safety behavior.
 
 The wizard dry-run prompt defaults to no for backup and yes for restore.
 
@@ -530,6 +530,8 @@ Include recursive GitHub project discovery. Default: `false`.
 
 GitHub projects are opt-in because repo names and folder layout can be sensitive. When enabled, backup requires at least one absolute `--github-projects-root` path or `backup.github_projects.roots` config entry.
 
+When the backup wizard asks for the GitHub projects folder, capable interactive shells open the home-based default path as editable input. Fallback terminals still show the default in brackets and accept it with Enter.
+
 `--github-projects-root <absolute-path>`, `-G <absolute-path>`
 
 Add a folder to scan recursively for GitHub repositories. Repeatable.
@@ -538,7 +540,7 @@ Add a folder to scan recursively for GitHub repositories. Repeatable.
 mac-setup backup --github-projects=true --github-projects-root /Users/you/Projects
 ```
 
-Backup records GitHub repo metadata and sanitized clone URLs, not repository contents. HTTPS remote URLs with embedded credentials are written without the credential portion.
+Backup records GitHub repo metadata and sanitized clone URLs, not repository contents. HTTPS remote URLs with embedded credentials are written without the credential portion. Generated/cache directories such as `node_modules` and `.cache` are pruned, and repos nested inside an already-discovered project are skipped.
 
 Restore clones missing repos into the recorded root and relative path, or into the first `--github-projects-root` path when supplied during restore. Existing Git repos are skipped. Existing non-Git paths are reported and skipped. Restore does not fetch, pull, reset, clean, overwrite, or delete project folders.
 

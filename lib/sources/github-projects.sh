@@ -122,6 +122,38 @@ github_projects_ahead_behind() {
   fi
 }
 
+github_projects_skip_dir_name() {
+  case "$1" in
+    .cache|.git|.hg|.svn|node_modules) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+github_projects_discover_repos() {
+  local root="$1"
+  local found_dir
+  find "$root" -type d \( -name .cache -o -name .git -o -name .hg -o -name .svn -o -name node_modules \) -prune -print0 2>/dev/null |
+    while IFS= read -r -d '' found_dir; do
+      if [ "$(basename -- "$found_dir")" = ".git" ]; then
+        printf '%s\0' "$(dirname -- "$found_dir")"
+      fi
+    done
+}
+
+github_projects_has_parent_git_repo() {
+  local root="$1"
+  local repo="$2"
+  local parent
+  parent="$(dirname -- "$repo")"
+  while [ "$parent" != "$root" ] && [ "$parent" != "/" ] && [ -n "$parent" ]; do
+    if [ -d "$parent/.git" ] || [ -f "$parent/.git" ]; then
+      return 0
+    fi
+    parent="$(dirname -- "$parent")"
+  done
+  return 1
+}
+
 github_projects_emit_repo() {
   local root="$1"
   local repo="$2"
@@ -129,6 +161,11 @@ github_projects_emit_repo() {
   local current_branch="" head_sha="" dirty_pair dirty untracked ahead_pair ahead behind superproject=""
   rel="${repo#"$root"/}"
   [ "$rel" != "$repo" ] || rel="$(basename -- "$repo")"
+
+  if github_projects_has_parent_git_repo "$root" "$repo"; then
+    mi_verbose "github_projects: skipped nested repo $repo"
+    return 0
+  fi
 
   if mi_command_capture superproject "git -C $repo superproject" git -C "$repo" rev-parse --show-superproject-working-tree && [ -n "$superproject" ]; then
     mi_verbose "github_projects: skipped submodule $repo"
@@ -176,7 +213,7 @@ github_projects_emit_repo() {
 }
 
 github_projects_backup() {
-  local roots root git_path repo count
+  local roots root repo rel count root_count root_total
   roots="$(github_projects_roots)"
   printf 'github_projects:\n'
   printf '  roots:\n'
@@ -191,11 +228,19 @@ EOF
   while IFS= read -r root; do
     [ -n "$root" ] || continue
     [ -d "$root" ] || { mi_warn "github_projects: root does not exist; skipping $root"; continue; }
-    while IFS= read -r -d '' git_path; do
-      repo="$(dirname -- "$git_path")"
+    root_total=0
+    while IFS= read -r -d '' repo; do
+      root_total=$((root_total + 1))
+    done < <(github_projects_discover_repos "$root")
+    root_count=0
+    while IFS= read -r -d '' repo; do
+      root_count=$((root_count + 1))
+      rel="${repo#"$root"/}"
+      [ "$rel" != "$repo" ] || rel="$(basename -- "$repo")"
+      mi_inventory_progress_detail github_projects "checking $root_count/$root_total $rel"
       github_projects_emit_repo "$root" "$repo"
       count=$((count + 1))
-    done < <(find "$root" -name .git -print0 2>/dev/null)
+    done < <(github_projects_discover_repos "$root")
   done <<EOF
 $roots
 EOF

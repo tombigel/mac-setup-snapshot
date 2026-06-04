@@ -2,7 +2,19 @@
 
 ## Unreleased
 
-No unreleased changes.
+### Added
+
+- Added editable default input for the backup wizard GitHub projects folder prompt in capable interactive shells.
+- Added per-repo progress details while backing up GitHub project folders.
+
+### Changed
+
+- Changed the backup wizard Manual App Matching default to accept all Homebrew cask candidates.
+
+### Fixed
+
+- Kept `mac-setup.config.yml` as the canonical current config in backup folders when the backup wizard or iCloud endpoint uses an alternate config path.
+- Skipped generated/cache Git repos under GitHub project roots, including `node_modules`, `.cache`, and nested repos inside already-discovered project folders.
 
 ## 0.8.0 - 2026-06-04
 

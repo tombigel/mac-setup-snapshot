@@ -190,6 +190,29 @@ github|GitHub Gist" 2
   [ "$status" -eq 0 ]
 }
 
+@test "wizard backup config step defaults to existing config" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" BACKUP_DIR="$BATS_TEST_TMPDIR/backup" bash -c '
+    . "$PROJECT_ROOT/lib/common.sh"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/endpoint.sh"
+    . "$PROJECT_ROOT/lib/config.sh"
+    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/wizard.sh"
+    mkdir -p "$BACKUP_DIR"
+    printf "existing\n" >"$BACKUP_DIR/mac-setup.config.yml"
+    mi_wizard_read() { printf "\n"; }
+    mi_args_init
+    MI_TARGET=local
+    MI_INVENTORY="$BACKUP_DIR/mac-setup.backup.yml"
+    mi_wizard_generate_configs
+    test "$(cat "$BACKUP_DIR/mac-setup.config.yml")" = "existing"
+    test "$(find "$BACKUP_DIR" -name "mac-setup.config.*.yml" | wc -l | tr -d " ")" -eq 0
+    printf "%s|%s\n" "$MI_CONFIG" "$MI_CONFIG_EXPLICIT"
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"$BATS_TEST_TMPDIR/backup/mac-setup.config.yml|true"* ]]
+}
+
 @test "wizard source args reflect current source booleans" {
   run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
     . "$PROJECT_ROOT/lib/common.sh"
@@ -240,6 +263,22 @@ github|GitHub Gist" 2
   [ "$status" -eq 0 ]
   [[ "$output" == *"--check-manual-brew true"* ]]
   [[ "$output" == *"--manual-brew-match ask"* ]]
+}
+
+@test "wizard manual app matching default accepts all cask candidates" {
+  run env PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+    . "$PROJECT_ROOT/lib/common.sh"
+    . "$PROJECT_ROOT/lib/args.sh"
+    . "$PROJECT_ROOT/lib/endpoint.sh"
+    . "$PROJECT_ROOT/lib/inventory.sh"
+    . "$PROJECT_ROOT/lib/wizard.sh"
+    mi_args_init
+    mi_wizard_read() { printf "\n"; }
+    mi_wizard_backup_options
+    printf "%s|%s|%s|%s\n" "$MI_MANUAL_BREW_MATCH" "$MI_MANUAL_BREW_MATCH_EXPLICIT" "$MI_CHECK_MANUAL_BREW" "$MI_CHECK_MANUAL_BREW_EXPLICIT"
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all|true|true|true"* ]]
 }
 
 @test "wizard restore preflight prompt can skip prepare before restore" {
